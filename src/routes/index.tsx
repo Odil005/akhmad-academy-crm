@@ -270,7 +270,7 @@ function Hero() {
 
 
       <div className="relative mx-auto max-w-7xl px-4 md:px-8">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
+        <div className="grid items-center gap-10 sm:grid-cols-[1.1fr_1fr]">
           <div className="max-w-2xl">
             <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-6xl">
               Bilimingizni
