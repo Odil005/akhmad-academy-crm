@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.teachers_for_student(uuid) FROM authenticated;
