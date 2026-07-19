@@ -46,7 +46,12 @@ function Logo({ size = "md" }: { size?: "sm" | "md" }) {
         src={logoAsset.url}
         alt="EduNest Learning Center logo"
         className={`${dim} rounded-full object-cover shadow-lg shadow-primary/20`}
+        decoding="async"
+        fetchPriority="high"
+        width={48}
+        height={48}
       />
+
       <div className="leading-tight">
         <div className="text-lg font-extrabold tracking-tight text-foreground">
           Edu<span className="text-primary">Nest</span>
@@ -306,6 +311,8 @@ function Hero() {
                 alt="EduNest Learning Center binosi"
                 className="h-full w-full object-cover"
                 loading="lazy"
+                decoding="async"
+
               />
             </div>
           </div>
@@ -376,7 +383,7 @@ function Courses() {
       });
   }, []);
   return (
-    <section id="courses" className="border-t border-border bg-background py-20">
+    <section id="courses" className="border-t border-border/60 bg-background/40 backdrop-blur-sm py-20 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="max-w-2xl">
           <span className="text-sm font-semibold uppercase tracking-widest text-primary">
@@ -422,7 +429,7 @@ function Courses() {
 
 function FeaturesSection() {
   return (
-    <section id="features" className="border-t border-border bg-secondary/30 py-20">
+    <section id="features" className="border-t border-border/60 bg-secondary/20 backdrop-blur-sm py-20 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
           <div>
@@ -554,7 +561,7 @@ function Contact() {
     });
   }, []);
   return (
-    <section id="contact" className="border-t border-border bg-background py-20">
+    <section id="contact" className="border-t border-border/60 bg-background/40 backdrop-blur-sm py-20 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div>
@@ -690,7 +697,7 @@ function Contact() {
 
 function Footer() {
   return (
-    <footer className="border-t border-border bg-background py-10">
+    <footer className="border-t border-border/60 bg-background/60 backdrop-blur-sm py-10">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-8">
         <Logo size="sm" />
         <p className="text-xs text-muted-foreground">
@@ -703,7 +710,7 @@ function Footer() {
 
 function Index() {
   return (
-    <main className="relative min-h-screen bg-background text-foreground">
+    <main className="relative min-h-screen bg-transparent text-foreground">
       <BackgroundAnimation variant="hero" />
       <Header />
       <Hero />

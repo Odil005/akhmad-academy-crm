@@ -278,12 +278,69 @@
 .animate-watermark { animation: watermark-pulse 12s ease-in-out infinite; }
 .animate-gradient { background-size: 200% 200%; animation: gradient-shift 12s ease infinite; }
 
+/* ---------------- Ambient global background ---------------- */
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+  background:
+    radial-gradient(1200px 800px at 10% -10%, oklch(0.92 0.14 92 / 0.28), transparent 60%),
+    radial-gradient(900px 700px at 110% 10%, oklch(0.88 0.16 78 / 0.22), transparent 60%),
+    radial-gradient(1000px 800px at 50% 120%, oklch(0.90 0.15 85 / 0.20), transparent 65%),
+    linear-gradient(180deg, oklch(1 0 0), oklch(0.985 0.008 85));
+}
+.ambient-bg::before,
+.ambient-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+.ambient-bg::before {
+  width: 42rem;
+  height: 42rem;
+  left: -8rem;
+  top: -6rem;
+  background: radial-gradient(circle at 30% 30%, oklch(0.90 0.18 88 / 0.55), transparent 65%);
+  animation: ambient-drift-1 26s ease-in-out infinite;
+}
+.ambient-bg::after {
+  width: 48rem;
+  height: 48rem;
+  right: -10rem;
+  bottom: -10rem;
+  background: radial-gradient(circle at 60% 40%, oklch(0.86 0.17 88 / 0.45), transparent 68%);
+  animation: ambient-drift-2 32s ease-in-out infinite;
+}
+
+@keyframes ambient-drift-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(80px, 60px, 0) scale(1.12); }
+}
+@keyframes ambient-drift-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-70px, -50px, 0) scale(1.1); }
+}
+
+/* ---------------- Performance utilities ---------------- */
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 800px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-page-in,
   .animate-float-orb,
   .animate-float-orb-2,
   .animate-watermark,
-  .animate-gradient {
+  .animate-gradient,
+  .ambient-bg::before,
+  .ambient-bg::after {
     animation: none !important;
   }
   *,
@@ -294,3 +351,4 @@
     transition-duration: 0.001ms !important;
   }
 }
+
