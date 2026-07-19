@@ -46,7 +46,12 @@ function Logo({ size = "md" }: { size?: "sm" | "md" }) {
         src={logoAsset.url}
         alt="EduNest Learning Center logo"
         className={`${dim} rounded-full object-cover shadow-lg shadow-primary/20`}
+        decoding="async"
+        fetchPriority="high"
+        width={48}
+        height={48}
       />
+
       <div className="leading-tight">
         <div className="text-lg font-extrabold tracking-tight text-foreground">
           Edu<span className="text-primary">Nest</span>
@@ -306,6 +311,8 @@ function Hero() {
                 alt="EduNest Learning Center binosi"
                 className="h-full w-full object-cover"
                 loading="lazy"
+                decoding="async"
+
               />
             </div>
           </div>
