@@ -24,7 +24,7 @@ export const setTelegramWebhook = createServerFn({ method: "POST" })
       body: JSON.stringify({
         url: data.url,
         secret_token: secret,
-        allowed_updates: ["message"],
+        allowed_updates: ["message", "edited_message", "callback_query"],
       }),
     });
     const body = (await resp.json().catch(() => ({}))) as { ok?: boolean; description?: string; result?: unknown };
