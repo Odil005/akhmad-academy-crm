@@ -303,7 +303,7 @@ function Hero() {
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+          <div className="relative mx-auto w-full max-w-md sm:max-w-none">
             <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/30 via-primary/10 to-transparent blur-2xl" />
             <div className="overflow-hidden rounded-3xl border border-primary/30 shadow-2xl shadow-primary/20">
               <img
