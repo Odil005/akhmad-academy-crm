@@ -297,7 +297,7 @@
   content: "";
   position: absolute;
   border-radius: 9999px;
-  filter: blur(60px);
+  filter: blur(40px);
   will-change: transform;
   transform: translate3d(0, 0, 0);
 }
