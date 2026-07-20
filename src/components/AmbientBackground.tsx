@@ -9,7 +9,15 @@
  */
 export function AmbientBackground() {
   return (
-    <div aria-hidden className="ambient-bg" />
+    <div aria-hidden className="ambient-bg">
+      <div className="ambient-grid" />
+      <div className="ambient-orb ambient-orb-1" />
+      <div className="ambient-orb ambient-orb-2" />
+      <div className="ambient-orb ambient-orb-3" />
+      <div className="ambient-conic" />
+      <div className="ambient-noise" />
+      <div className="ambient-vignette" />
+    </div>
   );
 }
 
