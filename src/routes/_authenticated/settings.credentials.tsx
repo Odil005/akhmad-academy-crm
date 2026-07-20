@@ -50,20 +50,30 @@ function CredentialsPage() {
       } else if (tab === "teacher") {
         const { data } = await supabase
           .from("teacher_credentials")
-          .select("id, username, access_code, teacher_user_id, teacher:profiles!teacher_credentials_teacher_user_id_fkey(full_name)")
+          .select("id, username, access_code, teacher_user_id")
           .order("created_at", { ascending: false });
+        const ids = (data ?? []).map((r: any) => r.teacher_user_id).filter(Boolean);
+        const { data: profs } = ids.length
+          ? await supabase.from("profiles").select("id, full_name").in("id", ids)
+          : { data: [] as Array<{ id: string; full_name: string | null }> };
+        const nameMap = new Map((profs ?? []).map((p: any) => [p.id, p.full_name]));
         setList((data ?? []).map((r: any) => ({
           id: r.id, username: r.username, access_code: r.access_code,
-          user_id: r.teacher_user_id, label: r.teacher?.full_name ?? "—",
+          user_id: r.teacher_user_id, label: nameMap.get(r.teacher_user_id) ?? "—",
         })));
       } else {
         const { data } = await supabase
           .from("admin_credentials")
-          .select("id, username, access_code, admin_user_id, admin:profiles!admin_credentials_admin_user_id_fkey(full_name)")
+          .select("id, username, access_code, admin_user_id")
           .order("created_at", { ascending: false });
+        const ids = (data ?? []).map((r: any) => r.admin_user_id).filter(Boolean);
+        const { data: profs } = ids.length
+          ? await supabase.from("profiles").select("id, full_name").in("id", ids)
+          : { data: [] as Array<{ id: string; full_name: string | null }> };
+        const nameMap = new Map((profs ?? []).map((p: any) => [p.id, p.full_name]));
         setList((data ?? []).map((r: any) => ({
           id: r.id, username: r.username, access_code: r.access_code,
-          user_id: r.admin_user_id, label: r.admin?.full_name ?? "—",
+          user_id: r.admin_user_id, label: nameMap.get(r.admin_user_id) ?? "—",
         })));
       }
     })();
