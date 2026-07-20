@@ -397,8 +397,8 @@
   .animate-float-orb-2,
   .animate-watermark,
   .animate-gradient,
-  .ambient-bg::before,
-  .ambient-bg::after {
+  .ambient-orb,
+  .ambient-conic {
     animation: none !important;
   }
   *,
