@@ -38,6 +38,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_authenticated/settings.contact'
 import { Route as AuthenticatedSettingsCredentialsRouteImport } from './routes/_authenticated/settings.credentials'
 import { Route as AuthenticatedSettingsDesignRouteImport } from './routes/_authenticated/settings.design'
+import { Route as AuthenticatedSettingsDirectorReportRouteImport } from './routes/_authenticated/settings.director-report'
 import { Route as AuthenticatedSettingsGradeTemplateRouteImport } from './routes/_authenticated/settings.grade-template'
 import { Route as AuthenticatedSettingsHomepageCoursesRouteImport } from './routes/_authenticated/settings.homepage-courses'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
@@ -209,6 +210,12 @@ const AuthenticatedSettingsDesignRoute =
     path: '/design',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsDirectorReportRoute =
+  AuthenticatedSettingsDirectorReportRouteImport.update({
+    id: '/director-report',
+    path: '/director-report',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsGradeTemplateRoute =
   AuthenticatedSettingsGradeTemplateRouteImport.update({
     id: '/grade-template',
@@ -350,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
+  '/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
   '/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
@@ -398,6 +406,7 @@ export interface FileRoutesByTo {
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
+  '/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
   '/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
@@ -449,6 +458,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/_authenticated/settings/design': typeof AuthenticatedSettingsDesignRoute
+  '/_authenticated/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
   '/_authenticated/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/_authenticated/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
@@ -500,6 +510,7 @@ export interface FileRouteTypes {
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
+    | '/settings/director-report'
     | '/settings/grade-template'
     | '/settings/homepage-courses'
     | '/settings/integrations'
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
+    | '/settings/director-report'
     | '/settings/grade-template'
     | '/settings/homepage-courses'
     | '/settings/integrations'
@@ -598,6 +610,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/contact'
     | '/_authenticated/settings/credentials'
     | '/_authenticated/settings/design'
+    | '/_authenticated/settings/director-report'
     | '/_authenticated/settings/grade-template'
     | '/_authenticated/settings/homepage-courses'
     | '/_authenticated/settings/integrations'
@@ -840,6 +853,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsDesignRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/director-report': {
+      id: '/_authenticated/settings/director-report'
+      path: '/director-report'
+      fullPath: '/settings/director-report'
+      preLoaderRoute: typeof AuthenticatedSettingsDirectorReportRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/grade-template': {
       id: '/_authenticated/settings/grade-template'
       path: '/grade-template'
@@ -980,6 +1000,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsContactRoute: typeof AuthenticatedSettingsContactRoute
   AuthenticatedSettingsCredentialsRoute: typeof AuthenticatedSettingsCredentialsRoute
   AuthenticatedSettingsDesignRoute: typeof AuthenticatedSettingsDesignRoute
+  AuthenticatedSettingsDirectorReportRoute: typeof AuthenticatedSettingsDirectorReportRoute
   AuthenticatedSettingsGradeTemplateRoute: typeof AuthenticatedSettingsGradeTemplateRoute
   AuthenticatedSettingsHomepageCoursesRoute: typeof AuthenticatedSettingsHomepageCoursesRoute
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
@@ -997,6 +1018,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsContactRoute: AuthenticatedSettingsContactRoute,
   AuthenticatedSettingsCredentialsRoute: AuthenticatedSettingsCredentialsRoute,
   AuthenticatedSettingsDesignRoute: AuthenticatedSettingsDesignRoute,
+  AuthenticatedSettingsDirectorReportRoute:
+    AuthenticatedSettingsDirectorReportRoute,
   AuthenticatedSettingsGradeTemplateRoute:
     AuthenticatedSettingsGradeTemplateRoute,
   AuthenticatedSettingsHomepageCoursesRoute:
