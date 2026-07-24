@@ -475,57 +475,6 @@ function FeaturesSection() {
   );
 }
 
-const CERTIFICATES: CarouselImage[] = [
-  { src: "https://images.unsplash.com/photo-1606159068539-43f36b99d1b2?w=1200&q=80", alt: "IELTS sertifikat", caption: "IELTS 8.0 — Cambridge" },
-  { src: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80", alt: "Xalqaro sertifikat", caption: "TOEFL iBT 110+" },
-  { src: "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=1200&q=80", alt: "O'qituvchilar sertifikati", caption: "TESOL / CELTA" },
-  { src: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=1200&q=80", alt: "Faxriy yorliq", caption: "Yilning eng yaxshi markazi 2024" },
-];
-
-const CENTER_PHOTOS: CarouselImage[] = [
-  { src: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=900&q=80", alt: "Kutubxona", caption: "Kutubxona" },
-  { src: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=900&q=80", alt: "Ma'ruza zali", caption: "Ma'ruza zali" },
-  { src: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=900&q=80", alt: "Laboratoriya", caption: "Laboratoriya" },
-  { src: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=900&q=80", alt: "Sinfxona", caption: "Zamonaviy sinfxona" },
-  { src: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=900&q=80", alt: "Kompyuter xonasi", caption: "IT xonasi" },
-  { src: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=900&q=80", alt: "Amfiteatr", caption: "Amfiteatr" },
-  { src: "https://images.unsplash.com/photo-1562774053-701939374585?w=900&q=80", alt: "Kirish", caption: "Bosh kirish" },
-  { src: "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=900&q=80", alt: "Dam olish zonasi", caption: "Dam olish zonasi" },
-];
-
-function Certificates() {
-  return (
-    <section id="certificates" className="relative mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
-      <div className="mb-10 text-center">
-        <div className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-primary">Sertifikatlar</div>
-        <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-          Xalqaro <span className="gold-text">tan olingan</span> yutuqlarimiz
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">
-          O'quvchilarimiz va o'qituvchilarimiz qo'lga kiritgan sertifikatlar
-        </p>
-      </div>
-      <ImageCarousel images={CERTIFICATES} intervalMs={4500} aspect="16/10" />
-    </section>
-  );
-}
-
-function CenterGallery() {
-  return (
-    <section id="gallery" className="relative py-16 md:py-24">
-      <div className="mx-auto mb-10 max-w-7xl px-4 text-center md:px-8">
-        <div className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-primary">Markazimiz</div>
-        <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-          Ta'lim <span className="gold-text">muhitimiz</span>
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">
-          Zamonaviy sinfxonalar va qulay ta'lim maydonlari
-        </p>
-      </div>
-      <InfiniteSlider images={CENTER_PHOTOS} speed={45} itemWidth="20rem" aspect="16/10" />
-    </section>
-  );
-}
 
 function Contact() {
   const [submitted, setSubmitted] = useState(false);
