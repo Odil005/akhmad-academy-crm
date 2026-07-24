@@ -18,7 +18,7 @@ import {
   Instagram,
 } from "lucide-react";
 import heroAsset from "@/assets/edunest-hero.png.asset.json";
-import logoAsset from "@/assets/edunest-logo.png.asset.json";
+import logoAsset from "@/assets/akhmad-logo.png.asset.json";
 import buildingAsset from "@/assets/edunest-building.png.asset.json";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -44,7 +44,7 @@ function Logo({ size = "md" }: { size?: "sm" | "md" }) {
     <a href="#home" className="flex items-center gap-3">
       <img
         src={logoAsset.url}
-        alt="EduNest Learning Center logo"
+        alt="Akhmad Academy logo"
         className={`${dim} rounded-full object-cover shadow-lg shadow-primary/20`}
         decoding="async"
         fetchPriority="high"
@@ -54,10 +54,10 @@ function Logo({ size = "md" }: { size?: "sm" | "md" }) {
 
       <div className="leading-tight">
         <div className="text-lg font-extrabold tracking-tight text-foreground">
-          Edu<span className="text-primary">Nest</span>
+          Akhmad <span className="text-primary">Academy</span>
         </div>
         <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground">
-          LEARNING CENTER
+          O'QUV MARKAZI
         </div>
       </div>
     </a>
@@ -275,7 +275,7 @@ function Hero() {
             <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-6xl">
               Bilimingizni
               <br />
-              <span className="text-primary">EduNest</span> bilan
+              <span className="text-primary">Akhmad Academy</span> bilan
               <br />
               rivojlantiring
             </h1>
@@ -308,7 +308,7 @@ function Hero() {
             <div className="overflow-hidden rounded-3xl border border-primary/30 shadow-2xl shadow-primary/20">
               <img
                 src={buildingAsset.url}
-                alt="EduNest Learning Center binosi"
+                alt="Akhmad Academy binosi"
                 className="h-full w-full object-cover"
                 loading="lazy"
                 decoding="async"
@@ -393,7 +393,7 @@ function Courses() {
             Sizga mos fanni tanlang
           </h2>
           <p className="mt-3 text-muted-foreground">
-            EduNest'da har bir o'quvchi o'z darajasi va maqsadiga mos fanni topa oladi.
+            Akhmad Academy'da har bir o'quvchi o'z darajasi va maqsadiga mos fanni topa oladi.
           </p>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -437,7 +437,7 @@ function FeaturesSection() {
               Imkoniyatlar
             </span>
             <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-              Nima uchun EduNest?
+              Nima uchun Akhmad Academy?
             </h2>
             <p className="mt-3 text-muted-foreground">
               Zamonaviy metodikalar, individual yondashuv va natijaga qaratilgan dars
@@ -701,7 +701,7 @@ function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-8">
         <Logo size="sm" />
         <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} EduNest Learning Center. Barcha huquqlar himoyalangan.
+          © {new Date().getFullYear()} Akhmad Academy. Barcha huquqlar himoyalangan.
         </p>
       </div>
     </footer>

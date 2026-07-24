@@ -1,6 +1,6 @@
 /**
  * Barcha authenticated sahifalar orqa fonida ishlaydigan premium fon:
- * - Katta EduNest watermark logo (10-15% opacity, animatsiyali)
+ * - Katta Akhmad Academy watermark logo (10-15% opacity, animatsiyali)
  * - Suzuvchi oltin orblar
  * - Ingichka particle nurlari
  * - Ustki gradient overlay
@@ -34,7 +34,7 @@ export function PremiumBackground() {
           filter: "blur(0.5px)",
         }}
       >
-        EduNest
+        Akhmad Academy
       </div>
 
       {/* Suzuvchi oltin orblar */}

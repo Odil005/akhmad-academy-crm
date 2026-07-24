@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
  * - Sekin harakatlanuvchi qora + oltin gradient
  * - 3 ta suzuvchi oltin glow orb
  * - Nozik floating particles (mobil qurilmalarda kamaytiriladi)
- * - Markazda katta EduNest watermark logosi (5–10% opacity)
+ * - Markazda katta Akhmad Academy watermark logosi (5–10% opacity)
  * - `prefers-reduced-motion` qo'llab-quvvatlanadi (animatsiyalar to'xtaydi)
  * - `pointer-events-none` va `-z-10` — layoutga ta'sir qilmaydi
  *
@@ -68,7 +68,7 @@ export function BackgroundAnimation({ variant = "default", className = "", posit
         }}
       />
 
-      {/* Katta EduNest watermark */}
+      {/* Katta Akhmad Academy watermark */}
       <div
         className={reduced ? "" : "animate-watermark"}
         style={{
@@ -91,7 +91,7 @@ export function BackgroundAnimation({ variant = "default", className = "", posit
           filter: "blur(0.5px)",
         }}
       >
-        EduNest
+        Akhmad Academy
       </div>
 
       {/* Suzuvchi oltin orblar */}

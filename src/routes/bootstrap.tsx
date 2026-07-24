@@ -11,7 +11,7 @@ export const Route = createFileRoute("/bootstrap")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Director bootstrap · EduNest" },
+      { title: "Director bootstrap · Akhmad Academy" },
       { name: "description", content: "Birinchi director akkaunti yaratish" },
       { name: "robots", content: "noindex, nofollow" },
     ],

@@ -5,7 +5,7 @@ import { MessageSquare, Save, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 const DEFAULT_TEMPLATE =
-  "Assalomu alaykum! Farzandingiz {student} bugungi {subject} darsida {rating} baho oldi ({score}/{max}). Sana: {date}. EduNest.";
+  "Assalomu alaykum! Farzandingiz {student} bugungi {subject} darsida {rating} baho oldi ({score}/{max}). Sana: {date}. Akhmad Academy.";
 
 export const Route = createFileRoute("/_authenticated/settings/grade-template")({
   component: GradeTemplatePage,
