@@ -1,49 +1,74 @@
-# Reja: EduNest rasmlarni olib tashlash + rasmdagi ko'k/qizil/yashil dizayn
 
-Rasm asosida: yuqori nav ko'k urg'uli oq fon, aktiv menyu ko'k plyonka, tugmalar ko'k, ogohlantirish/qarzdorlik qizil, muvaffaqiyat yashil, darslar taqvimi qizil kvadratchalar.
+# Akhmad Academy — To'liq avtomatlashtirish
 
-## 1) EduNest bino rasmlarini olib tashlash
-- `src/routes/index.tsx` hero'dan `edunest-hero`/`edunest-building` rasmlarini olib tashlash. O'ng ustunga Akhmad Academy logotipi va qisqa mazmun kartasi qo'yiladi (bo'sh joy qolmasin).
-- `src/components/MediaCarousels.tsx` bosh sahifadan chiqariladi.
-- Foydalanilmagan asset pointerlar `src/assets/edunest-hero.png.asset.json` va `src/assets/edunest-building.png.asset.json` `lovable-assets delete` bilan o'chiriladi.
+Tizim bitta o'quv markaz uchun optimallashtiriladi. Uchta yirik blok bir migratsiya + kod paketi bilan yakunlanadi.
 
-## 2) Yangi rang tizimi — ko'k + qizil + yashil (rasmdagi kabi)
-`src/styles.css` yangilanadi (light va dark ikkalasi):
+## 1) Kunlik direktor hisoboti (avtomatik)
 
-- `--primary` = ko'k `oklch(0.55 0.20 260)` (nav aktiv, asosiy tugma "Guruhga qo'shish", TO'LOV chip)
-- `--accent` = yashil `oklch(0.62 0.17 150)` (muvaffaqiyat, "To'langan" legendasi, faol status nuqtasi)
-- `--destructive` = qizil `oklch(0.60 0.22 25)` (qarzdorlik chip, "Pul qaytarish", "Baho: 0.00" pill, taqvim qizil kunlari)
-- `--background` = deyarli oq `oklch(0.99 0.005 250)`; `--card` = oq; `--foreground` = to'q kulrang
-- `--border`/`--input` yumshoq ko'k-kulrang; `--ring` ko'k
-- `.gold-text` yordamchisi ko'k-yashil gradient matnga aylantiriladi
+**Ma'lumotlar bazasi**
+- `director_daily_reports` jadval: `report_date`, `revenue`, `expenses`, `profit`, `new_leads`, `new_students`, `attendance_rate`, `debtors_count`, `debtors_amount`, `top_teachers` jsonb, `payload` jsonb, `sent_at`, `telegram_message_id`.
+- `director_report_recipients` jadval: `user_id`, `telegram_chat_id`, `is_active` — direktor(lar) uchun chat_id ro'yxati.
+- RLS: faqat director/admin roli o'qiy oladi; yozishni service_role qiladi.
 
-## 3) Yuqori navigatsiya rasmdagi ko'rinishga o'tkaziladi
-`src/routes/_authenticated/route.tsx`:
-- Fon `glass-strong` (qora shisha) o'rniga oq/deyarli oq, past soya bilan
-- Aktiv menyu — ko'k urg'uli plyonka + ko'k matn (yoki ko'k fon + oq matn), passiv menyu neytral kulrang
-- Yuqori o'ng burchakda ko'k "TO'LOV" tugmasi (yorliq: To'lov qilish, `/payments`ga olib boradi)
-- Logotip yonida "Akhmad Academy" matni to'q, `gold-text` o'rniga ko'k gradient
+**Server route (cron target)**
+- `src/routes/api/public/cron.daily-report.ts` — har kuni 21:00 (Asia/Tashkent) da chaqiriladi.
+- Kecha bo'yicha to'lov, xarajat, davomat, yangi lid/o'quvchi statistikasini yig'adi.
+- Jarvis (Gemini) orqali qisqacha uzbek tilida sharh yozadi (top-o'qituvchi, qarzdorlar ro'yxati, kunlik xulosa).
+- Har direktorga Telegram orqali batafsil xabar + tugmalar ("To'liq hisobot", "Qarzdorlar", "Lidlar") jo'natadi.
 
-## 4) O'quvchi profili sahifasi (`students.$id.tsx`)
-Rasm bilan aynan mos kelishi uchun:
-- Chap kartada "Baho: 0.00" qizil kontur pill, ID qora, telefon oddiy
-- "Guruhga qo'shish" — ko'k to'liq tugma, "To'lov qilish" — ko'k kontur, "Pul qaytarish" — qizil kontur
-- O'ng karta sarlavhasi ko'k plyonka: chapda yashil doira + `-250 000 so'm`, o'ngda "Faol" tanlagichi (dropdown chevron)
-- Karta ichi oq; "Baho: 0.00" qizil kontur pill; Dars kunlari uchun kulrang yumshoq chiplar
-- Darslar taqvimida dars kunlari qizil kvadratchalar, tanlangan sana ko'k ramkali; legenda: yashil "To'langan", qizil "Qarzdor", kulrang "Kutilayotgan"
+**pg_cron**
+- `daily_director_report_21` — `0 16 * * *` (UTC = 21:00 Toshkent), `apikey` header + anon key bilan chaqiradi.
 
-## 5) Ambient fon
-`src/components/AmbientBackground.tsx` va `src/styles.css` keyframe'lari:
-- Orblar: bittasi ko'k, bittasi yashil, bittasi qizil — juda past opacity (0.10–0.14), katta blur — oq fon ustida yumshoq ko'rinadi
-- Grain va vignette engillashtiriladi (light rejim uchun); konik shimmer opacity kamaytiriladi
+## 2) Ota-ona ↔ Jarvis (Telegram) to'liq avtomatlashtirish
 
-## Ta'sir qilinadigan fayllar
-- `src/routes/index.tsx` — rasm olib tashlanadi, hero qayta muvozanatlanadi
-- `src/components/MediaCarousels.tsx` chaqirig'i olib tashlanadi (fayl saqlanadi)
-- `src/styles.css` — butun palitra qayta yoziladi, keyframe rang qiymatlari yangilanadi, `.gold-text` gradienti almashtiriladi
-- `src/components/AmbientBackground.tsx` — orb ranglari
-- `src/routes/_authenticated/route.tsx` — top nav uslubi (oq fon, ko'k aktiv, TO'LOV tugmasi)
-- `src/routes/_authenticated/students.$id.tsx` — chip/tugma ranglari, karta sarlavhasi ko'k, taqvim qizil kunlari va legenda
-- `src/assets/edunest-hero.png.asset.json`, `src/assets/edunest-building.png.asset.json` — `lovable-assets delete` orqali o'chiriladi
+**Onboarding kuchaytiriladi**
+- Mavjud telegram webhook'ga davom: ota-ona ism+familiya+tel raqamini kiritganda avtomatik `students` bilan bog'lanadi.
+- `parent_chat_links` mavjud (parent_telegram_chat_id ustunlari orqali). Yangi bo'lsa — `parent_link_tokens`ni admin panelidan yaratmasdan ham telefon orqali topish ishlaydi (allaqachon mavjud, kengaytiriladi).
 
-Logotip o'zgarmaydi (Akhmad Academy navy+gold aylanma logo hamma joyda qoladi), atrofidagi UI faqat ko'k/qizil/yashil palitraga o'tadi.
+**Kunlik avtomatik xabarlar (ota-onaga)**
+- `src/routes/api/public/cron.parent-digest.ts` har kuni 20:00 da:
+  - Bugungi davomat holati (bor / yo'q / kech qoldi)
+  - Bugungi baho(lar)
+  - Xulq bahosi (agar bugungi bo'lsa)
+  - To'lov qolgani va muddati (7 kun / 3 kun / kech ogohlantirishlar bilan)
+- Har bir xabar `parent_notifications`ga yoziladi (deduplikatsiya uchun `kind + date` unique index).
+
+**Trigger-based real vaqt xabarlar**
+- Yangi `payment` qo'shilganda / `paid` bo'lganda → trigger `parent_notifications`ga qatorlar qo'yadi.
+- Yangi `grade` / `behavior_evaluation` / `attendance` (absent) → trigger.
+- Har 5 daqiqada `cron.notifications-dispatch.ts` `pending` yozuvlarni Telegramga jo'natadi.
+
+**Jarvis suhbat (ota-ona)**
+- Telegram webhook: ota-ona xabari erkin matnda kelsa (menyu tugmalari o'rniga) — Gemini AI o'sha bolaning kontekstini (guruh, o'qituvchilar, so'nggi baho/davomat/to'lov) berib javob beradi.
+- Menyu tugmalari saqlanadi: "📊 Hozirgi holat", "💰 To'lov", "📅 Bugungi dars", "✍️ O'qituvchiga xabar", "🤖 Jarvis'ga so'rov".
+
+## 3) SIP Trunk / IP telefoniya uchun tayyor joy
+
+**Ma'lumotlar bazasi**
+- `sip_config` jadval (singleton): `provider` (masalan `beeline`, `uztelecom`, `mango`, `custom`), `sip_uri`, `username`, `auth_id`, `caller_id`, `webhook_secret`, `is_active`, `notes`.
+- `sip_extensions` jadval: xodim → ichki raqam ma'lumoti.
+- `calls` jadvali mavjud — kengaytiramiz: `sip_call_id`, `trunk`, `answered_at`, `hangup_cause`, `cost`, `recording_storage_path`.
+
+**Server routes**
+- `src/routes/api/public/telephony.sip-webhook.ts` — SIP provayder eventlari (`ringing`, `answered`, `hangup`, `recording_ready`) uchun HMAC-signed endpoint.
+- `src/routes/api/public/telephony.click-to-call.ts` — CRM ichidan qo'ng'iroq boshlash (autentifikatsiyalangan). Hozircha stub: `sip_config.is_active` bo'lsa provayder API'siga POST, aks holda `not_configured` qaytaradi.
+- Mavjud `telephony.outbox.ts` va `telephony.webhook.ts` shu doiraga moslashtiriladi.
+
+**Sozlamalar UI**
+- `src/routes/_authenticated/settings.telephony.tsx` — SIP config formasi (direktor uchun): trunk parametrlari, ichki raqamlar, webhook URL ko'rsatiladi. Test tugmasi.
+
+## 4) Umumiy
+
+- Yagona migratsiya: barcha jadvallar, GRANT'lar, RLS, triggerlar, indekslar.
+- pg_cron ikkita yangi ish: kunlik direktor hisoboti va ota-ona digest + har 5 daq notif-dispatch.
+- Nav'ga qo'shiladi: **Sozlamalar → Telefoniya**, **Sozlamalar → Direktor hisoboti (qabul qiluvchilar)**.
+- Barcha AI chaqiruvlari `google/gemini-2.5-flash` orqali Lovable AI Gateway'da.
+
+## Texnik izohlar
+
+- Cron endpointlar `/api/public/*` — anon key `apikey` header bilan.
+- Telegram jo'natish `sendMessage` va `parse_mode: HTML`.
+- SIP provider sirlar `add_secret` orqali (keyingi bosqichda user o'zi kiritadi) — kod hozirdan `process.env.SIP_*` o'qishga tayyor.
+- Ota-ona real-time notif triggerlari `payments`, `grades`, `behavior_evaluations`, `attendance` jadvallariga qo'shiladi (idempotent — INSERT yoki status o'zgarganda).
+
+Tayyor bo'lsa, "ha" desangiz — bitta migratsiya + fayllar to'plamini yozaman.
