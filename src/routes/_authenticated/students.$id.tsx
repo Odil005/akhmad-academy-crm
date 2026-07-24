@@ -160,30 +160,63 @@ function StudentProfile() {
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-2xl font-extrabold text-primary">{initials}</div>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-2xl font-extrabold tracking-tight">{student.profile?.full_name || "—"}</h1>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-primary/40 px-2.5 py-0.5 text-xs font-semibold text-primary">{enrollments.length} fan</span>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-destructive/40 px-2.5 py-0.5 text-xs font-semibold text-destructive">Baho: 0.00</span>
                 <span className="text-xs text-muted-foreground">ID: {student.id.slice(0, 8)}</span>
               </div>
             </div>
           </div>
 
-          <div className="grid gap-2 text-sm">
-            <Row label="Telefon raqam" value={student.profile?.phone || "—"} />
-            <Row label="Ota-ona F.I.O" value={student.parent_full_name || "—"} />
-            <Row label="Ota-ona tel" value={student.parent_phone || "—"} />
-            <Row label="Telegram chat ID" value={student.parent_telegram_chat_id || "—"} />
-            <Row label="Ilova holati" value={student.parent_telegram_chat_id ? "Faol" : "Ilova ishlatmaydi"} />
+          <div className="space-y-3 text-sm">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">Telefon raqam</div>
+              <div className="font-bold">{student.profile?.phone || "—"}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">Ilova holati</div>
+              <div className="font-semibold">{student.parent_telegram_chat_id ? "Faol" : "Ilova ishlatmaydi"}</div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <ActionBtn onClick={() => setNoteOpen(true)} icon={Pencil}>Qo'shimcha ma'lumot</ActionBtn>
-            <ActionBtn onClick={() => setAssignOpen(true)} icon={UserPlus} primary>+ Guruhga qo'shish</ActionBtn>
-            <ActionBtn onClick={() => setPayOpen("pay")} icon={Wallet}>To'lov qilish</ActionBtn>
-            <ActionBtn onClick={() => setPayOpen("refund")} icon={RefreshCcw}>Pul qaytarish</ActionBtn>
-            <ActionBtn onClick={() => setParentOpen(true)} icon={Users}>Ota-ona tahrirlash</ActionBtn>
-            <ActionBtn onClick={sendTelegram} icon={MessageSquare}>Ota-onaga xabar</ActionBtn>
-            <ActionBtn onClick={generateTgLink} icon={Send}>{tgLoading ? "..." : "Telegram havola"}</ActionBtn>
+          <div className="space-y-2 pt-2">
+            <button onClick={() => setNoteOpen(true)} className="w-full rounded-lg border border-primary/40 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-primary hover:bg-primary/5">
+              O'quvchiga qo'shimcha ma'lumot qo'shish
+            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => setAssignOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-xs font-semibold uppercase text-primary-foreground">
+                <UserPlus className="h-3.5 w-3.5" /> Guruhga qo'shish
+              </button>
+              <button onClick={() => setPayOpen("pay")} className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 px-3 py-2.5 text-xs font-semibold uppercase text-primary hover:bg-primary/5">
+                <Wallet className="h-3.5 w-3.5" /> To'lov qilish
+              </button>
+            </div>
+            <button onClick={() => setPayOpen("refund")} className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/40 px-3 py-2.5 text-xs font-semibold uppercase text-destructive hover:bg-destructive/5">
+              <RefreshCcw className="h-3.5 w-3.5" /> Pul qaytarish
+            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={sendTelegram} className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold hover:border-primary/50" title="Ota-onaga xabar">
+                <MessageSquare className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => setParentOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold hover:border-primary/50" title="Ota-ona tahrirlash">
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <button onClick={generateTgLink} className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:border-primary/50">
+              <Send className="h-3 w-3" /> {tgLoading ? "..." : "Telegram havola yaratish"}
+            </button>
           </div>
+
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-muted/40 px-3 py-2">
+            <span className="text-xs uppercase text-muted-foreground">Holati</span>
+            <select
+              value={status}
+              onChange={(e) => changeStatus(e.target.value as StudentStatus)}
+              className={`rounded-lg border-transparent px-3 py-1.5 text-xs font-semibold ${meta.tint}`}
+            >
+              {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
+            </select>
+          </div>
+
           {tgLink && (
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
               <div className="mb-1 font-bold text-primary">Ota-ona uchun havola (7 kun amal qiladi)</div>
@@ -200,103 +233,132 @@ function StudentProfile() {
           )}
         </div>
 
-        {/* RIGHT: balance + status + calendar */}
-        <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-primary/10 p-3">
-            <div className={`rounded-full px-3 py-1 text-sm font-extrabold ${balance < 0 ? "bg-destructive/15 text-destructive" : "bg-emerald-500/15 text-emerald-600"}`}>
-              Balans: {balance >= 0 ? "+" : ""}{balance.toLocaleString()} so'm
+        {/* RIGHT: per-enrollment cards */}
+        <div className="space-y-5">
+          {enrollments.length === 0 && (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center">
+              <p className="text-sm text-muted-foreground">Hech qaysi guruhga yozilmagan</p>
+              <button onClick={() => setAssignOpen(true)} className="mt-3 inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
+                <UserPlus className="h-3.5 w-3.5" /> Guruhga qo'shish
+              </button>
             </div>
-            <select
-              value={status}
-              onChange={(e) => changeStatus(e.target.value as StudentStatus)}
-              className={`rounded-lg border-transparent px-3 py-1.5 text-xs font-semibold ${meta.tint}`}
-            >
-              {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="rounded-lg bg-muted/40 p-2.5">
-              <div className="text-muted-foreground">Jami oylik</div>
-              <div className="font-bold">{totalMonthlyFee.toLocaleString()} so'm</div>
-            </div>
-            <div className="rounded-lg bg-muted/40 p-2.5">
-              <div className="text-muted-foreground">Fanlar</div>
-              <div className="font-bold">{enrollments.length} ta</div>
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-2 text-center text-sm font-bold">Darslar taqvimi ({monthCalendar.label})</div>
-            <div className="grid grid-cols-7 gap-1.5">
-              {monthCalendar.days.map((d, i) => {
-                if (!d) return <div key={i} />;
-                const isLessonDay = lessonDaysSet.has(d.dow);
-                const isToday = d.isToday;
-                return (
-                  <div
-                    key={i}
-                    className={`flex aspect-square items-center justify-center rounded-md text-xs font-bold ${
-                      isLessonDay ? "bg-primary text-primary-foreground" : "bg-secondary/40 text-foreground/60"
-                    } ${isToday ? "ring-2 ring-destructive" : ""}`}
-                  >
-                    {String(d.n).padStart(2, "0")}
+          )}
+          {enrollments.map((e) => {
+            const grpLessons = lessons.filter((l) => l.group_id === e.group_id);
+            const fee = Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0);
+            const paidForGroup = payments
+              .filter((p) => p.status === "paid" && (p.note ?? "").includes(e.group?.name ?? "___"))
+              .reduce((s, p) => s + Number(p.amount), 0);
+            const groupBalance = paidForGroup - fee;
+            const start = new Date(e.started_at);
+            const endGuess = new Date(start); endGuess.setMonth(endGuess.getMonth() + 6);
+            const nextPay = new Date(); nextPay.setMonth(nextPay.getMonth() + 1); nextPay.setDate(1);
+            const grpDays = new Set(grpLessons.map((l) => l.day_of_week % 7));
+            return (
+              <div key={e.id} className="overflow-hidden rounded-2xl border border-border bg-card">
+                {/* header */}
+                <div className="flex items-center justify-between gap-2 bg-primary/90 px-4 py-3 text-primary-foreground">
+                  <div className="inline-flex items-center gap-2 rounded-md bg-emerald-500/20 px-2.5 py-1 text-sm font-extrabold">
+                    <Wallet className="h-4 w-4" />
+                    {groupBalance >= 0 ? "+" : ""}{groupBalance.toLocaleString()} so'm
                   </div>
-                );
-              })}
-            </div>
-            <div className="mt-2 flex justify-center gap-3 text-[10px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-primary" /> Dars kuni</span>
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-destructive" /> Bugun</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Enrollments (subjects/groups) */}
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-bold">Fanlar / guruhlar</h3>
-          <button onClick={() => setAssignOpen(true)} className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
-            <UserPlus className="h-3.5 w-3.5" /> Yangi qo'shish
-          </button>
-        </div>
-        {enrollments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Hech qaysi guruhga yozilmagan</p>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {enrollments.map((e) => {
-              const grpLessons = lessons.filter((l) => l.group_id === e.group_id);
-              return (
-                <div key={e.id} className="rounded-xl border border-border bg-background p-4">
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-lg font-extrabold uppercase tracking-wide">{e.group?.subject?.name || "—"}</div>
-                      <div className="text-xs text-muted-foreground">{e.group?.name}</div>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-md px-3 py-1 text-xs font-bold ${STATUS_META[status].tint}`}>{STATUS_META[status].label}</span>
                     <button
                       onClick={() => removeEnrollment(e.id)}
-                      className="grid h-8 w-8 place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
+                      className="grid h-8 w-8 place-items-center rounded-md hover:bg-white/10"
                       title="Guruhdan chiqarish"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  <div className="grid gap-1 text-xs">
-                    <Row label="O'qituvchi" value={e.group?.teacher?.full_name || "—"} />
-                    <Row label="Boshlangan" value={new Date(e.started_at).toLocaleDateString()} />
-                    <Row label="Oylik" value={`${Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0).toLocaleString()} so'm`} />
-                    <Row label="Dars vaqti" value={
-                      grpLessons.length
-                        ? grpLessons.map((l) => `${DAYS_UZ[l.day_of_week % 7].slice(0, 3)} ${l.start_time.slice(0, 5)}`).join(", ")
-                        : "—"
-                    } />
+                </div>
+
+                <div className="space-y-3 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-extrabold uppercase leading-tight tracking-wide">{e.group?.subject?.name || e.group?.name || "—"}</h3>
+                    <span className="shrink-0 rounded-full border border-destructive/40 px-2.5 py-0.5 text-xs font-semibold text-destructive">Baho: 0.00</span>
+                  </div>
+
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Guruh intervali : </span>
+                    <span className="font-semibold">{fmtDate(start)}/{fmtDate(endGuess)}</span>
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 text-sm">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="font-semibold">{e.group?.teacher?.full_name || "—"}</span>
+                  </div>
+
+                  {grpLessons.length > 0 && (
+                    <div className="text-xs">
+                      <span className="text-muted-foreground">Dars vaqti : </span>
+                      <span className="font-semibold">{grpLessons[0].start_time.slice(0, 5)}–{grpLessons[0].end_time.slice(0, 5)}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="mb-1.5 text-xs text-muted-foreground">Dars kunlari :</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {grpLessons.map((l, i) => (
+                        <span key={i} className="rounded-md bg-secondary/60 px-2.5 py-0.5 text-xs font-semibold">{DAYS_UZ[l.day_of_week % 7]}</span>
+                      ))}
+                      {grpLessons.length === 0 && <span className="text-xs text-muted-foreground">—</span>}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Boshlangan sana</div>
+                      <div className="font-semibold">📅 {fmtDate(start)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">O'chiriladigan sana</div>
+                      <div className="font-semibold">📅 {fmtDate(endGuess)}</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Keyingi to'lov</div>
+                      <div className="font-semibold">⏰ {fmtDate(nextPay)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">To'lov narxi</div>
+                      <div className="font-bold text-primary">{fee.toLocaleString()} so'm</div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-border pt-3">
+                    <div className="mb-2 text-center text-sm font-bold">Darslar taqvimi ({monthCalendar.label})</div>
+                    <div className="grid grid-cols-7 gap-1.5">
+                      {monthCalendar.days.map((d, i) => {
+                        if (!d) return <div key={i} />;
+                        const isLessonDay = grpDays.has(d.dow);
+                        const isToday = d.isToday;
+                        return (
+                          <div
+                            key={i}
+                            className={`flex aspect-square items-center justify-center rounded-md text-xs font-bold ${
+                              isLessonDay ? "bg-destructive text-destructive-foreground" : "bg-secondary/40 text-foreground/60"
+                            } ${isToday ? "ring-2 ring-primary" : ""}`}
+                          >
+                            {String(d.n).padStart(2, "0")}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-2 flex flex-wrap justify-center gap-3 text-[10px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> To'langan</span>
+                      <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-destructive" /> Qarzdor</span>
+                      <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-secondary" /> Kutilayotgan</span>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Payments history */}
