@@ -67,7 +67,7 @@ function MarketplacePage() {
         <h1 className="flex items-center gap-2 text-2xl font-extrabold md:text-3xl">
           <ShoppingBag className="h-6 w-6 text-primary" /> Marketplace
         </h1>
-        <p className="text-sm text-muted-foreground">EduNest do'koni — kitoblar, ichimliklar, kanstovarlar va boshqalar</p>
+        <p className="text-sm text-muted-foreground">Akhmad Academy do'koni — kitoblar, ichimliklar, kanstovarlar va boshqalar</p>
       </header>
 
       {isStaff && revenue.length > 0 && (

@@ -31,7 +31,7 @@ export const RATINGS = [
 ] as const;
 
 const DEFAULT_TEMPLATE =
-  "Assalomu alaykum! Farzandingiz {student} bugungi {subject} darsida {rating} baho oldi ({score}/{max}). Sana: {date}. EduNest.";
+  "Assalomu alaykum! Farzandingiz {student} bugungi {subject} darsida {rating} baho oldi ({score}/{max}). Sana: {date}. Akhmad Academy.";
 
 const DOW = ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"];
 

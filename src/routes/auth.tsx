@@ -7,8 +7,8 @@ import { BackgroundAnimation } from "@/components/BackgroundAnimation";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Kirish — EduNest CRM" },
-      { name: "description", content: "EduNest CRM tizimiga kirish yoki ro'yxatdan o'tish." },
+      { title: "Kirish — Akhmad Academy CRM" },
+      { name: "description", content: "Akhmad Academy CRM tizimiga kirish yoki ro'yxatdan o'tish." },
     ],
   }),
   component: AuthPage,
@@ -99,7 +99,7 @@ function AuthPage() {
               <GraduationCap className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">EduNest CRM</h1>
+              <h1 className="text-xl font-bold text-foreground">Akhmad Academy CRM</h1>
               <p className="text-xs text-muted-foreground">Kabinetga kirish</p>
             </div>
           </div>

@@ -15,7 +15,7 @@ type SettingRow = { key: string; value: any; scope: string };
 
 const KEYS = [
   { key: "telegram_bot", label: "Telegram bot token", scope: "director", field: "token", placeholder: "123456:ABC..." },
-  { key: "telegram_templates", label: "Telegram xabar shabloni (baholash)", scope: "admin", field: "behavior", placeholder: "Assalomu alaykum. Farzandingiz [Name] xulqi: [Rating]. Izoh: [Comment]. EduNest." },
+  { key: "telegram_templates", label: "Telegram xabar shabloni (baholash)", scope: "admin", field: "behavior", placeholder: "Assalomu alaykum. Farzandingiz [Name] xulqi: [Rating]. Izoh: [Comment]. Akhmad Academy." },
   { key: "sms_provider", label: "SMS provayder API kaliti", scope: "director", field: "api_key", placeholder: "eskiz-api-key" },
   { key: "sms_templates", label: "SMS shablon (to'lov eslatmasi)", scope: "admin", field: "payment_reminder", placeholder: "Hurmatli [ParentName], farzandingiz uchun [Amount] so'm to'lov kutilmoqda." },
 ];
@@ -186,7 +186,7 @@ function TelegramTestCard() {
   const send = useServerFn(sendParentTelegram);
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState<string>("");
-  const [text, setText] = useState<string>("Assalomu alaykum. Bu EduNest test xabari.");
+  const [text, setText] = useState<string>("Assalomu alaykum. Bu Akhmad Academy test xabari.");
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
