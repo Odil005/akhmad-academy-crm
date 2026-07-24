@@ -181,12 +181,6 @@ function Hero() {
       id="home"
       className="relative overflow-hidden pb-16 pt-28 md:pb-24 md:pt-32"
     >
-      {/* Background image with slow zoom */}
-      <div
-        className="absolute inset-0 -z-10 bg-cover bg-center hero-bg-zoom"
-        style={{ backgroundImage: `url(${heroAsset.url})` }}
-        aria-hidden
-      />
       {/* Animated gradient overlay */}
       <div className="absolute inset-0 -z-10 hero-gradient-shift" aria-hidden />
       {/* Floating glow orbs */}
@@ -200,16 +194,12 @@ function Hero() {
       <BackgroundAnimation variant="hero" position="absolute" />
 
       <style>{`
-        @keyframes heroZoom {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.08); }
-        }
         @keyframes heroGradient {
           0%, 100% {
-            background: linear-gradient(90deg, oklch(0.14 0.01 60 / 0.92) 0%, oklch(0.14 0.01 60 / 0.75) 55%, oklch(0.14 0.01 60 / 0.55) 100%);
+            background: linear-gradient(90deg, oklch(1 0 0 / 0) 0%, oklch(0.55 0.20 260 / 0.06) 55%, oklch(0.62 0.17 150 / 0.05) 100%);
           }
           50% {
-            background: linear-gradient(120deg, oklch(0.14 0.01 60 / 0.95) 0%, oklch(0.16 0.02 70 / 0.72) 55%, oklch(0.14 0.01 60 / 0.5) 100%);
+            background: linear-gradient(120deg, oklch(0.62 0.17 150 / 0.05) 0%, oklch(0.55 0.20 260 / 0.08) 55%, oklch(0.70 0.22 25 / 0.05) 100%);
           }
         }
         @keyframes orbFloat1 {
@@ -229,7 +219,6 @@ function Hero() {
           0% { background-position: 0% 0%; }
           100% { background-position: 200% 0%; }
         }
-        .hero-bg-zoom { animation: heroZoom 24s ease-in-out infinite; }
         .hero-gradient-shift { animation: heroGradient 14s ease-in-out infinite; }
         .hero-orb {
           position: absolute;
@@ -240,28 +229,28 @@ function Hero() {
         .hero-orb-1 {
           top: 10%; right: 10%;
           width: 380px; height: 380px;
-          background: radial-gradient(circle, oklch(0.86 0.17 92 / 0.35), transparent 70%);
+          background: radial-gradient(circle, oklch(0.60 0.22 260 / 0.28), transparent 70%);
           animation: orbFloat1 18s ease-in-out infinite;
         }
         .hero-orb-2 {
           bottom: 5%; left: 5%;
           width: 320px; height: 320px;
-          background: radial-gradient(circle, oklch(0.86 0.17 92 / 0.25), transparent 70%);
+          background: radial-gradient(circle, oklch(0.65 0.18 150 / 0.24), transparent 70%);
           animation: orbFloat2 22s ease-in-out infinite;
         }
         .hero-orb-3 {
           top: 40%; left: 40%;
           width: 260px; height: 260px;
-          background: radial-gradient(circle, oklch(0.72 0.19 45 / 0.22), transparent 70%);
+          background: radial-gradient(circle, oklch(0.70 0.22 25 / 0.20), transparent 70%);
           animation: orbFloat3 20s ease-in-out infinite;
         }
         .hero-shimmer {
-          background-image: linear-gradient(110deg, transparent 30%, oklch(0.86 0.17 92 / 0.08) 50%, transparent 70%);
+          background-image: linear-gradient(110deg, transparent 30%, oklch(0.55 0.20 260 / 0.06) 50%, transparent 70%);
           background-size: 200% 100%;
           animation: heroShimmer 12s linear infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-          .hero-bg-zoom, .hero-gradient-shift, .hero-orb, .hero-shimmer { animation: none; }
+          .hero-gradient-shift, .hero-orb, .hero-shimmer { animation: none; }
         }
       `}</style>
 
@@ -301,20 +290,32 @@ function Hero() {
           </div>
 
           <div className="relative mx-auto w-full max-w-md sm:max-w-none">
-            <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/30 via-primary/10 to-transparent blur-2xl" />
-            <div className="overflow-hidden rounded-3xl border border-primary/30 shadow-2xl shadow-primary/20">
-              <img
-                src={buildingAsset.url}
-                alt="Akhmad Academy binosi"
-                className="h-full w-full object-cover"
-                loading="lazy"
-                decoding="async"
-
-              />
+            <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/25 via-accent/15 to-destructive/15 blur-2xl" />
+            <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-primary/25 bg-card/70 p-10 shadow-2xl shadow-primary/10 backdrop-blur">
+              <div className="relative flex flex-col items-center gap-6 text-center">
+                <div className="absolute -inset-8 -z-10 rounded-full bg-gradient-to-br from-primary/20 via-accent/10 to-destructive/10 blur-2xl" />
+                <img
+                  src={logoAsset.url}
+                  alt="Akhmad Academy logo"
+                  className="h-40 w-40 rounded-full object-cover shadow-xl shadow-primary/30 md:h-56 md:w-56"
+                  decoding="async"
+                  width={224}
+                  height={224}
+                />
+                <div>
+                  <div className="text-2xl font-extrabold tracking-tight md:text-3xl">
+                    Akhmad <span className="text-primary">Academy</span>
+                  </div>
+                  <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                    Bilim · Tarbiya · Natija
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
 
       {/* Features */}
       <div className="relative mx-auto mt-16 max-w-7xl px-4 md:px-8">
