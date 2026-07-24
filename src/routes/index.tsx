@@ -17,14 +17,11 @@ import {
   Send,
   Instagram,
 } from "lucide-react";
-import heroAsset from "@/assets/edunest-hero.png.asset.json";
 import logoAsset from "@/assets/akhmad-logo.png.asset.json";
-import buildingAsset from "@/assets/edunest-building.png.asset.json";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
-import { ImageCarousel, InfiniteSlider, type CarouselImage } from "@/components/MediaCarousels";
 
 
 export const Route = createFileRoute("/")({
@@ -184,12 +181,6 @@ function Hero() {
       id="home"
       className="relative overflow-hidden pb-16 pt-28 md:pb-24 md:pt-32"
     >
-      {/* Background image with slow zoom */}
-      <div
-        className="absolute inset-0 -z-10 bg-cover bg-center hero-bg-zoom"
-        style={{ backgroundImage: `url(${heroAsset.url})` }}
-        aria-hidden
-      />
       {/* Animated gradient overlay */}
       <div className="absolute inset-0 -z-10 hero-gradient-shift" aria-hidden />
       {/* Floating glow orbs */}
@@ -203,16 +194,12 @@ function Hero() {
       <BackgroundAnimation variant="hero" position="absolute" />
 
       <style>{`
-        @keyframes heroZoom {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.08); }
-        }
         @keyframes heroGradient {
           0%, 100% {
-            background: linear-gradient(90deg, oklch(0.14 0.01 60 / 0.92) 0%, oklch(0.14 0.01 60 / 0.75) 55%, oklch(0.14 0.01 60 / 0.55) 100%);
+            background: linear-gradient(90deg, oklch(1 0 0 / 0) 0%, oklch(0.55 0.20 260 / 0.06) 55%, oklch(0.62 0.17 150 / 0.05) 100%);
           }
           50% {
-            background: linear-gradient(120deg, oklch(0.14 0.01 60 / 0.95) 0%, oklch(0.16 0.02 70 / 0.72) 55%, oklch(0.14 0.01 60 / 0.5) 100%);
+            background: linear-gradient(120deg, oklch(0.62 0.17 150 / 0.05) 0%, oklch(0.55 0.20 260 / 0.08) 55%, oklch(0.70 0.22 25 / 0.05) 100%);
           }
         }
         @keyframes orbFloat1 {
@@ -232,7 +219,6 @@ function Hero() {
           0% { background-position: 0% 0%; }
           100% { background-position: 200% 0%; }
         }
-        .hero-bg-zoom { animation: heroZoom 24s ease-in-out infinite; }
         .hero-gradient-shift { animation: heroGradient 14s ease-in-out infinite; }
         .hero-orb {
           position: absolute;
@@ -243,28 +229,28 @@ function Hero() {
         .hero-orb-1 {
           top: 10%; right: 10%;
           width: 380px; height: 380px;
-          background: radial-gradient(circle, oklch(0.86 0.17 92 / 0.35), transparent 70%);
+          background: radial-gradient(circle, oklch(0.60 0.22 260 / 0.28), transparent 70%);
           animation: orbFloat1 18s ease-in-out infinite;
         }
         .hero-orb-2 {
           bottom: 5%; left: 5%;
           width: 320px; height: 320px;
-          background: radial-gradient(circle, oklch(0.86 0.17 92 / 0.25), transparent 70%);
+          background: radial-gradient(circle, oklch(0.65 0.18 150 / 0.24), transparent 70%);
           animation: orbFloat2 22s ease-in-out infinite;
         }
         .hero-orb-3 {
           top: 40%; left: 40%;
           width: 260px; height: 260px;
-          background: radial-gradient(circle, oklch(0.72 0.19 45 / 0.22), transparent 70%);
+          background: radial-gradient(circle, oklch(0.70 0.22 25 / 0.20), transparent 70%);
           animation: orbFloat3 20s ease-in-out infinite;
         }
         .hero-shimmer {
-          background-image: linear-gradient(110deg, transparent 30%, oklch(0.86 0.17 92 / 0.08) 50%, transparent 70%);
+          background-image: linear-gradient(110deg, transparent 30%, oklch(0.55 0.20 260 / 0.06) 50%, transparent 70%);
           background-size: 200% 100%;
           animation: heroShimmer 12s linear infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-          .hero-bg-zoom, .hero-gradient-shift, .hero-orb, .hero-shimmer { animation: none; }
+          .hero-gradient-shift, .hero-orb, .hero-shimmer { animation: none; }
         }
       `}</style>
 
@@ -304,20 +290,32 @@ function Hero() {
           </div>
 
           <div className="relative mx-auto w-full max-w-md sm:max-w-none">
-            <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/30 via-primary/10 to-transparent blur-2xl" />
-            <div className="overflow-hidden rounded-3xl border border-primary/30 shadow-2xl shadow-primary/20">
-              <img
-                src={buildingAsset.url}
-                alt="Akhmad Academy binosi"
-                className="h-full w-full object-cover"
-                loading="lazy"
-                decoding="async"
-
-              />
+            <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/25 via-accent/15 to-destructive/15 blur-2xl" />
+            <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-primary/25 bg-card/70 p-10 shadow-2xl shadow-primary/10 backdrop-blur">
+              <div className="relative flex flex-col items-center gap-6 text-center">
+                <div className="absolute -inset-8 -z-10 rounded-full bg-gradient-to-br from-primary/20 via-accent/10 to-destructive/10 blur-2xl" />
+                <img
+                  src={logoAsset.url}
+                  alt="Akhmad Academy logo"
+                  className="h-40 w-40 rounded-full object-cover shadow-xl shadow-primary/30 md:h-56 md:w-56"
+                  decoding="async"
+                  width={224}
+                  height={224}
+                />
+                <div>
+                  <div className="text-2xl font-extrabold tracking-tight md:text-3xl">
+                    Akhmad <span className="text-primary">Academy</span>
+                  </div>
+                  <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                    Bilim · Tarbiya · Natija
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
 
       {/* Features */}
       <div className="relative mx-auto mt-16 max-w-7xl px-4 md:px-8">
@@ -477,57 +475,6 @@ function FeaturesSection() {
   );
 }
 
-const CERTIFICATES: CarouselImage[] = [
-  { src: "https://images.unsplash.com/photo-1606159068539-43f36b99d1b2?w=1200&q=80", alt: "IELTS sertifikat", caption: "IELTS 8.0 — Cambridge" },
-  { src: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80", alt: "Xalqaro sertifikat", caption: "TOEFL iBT 110+" },
-  { src: "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=1200&q=80", alt: "O'qituvchilar sertifikati", caption: "TESOL / CELTA" },
-  { src: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=1200&q=80", alt: "Faxriy yorliq", caption: "Yilning eng yaxshi markazi 2024" },
-];
-
-const CENTER_PHOTOS: CarouselImage[] = [
-  { src: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=900&q=80", alt: "Kutubxona", caption: "Kutubxona" },
-  { src: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=900&q=80", alt: "Ma'ruza zali", caption: "Ma'ruza zali" },
-  { src: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=900&q=80", alt: "Laboratoriya", caption: "Laboratoriya" },
-  { src: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=900&q=80", alt: "Sinfxona", caption: "Zamonaviy sinfxona" },
-  { src: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=900&q=80", alt: "Kompyuter xonasi", caption: "IT xonasi" },
-  { src: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=900&q=80", alt: "Amfiteatr", caption: "Amfiteatr" },
-  { src: "https://images.unsplash.com/photo-1562774053-701939374585?w=900&q=80", alt: "Kirish", caption: "Bosh kirish" },
-  { src: "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=900&q=80", alt: "Dam olish zonasi", caption: "Dam olish zonasi" },
-];
-
-function Certificates() {
-  return (
-    <section id="certificates" className="relative mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
-      <div className="mb-10 text-center">
-        <div className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-primary">Sertifikatlar</div>
-        <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-          Xalqaro <span className="gold-text">tan olingan</span> yutuqlarimiz
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">
-          O'quvchilarimiz va o'qituvchilarimiz qo'lga kiritgan sertifikatlar
-        </p>
-      </div>
-      <ImageCarousel images={CERTIFICATES} intervalMs={4500} aspect="16/10" />
-    </section>
-  );
-}
-
-function CenterGallery() {
-  return (
-    <section id="gallery" className="relative py-16 md:py-24">
-      <div className="mx-auto mb-10 max-w-7xl px-4 text-center md:px-8">
-        <div className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-primary">Markazimiz</div>
-        <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-          Ta'lim <span className="gold-text">muhitimiz</span>
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">
-          Zamonaviy sinfxonalar va qulay ta'lim maydonlari
-        </p>
-      </div>
-      <InfiniteSlider images={CENTER_PHOTOS} speed={45} itemWidth="20rem" aspect="16/10" />
-    </section>
-  );
-}
 
 function Contact() {
   const [submitted, setSubmitted] = useState(false);
@@ -716,8 +663,6 @@ function Index() {
       <Hero />
       <Courses />
       <FeaturesSection />
-      <Certificates />
-      <CenterGallery />
       <Contact />
       <Footer />
     </main>
