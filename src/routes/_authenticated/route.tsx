@@ -256,6 +256,8 @@ function AuthenticatedLayout() {
           <Outlet />
         </div>
       </main>
+
+      {isStaff && <Jarvis />}
     </div>
   );
 }
