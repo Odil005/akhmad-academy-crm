@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { KeyRound, Palette, ShoppingBag, Megaphone, MessageSquare, FileSpreadsheet, MapPin, BarChart3, BookOpen, GraduationCap, Star } from "lucide-react";
+import { KeyRound, Palette, ShoppingBag, Megaphone, MessageSquare, FileSpreadsheet, MapPin, BarChart3, BookOpen, GraduationCap, Star, Phone, Send } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   ssr: false,
