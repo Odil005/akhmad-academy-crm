@@ -181,48 +181,66 @@ export type Database = {
       }
       calls: {
         Row: {
+          answered_at: string | null
           called_at: string
           contact_id: string | null
           contact_type: string | null
+          cost: number | null
           created_at: string
           created_by: string | null
           direction: string
           duration_sec: number
+          hangup_cause: string | null
           id: string
           notes: string | null
           phone: string
+          recording_storage_path: string | null
           recording_url: string | null
+          sip_call_id: string | null
           status: string
+          trunk: string | null
           updated_at: string
         }
         Insert: {
+          answered_at?: string | null
           called_at?: string
           contact_id?: string | null
           contact_type?: string | null
+          cost?: number | null
           created_at?: string
           created_by?: string | null
           direction: string
           duration_sec?: number
+          hangup_cause?: string | null
           id?: string
           notes?: string | null
           phone: string
+          recording_storage_path?: string | null
           recording_url?: string | null
+          sip_call_id?: string | null
           status?: string
+          trunk?: string | null
           updated_at?: string
         }
         Update: {
+          answered_at?: string | null
           called_at?: string
           contact_id?: string | null
           contact_type?: string | null
+          cost?: number | null
           created_at?: string
           created_by?: string | null
           direction?: string
           duration_sec?: number
+          hangup_cause?: string | null
           id?: string
           notes?: string | null
           phone?: string
+          recording_storage_path?: string | null
           recording_url?: string | null
+          sip_call_id?: string | null
           status?: string
+          trunk?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -326,6 +344,93 @@ export type Database = {
           email?: string
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      director_daily_reports: {
+        Row: {
+          ai_summary: string | null
+          attendance_rate: number
+          created_at: string
+          debtors_amount: number
+          debtors_count: number
+          expenses: number
+          id: string
+          new_leads: number
+          new_students: number
+          payload: Json
+          profit: number
+          report_date: string
+          revenue: number
+          sent_at: string | null
+          top_teachers: Json
+          updated_at: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          attendance_rate?: number
+          created_at?: string
+          debtors_amount?: number
+          debtors_count?: number
+          expenses?: number
+          id?: string
+          new_leads?: number
+          new_students?: number
+          payload?: Json
+          profit?: number
+          report_date: string
+          revenue?: number
+          sent_at?: string | null
+          top_teachers?: Json
+          updated_at?: string
+        }
+        Update: {
+          ai_summary?: string | null
+          attendance_rate?: number
+          created_at?: string
+          debtors_amount?: number
+          debtors_count?: number
+          expenses?: number
+          id?: string
+          new_leads?: number
+          new_students?: number
+          payload?: Json
+          profit?: number
+          report_date?: string
+          revenue?: number
+          sent_at?: string | null
+          top_teachers?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      director_report_recipients: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          is_active: boolean
+          telegram_chat_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          telegram_chat_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          telegram_chat_id?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1128,6 +1233,84 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           value?: Json
+        }
+        Relationships: []
+      }
+      sip_config: {
+        Row: {
+          api_base_url: string | null
+          auth_id: string | null
+          caller_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          provider: string
+          singleton: boolean
+          sip_uri: string | null
+          updated_at: string
+          username: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          api_base_url?: string | null
+          auth_id?: string | null
+          caller_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          provider?: string
+          singleton?: boolean
+          sip_uri?: string | null
+          updated_at?: string
+          username?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          api_base_url?: string | null
+          auth_id?: string | null
+          caller_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          provider?: string
+          singleton?: boolean
+          sip_uri?: string | null
+          updated_at?: string
+          username?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: []
+      }
+      sip_extensions: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          extension: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          extension: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          extension?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

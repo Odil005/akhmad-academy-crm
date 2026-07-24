@@ -38,6 +38,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_authenticated/settings.contact'
 import { Route as AuthenticatedSettingsCredentialsRouteImport } from './routes/_authenticated/settings.credentials'
 import { Route as AuthenticatedSettingsDesignRouteImport } from './routes/_authenticated/settings.design'
+import { Route as AuthenticatedSettingsDirectorReportRouteImport } from './routes/_authenticated/settings.director-report'
 import { Route as AuthenticatedSettingsGradeTemplateRouteImport } from './routes/_authenticated/settings.grade-template'
 import { Route as AuthenticatedSettingsHomepageCoursesRouteImport } from './routes/_authenticated/settings.homepage-courses'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
@@ -47,10 +48,15 @@ import { Route as AuthenticatedSettingsReportsRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsStatsRouteImport } from './routes/_authenticated/settings.stats'
 import { Route as AuthenticatedSettingsSubjectsRouteImport } from './routes/_authenticated/settings.subjects'
 import { Route as AuthenticatedSettingsTeachersRouteImport } from './routes/_authenticated/settings.teachers'
+import { Route as AuthenticatedSettingsTelephonyRouteImport } from './routes/_authenticated/settings.telephony'
 import { Route as AuthenticatedStudentsIdRouteImport } from './routes/_authenticated/students.$id'
+import { Route as ApiPublicCronDailyReportRouteImport } from './routes/api/public/cron.daily-report'
+import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes/api/public/cron.notifications-dispatch'
+import { Route as ApiPublicCronParentDigestRouteImport } from './routes/api/public/cron.parent-digest'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron.reminders'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
 import { Route as ApiPublicTelephonyOutboxRouteImport } from './routes/api/public/telephony.outbox'
+import { Route as ApiPublicTelephonySipWebhookRouteImport } from './routes/api/public/telephony.sip-webhook'
 import { Route as ApiPublicTelephonyWebhookRouteImport } from './routes/api/public/telephony.webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -204,6 +210,12 @@ const AuthenticatedSettingsDesignRoute =
     path: '/design',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsDirectorReportRoute =
+  AuthenticatedSettingsDirectorReportRouteImport.update({
+    id: '/director-report',
+    path: '/director-report',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsGradeTemplateRoute =
   AuthenticatedSettingsGradeTemplateRouteImport.update({
     id: '/grade-template',
@@ -258,11 +270,35 @@ const AuthenticatedSettingsTeachersRoute =
     path: '/teachers',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsTelephonyRoute =
+  AuthenticatedSettingsTelephonyRouteImport.update({
+    id: '/telephony',
+    path: '/telephony',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedStudentsIdRoute = AuthenticatedStudentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AuthenticatedStudentsRoute,
 } as any)
+const ApiPublicCronDailyReportRoute =
+  ApiPublicCronDailyReportRouteImport.update({
+    id: '/api/public/cron/daily-report',
+    path: '/api/public/cron/daily-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCronNotificationsDispatchRoute =
+  ApiPublicCronNotificationsDispatchRouteImport.update({
+    id: '/api/public/cron/notifications-dispatch',
+    path: '/api/public/cron/notifications-dispatch',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCronParentDigestRoute =
+  ApiPublicCronParentDigestRouteImport.update({
+    id: '/api/public/cron/parent-digest',
+    path: '/api/public/cron/parent-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
   id: '/api/public/cron/reminders',
   path: '/api/public/cron/reminders',
@@ -278,6 +314,12 @@ const ApiPublicTelephonyOutboxRoute =
   ApiPublicTelephonyOutboxRouteImport.update({
     id: '/api/public/telephony/outbox',
     path: '/api/public/telephony/outbox',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicTelephonySipWebhookRoute =
+  ApiPublicTelephonySipWebhookRouteImport.update({
+    id: '/api/public/telephony/sip-webhook',
+    path: '/api/public/telephony/sip-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicTelephonyWebhookRoute =
@@ -315,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
+  '/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
   '/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
@@ -324,11 +367,16 @@ export interface FileRoutesByFullPath {
   '/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
+  '/settings/telephony': typeof AuthenticatedSettingsTelephonyRoute
   '/students/$id': typeof AuthenticatedStudentsIdRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
+  '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
+  '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
+  '/api/public/telephony/sip-webhook': typeof ApiPublicTelephonySipWebhookRoute
   '/api/public/telephony/webhook': typeof ApiPublicTelephonyWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -358,6 +406,7 @@ export interface FileRoutesByTo {
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
+  '/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
   '/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
@@ -367,11 +416,16 @@ export interface FileRoutesByTo {
   '/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
+  '/settings/telephony': typeof AuthenticatedSettingsTelephonyRoute
   '/students/$id': typeof AuthenticatedStudentsIdRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
+  '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
+  '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
+  '/api/public/telephony/sip-webhook': typeof ApiPublicTelephonySipWebhookRoute
   '/api/public/telephony/webhook': typeof ApiPublicTelephonyWebhookRoute
 }
 export interface FileRoutesById {
@@ -404,6 +458,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/_authenticated/settings/design': typeof AuthenticatedSettingsDesignRoute
+  '/_authenticated/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
   '/_authenticated/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/_authenticated/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
@@ -413,11 +468,16 @@ export interface FileRoutesById {
   '/_authenticated/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/_authenticated/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/_authenticated/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
+  '/_authenticated/settings/telephony': typeof AuthenticatedSettingsTelephonyRoute
   '/_authenticated/students/$id': typeof AuthenticatedStudentsIdRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
+  '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
+  '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
+  '/api/public/telephony/sip-webhook': typeof ApiPublicTelephonySipWebhookRoute
   '/api/public/telephony/webhook': typeof ApiPublicTelephonyWebhookRoute
 }
 export interface FileRouteTypes {
@@ -450,6 +510,7 @@ export interface FileRouteTypes {
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
+    | '/settings/director-report'
     | '/settings/grade-template'
     | '/settings/homepage-courses'
     | '/settings/integrations'
@@ -459,11 +520,16 @@ export interface FileRouteTypes {
     | '/settings/stats'
     | '/settings/subjects'
     | '/settings/teachers'
+    | '/settings/telephony'
     | '/students/$id'
     | '/settings/'
+    | '/api/public/cron/daily-report'
+    | '/api/public/cron/notifications-dispatch'
+    | '/api/public/cron/parent-digest'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
+    | '/api/public/telephony/sip-webhook'
     | '/api/public/telephony/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -493,6 +559,7 @@ export interface FileRouteTypes {
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
+    | '/settings/director-report'
     | '/settings/grade-template'
     | '/settings/homepage-courses'
     | '/settings/integrations'
@@ -502,11 +569,16 @@ export interface FileRouteTypes {
     | '/settings/stats'
     | '/settings/subjects'
     | '/settings/teachers'
+    | '/settings/telephony'
     | '/students/$id'
     | '/settings'
+    | '/api/public/cron/daily-report'
+    | '/api/public/cron/notifications-dispatch'
+    | '/api/public/cron/parent-digest'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
+    | '/api/public/telephony/sip-webhook'
     | '/api/public/telephony/webhook'
   id:
     | '__root__'
@@ -538,6 +610,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/contact'
     | '/_authenticated/settings/credentials'
     | '/_authenticated/settings/design'
+    | '/_authenticated/settings/director-report'
     | '/_authenticated/settings/grade-template'
     | '/_authenticated/settings/homepage-courses'
     | '/_authenticated/settings/integrations'
@@ -547,11 +620,16 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/stats'
     | '/_authenticated/settings/subjects'
     | '/_authenticated/settings/teachers'
+    | '/_authenticated/settings/telephony'
     | '/_authenticated/students/$id'
     | '/_authenticated/settings/'
+    | '/api/public/cron/daily-report'
+    | '/api/public/cron/notifications-dispatch'
+    | '/api/public/cron/parent-digest'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
+    | '/api/public/telephony/sip-webhook'
     | '/api/public/telephony/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -560,9 +638,13 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BootstrapRoute: typeof BootstrapRoute
+  ApiPublicCronDailyReportRoute: typeof ApiPublicCronDailyReportRoute
+  ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
+  ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
   ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
   ApiPublicTelephonyOutboxRoute: typeof ApiPublicTelephonyOutboxRoute
+  ApiPublicTelephonySipWebhookRoute: typeof ApiPublicTelephonySipWebhookRoute
   ApiPublicTelephonyWebhookRoute: typeof ApiPublicTelephonyWebhookRoute
 }
 
@@ -771,6 +853,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsDesignRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/director-report': {
+      id: '/_authenticated/settings/director-report'
+      path: '/director-report'
+      fullPath: '/settings/director-report'
+      preLoaderRoute: typeof AuthenticatedSettingsDirectorReportRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/grade-template': {
       id: '/_authenticated/settings/grade-template'
       path: '/grade-template'
@@ -834,12 +923,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsTeachersRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/telephony': {
+      id: '/_authenticated/settings/telephony'
+      path: '/telephony'
+      fullPath: '/settings/telephony'
+      preLoaderRoute: typeof AuthenticatedSettingsTelephonyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/students/$id': {
       id: '/_authenticated/students/$id'
       path: '/$id'
       fullPath: '/students/$id'
       preLoaderRoute: typeof AuthenticatedStudentsIdRouteImport
       parentRoute: typeof AuthenticatedStudentsRoute
+    }
+    '/api/public/cron/daily-report': {
+      id: '/api/public/cron/daily-report'
+      path: '/api/public/cron/daily-report'
+      fullPath: '/api/public/cron/daily-report'
+      preLoaderRoute: typeof ApiPublicCronDailyReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cron/notifications-dispatch': {
+      id: '/api/public/cron/notifications-dispatch'
+      path: '/api/public/cron/notifications-dispatch'
+      fullPath: '/api/public/cron/notifications-dispatch'
+      preLoaderRoute: typeof ApiPublicCronNotificationsDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cron/parent-digest': {
+      id: '/api/public/cron/parent-digest'
+      path: '/api/public/cron/parent-digest'
+      fullPath: '/api/public/cron/parent-digest'
+      preLoaderRoute: typeof ApiPublicCronParentDigestRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/cron/reminders': {
       id: '/api/public/cron/reminders'
@@ -862,6 +979,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTelephonyOutboxRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/telephony/sip-webhook': {
+      id: '/api/public/telephony/sip-webhook'
+      path: '/api/public/telephony/sip-webhook'
+      fullPath: '/api/public/telephony/sip-webhook'
+      preLoaderRoute: typeof ApiPublicTelephonySipWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/telephony/webhook': {
       id: '/api/public/telephony/webhook'
       path: '/api/public/telephony/webhook'
@@ -876,6 +1000,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsContactRoute: typeof AuthenticatedSettingsContactRoute
   AuthenticatedSettingsCredentialsRoute: typeof AuthenticatedSettingsCredentialsRoute
   AuthenticatedSettingsDesignRoute: typeof AuthenticatedSettingsDesignRoute
+  AuthenticatedSettingsDirectorReportRoute: typeof AuthenticatedSettingsDirectorReportRoute
   AuthenticatedSettingsGradeTemplateRoute: typeof AuthenticatedSettingsGradeTemplateRoute
   AuthenticatedSettingsHomepageCoursesRoute: typeof AuthenticatedSettingsHomepageCoursesRoute
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
@@ -885,6 +1010,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsStatsRoute: typeof AuthenticatedSettingsStatsRoute
   AuthenticatedSettingsSubjectsRoute: typeof AuthenticatedSettingsSubjectsRoute
   AuthenticatedSettingsTeachersRoute: typeof AuthenticatedSettingsTeachersRoute
+  AuthenticatedSettingsTelephonyRoute: typeof AuthenticatedSettingsTelephonyRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -892,6 +1018,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsContactRoute: AuthenticatedSettingsContactRoute,
   AuthenticatedSettingsCredentialsRoute: AuthenticatedSettingsCredentialsRoute,
   AuthenticatedSettingsDesignRoute: AuthenticatedSettingsDesignRoute,
+  AuthenticatedSettingsDirectorReportRoute:
+    AuthenticatedSettingsDirectorReportRoute,
   AuthenticatedSettingsGradeTemplateRoute:
     AuthenticatedSettingsGradeTemplateRoute,
   AuthenticatedSettingsHomepageCoursesRoute:
@@ -904,6 +1032,7 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsStatsRoute: AuthenticatedSettingsStatsRoute,
   AuthenticatedSettingsSubjectsRoute: AuthenticatedSettingsSubjectsRoute,
   AuthenticatedSettingsTeachersRoute: AuthenticatedSettingsTeachersRoute,
+  AuthenticatedSettingsTelephonyRoute: AuthenticatedSettingsTelephonyRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
 }
 
@@ -981,9 +1110,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BootstrapRoute: BootstrapRoute,
+  ApiPublicCronDailyReportRoute: ApiPublicCronDailyReportRoute,
+  ApiPublicCronNotificationsDispatchRoute:
+    ApiPublicCronNotificationsDispatchRoute,
+  ApiPublicCronParentDigestRoute: ApiPublicCronParentDigestRoute,
   ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
   ApiPublicTelephonyOutboxRoute: ApiPublicTelephonyOutboxRoute,
+  ApiPublicTelephonySipWebhookRoute: ApiPublicTelephonySipWebhookRoute,
   ApiPublicTelephonyWebhookRoute: ApiPublicTelephonyWebhookRoute,
 }
 export const routeTree = rootRouteImport
