@@ -663,8 +663,6 @@ function Index() {
       <Hero />
       <Courses />
       <FeaturesSection />
-      <Certificates />
-      <CenterGallery />
       <Contact />
       <Footer />
     </main>
