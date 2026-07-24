@@ -35,6 +35,8 @@ function SettingsLayout() {
     { to: "/settings/news", label: "Yangiliklar & Bannerlar", icon: Megaphone, show: true },
 
     { to: "/settings/integrations", label: "Telegram / SMS", icon: MessageSquare, show: true },
+    { to: "/settings/telephony", label: "IP Telefoniya (SIP)", icon: Phone, show: isDirector },
+    { to: "/settings/director-report", label: "Direktor hisoboti", icon: Send, show: isDirector },
     { to: "/settings/reports", label: "Excel & Word", icon: FileSpreadsheet, show: true },
   ];
 
