@@ -118,7 +118,7 @@ function AuthenticatedLayout() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="ml-2 hidden flex-1 items-center gap-0.5 overflow-hidden xl:flex">
+          <nav className="ml-2 hidden flex-1 items-center gap-0.5 xl:flex">
             {primaryNav.map((n) => {
               const active = pathname === n.to;
               return (
