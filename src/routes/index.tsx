@@ -54,10 +54,10 @@ function Logo({ size = "md" }: { size?: "sm" | "md" }) {
 
       <div className="leading-tight">
         <div className="text-lg font-extrabold tracking-tight text-foreground">
-          Edu<span className="text-primary">Nest</span>
+          Akhmad <span className="text-primary">Academy</span>
         </div>
         <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground">
-          LEARNING CENTER
+          O'QUV MARKAZI
         </div>
       </div>
     </a>
