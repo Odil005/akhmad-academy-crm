@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 
 const DAYS_UZ = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 type StudentRow = {
   id: string;
