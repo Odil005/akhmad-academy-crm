@@ -17,14 +17,11 @@ import {
   Send,
   Instagram,
 } from "lucide-react";
-import heroAsset from "@/assets/edunest-hero.png.asset.json";
 import logoAsset from "@/assets/akhmad-logo.png.asset.json";
-import buildingAsset from "@/assets/edunest-building.png.asset.json";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
-import { ImageCarousel, InfiniteSlider, type CarouselImage } from "@/components/MediaCarousels";
 
 
 export const Route = createFileRoute("/")({
