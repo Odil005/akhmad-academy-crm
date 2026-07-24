@@ -18,7 +18,7 @@ import {
   Instagram,
 } from "lucide-react";
 import heroAsset from "@/assets/edunest-hero.png.asset.json";
-import logoAsset from "@/assets/edunest-logo.png.asset.json";
+import logoAsset from "@/assets/akhmad-logo.png.asset.json";
 import buildingAsset from "@/assets/edunest-building.png.asset.json";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
