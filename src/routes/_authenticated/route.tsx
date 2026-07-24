@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { LogOut, LayoutDashboard, Users, BookOpen, CreditCard, Menu, X, Settings, ShoppingBag, Smile, Search, Wallet, CalendarDays, ClipboardCheck, DoorOpen, BarChart3, Phone, ScanFace, GraduationCap, Inbox, Upload, MessageSquare, DollarSign, ChevronDown } from "lucide-react";
 import { PremiumBackground } from "@/components/PremiumBackground";
+import { Jarvis } from "@/components/Jarvis";
 import logoAsset from "@/assets/akhmad-logo.png.asset.json";
 
 type Role = "director" | "admin" | "teacher" | "student";
