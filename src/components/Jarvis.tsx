@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Bot, Mic, MicOff, Send, X, Loader2, Volume2, VolumeX, Navigation } from "lucide-react";
+import { Bot, Mic, MicOff, Send, X, Loader2, Volume2, VolumeX } from "lucide-react";
 import { jarvisChat, jarvisTranscribe, jarvisSpeak } from "@/lib/jarvis.functions";
 
 type RouteIntent = { to: string; label: string; keywords: string[] };
