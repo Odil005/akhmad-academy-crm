@@ -43,9 +43,9 @@ function ContactSettings() {
   const fields: { key: keyof ContactInfo; label: string; placeholder: string }[] = [
     { key: "address", label: "Manzil", placeholder: "Toshkent shahri, Chilonzor tumani" },
     { key: "phone", label: "Telefon", placeholder: "+998 90 123 45 67" },
-    { key: "email", label: "Email", placeholder: "info@edunest.uz" },
-    { key: "telegram", label: "Telegram kanal (URL)", placeholder: "https://t.me/edunest" },
-    { key: "instagram", label: "Instagram (URL)", placeholder: "https://instagram.com/edunest" },
+    { key: "email", label: "Email", placeholder: "info@akhmadacademy.uz" },
+    { key: "telegram", label: "Telegram kanal (URL)", placeholder: "https://t.me/akhmadacademy" },
+    { key: "instagram", label: "Instagram (URL)", placeholder: "https://instagram.com/akhmadacademy" },
   ];
 
   return (
