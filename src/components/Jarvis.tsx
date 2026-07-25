@@ -50,10 +50,11 @@ export function Jarvis() {
   const chat = useServerFn(jarvisChat);
   const transcribe = useServerFn(jarvisTranscribe);
   const speak = useServerFn(jarvisSpeak);
+  const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([
-    { role: "assistant", content: "Assalomu alaykum, men Jarvis — sizning biznes sherikingiz. Qanday yordam beray? Moliya, qarzdorlar, lidlar, o'quvchilar bo'yicha savol bering — matn yoki ovoz orqali." },
+    { role: "assistant", content: "Assalomu alaykum, men Jarvis — biznes sherikingiz. Savol bering yoki kerakli bo'limni ayting — men uni CRM'da avtomatik ochaman." },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
