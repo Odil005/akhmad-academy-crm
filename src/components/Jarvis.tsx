@@ -87,20 +87,24 @@ export function Jarvis() {
     setInput("");
     const next = [...msgs, { role: "user" as const, content: q }];
     setMsgs(next);
-    setBusy(true);
 
-    // Auto-navigate to matching CRM route
+    // Instant navigation — skip AI round-trip when the intent is clear.
     const intent = detectRoute(q);
     if (intent) {
-      setMsgs((m) => [...m, { role: "assistant", content: `🧭 "${intent.label}" bo'limi ochilmoqda...` }]);
+      const reply = `🧭 "${intent.label}" bo'limi ochildi.`;
+      setMsgs((m) => [...m, { role: "assistant", content: reply }]);
       try { navigate({ to: intent.to }); } catch { /* ignore */ }
+      // Fire TTS in background, do not await.
+      void speakOut(reply);
+      return;
     }
 
+    setBusy(true);
     try {
       const r = await chat({ data: { messages: next.map((m) => ({ role: m.role, content: m.content })) } });
       const reply = r.reply || "...";
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
-      speakOut(reply);
+      void speakOut(reply);
     } catch (e) {
       const err = e instanceof Response ? await e.text() : (e as Error).message;
       setMsgs((m) => [...m, { role: "assistant", content: `Xatolik: ${err}` }]);
