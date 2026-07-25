@@ -71,17 +71,24 @@ export const jarvisChat = createServerFn({ method: "POST" })
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Response("LOVABLE_API_KEY yo'q", { status: 500 });
 
-    const ctx = await buildBusinessContext(context.supabase, context.userId);
+    const lastUser = [...data.messages].reverse().find((m) => m.role === "user")?.content ?? "";
+
+    // Ultra-fast path: pure navigation queries skip the LLM entirely (~0ms vs ~2000ms).
+    if (isPureNavigation(lastUser)) {
+      return { reply: "Ochilmoqda..." };
+    }
+
+    const ctx = await getContextCached(context.supabase, context.userId);
 
     const system: ChatMsg = {
       role: "system",
-      content: `Sen — Akhmad Academy o'quv markazi uchun biznes-sherik AI yordamchisi (Jarvis). Sen egaga (direktor/admin) qisqa, aniq va biznes tilida javob berasan. O'zbek tilida javob ber. Raqamlarni so'mda ko'rsatish uchun 1000 lik ajratkichlardan foydalan. Kerak bo'lsa maslahat ber (marketing, moliya, o'quvchilarni ushlab qolish, xarajatlarni optimallashtirish). Foydalanuvchi ovoz orqali gaplashishi mumkin, shuning uchun javoblarni tabiiy, qisqa va tushunarli tuz — markdown ishlatma, ovozda o'qilganda ham yaxshi eshitilsin.
+      content: `Sen — Akhmad Academy uchun biznes-sherik AI (Jarvis). O'zbek tilida, qisqa va aniq javob ber (2-4 gap). Markdown ishlatma. Raqamlarni so'mda ko'rsat.
 
-BUGUNGI HOLAT (JSON):
-${JSON.stringify(ctx, null, 2)}
-
-Foydalanuvchi savoli asosida yuqoridagi ma'lumotlardan foydalanib javob ber. Ma'lumot yo'q bo'lsa, ochiq ayt.`,
+HOLAT: ${JSON.stringify(ctx)}`,
     };
+
+    // Only send last 6 turns — long history = slow model. Keep memory light.
+    const recent = data.messages.slice(-6);
 
     const res = await fetch(`${GATEWAY}/chat/completions`, {
       method: "POST",
@@ -91,7 +98,8 @@ Foydalanuvchi savoli asosida yuqoridagi ma'lumotlardan foydalanib javob ber. Ma'
       },
       body: JSON.stringify({
         model: "google/gemini-3.6-flash",
-        messages: [system, ...data.messages],
+        messages: [system, ...recent],
+        max_tokens: 400,
       }),
     });
 
