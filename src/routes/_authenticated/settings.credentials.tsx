@@ -206,7 +206,7 @@ function CredentialsPage() {
             {loading ? "Yaratilmoqda..." : "Yaratish"}
           </button>
           <p className="text-xs text-muted-foreground">
-            Foydalanuvchi bu ma'lumotlarni <b>/auth → "Xodim / O'quvchi"</b> tabiga kiritadi: <b>Foydalanuvchi nomi</b> = <span className="font-mono">{form.username || "username"}</span>, <b>Kirish kodi</b> = access code. Email maydoni bu holatda kerak emas — tizim orqa fonda <span className="font-mono">{form.username || "username"}@edunest.local</span> ga aylantiradi.
+            Foydalanuvchi bu ma'lumotlarni <b>/auth → "Xodim / O'quvchi"</b> tabiga kiritadi: <b>Foydalanuvchi nomi</b> = <span className="font-mono">{form.username || "username"}</span>, <b>Kirish kodi</b> = access code. Email maydoni bu holatda kerak emas — tizim ichki identifikatorga avtomatik aylantiradi.
           </p>
 
         </form>

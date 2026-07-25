@@ -498,7 +498,7 @@ function Contact() {
   const [info, setInfo] = useState({
     address: "Toshkent shahri, Chilonzor tumani",
     phone: "+998 90 123 45 67",
-    email: "info@edunest.uz",
+    email: "info@akhmadacademy.uz",
     telegram: "",
     instagram: "",
   });

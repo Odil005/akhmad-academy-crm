@@ -54,7 +54,7 @@ function ImportPage() {
     const ws = XLSX.utils.json_to_sheet(t.sample, { header: t.headers });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, t.label);
-    XLSX.writeFile(wb, `edunest-${kind}-shablon.xlsx`);
+    XLSX.writeFile(wb, `akhmad-academy-${kind}-shablon.xlsx`);
   }
 
   async function handleFile(file: File) {

@@ -1,7 +1,7 @@
 {
-  "name": "EduNest Learning Center",
-  "short_name": "EduNest",
-  "description": "EduNest — zamonaviy o'quv markazi: dars, davomat, baholar, to'lovlar va ota-onalar bilan aloqa.",
+  "name": "Akhmad Academy",
+  "short_name": "Akhmad Academy",
+  "description": "Akhmad Academy — zamonaviy o'quv markazi: dars, davomat, baholar, to'lovlar va ota-onalar bilan aloqa.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
