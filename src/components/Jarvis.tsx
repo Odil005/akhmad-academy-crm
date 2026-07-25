@@ -1,7 +1,48 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Mic, MicOff, Send, X, Loader2, Volume2, VolumeX } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Bot, Mic, MicOff, Send, X, Loader2, Volume2, VolumeX, Navigation } from "lucide-react";
 import { jarvisChat, jarvisTranscribe, jarvisSpeak } from "@/lib/jarvis.functions";
+
+type RouteIntent = { to: string; label: string; keywords: string[] };
+
+const ROUTE_MAP: RouteIntent[] = [
+  { to: "/dashboard", label: "Dashboard", keywords: ["dashboard", "bosh sahifa", "statistika", "umumiy", "panel"] },
+  { to: "/students", label: "O'quvchilar", keywords: ["o'quvchi", "oquvchi", "talaba", "student"] },
+  { to: "/groups", label: "Guruhlar", keywords: ["guruh", "sinf", "group"] },
+  { to: "/schedule", label: "Dars jadvali", keywords: ["jadval", "dars jadval", "schedule", "raspisaniya"] },
+  { to: "/attendance", label: "Davomat", keywords: ["davomat", "kelmagan", "yo'q", "yoq", "attendance"] },
+  { to: "/grades", label: "Baholar", keywords: ["baho", "ball", "grade"] },
+  { to: "/rooms", label: "Xonalar", keywords: ["xona", "auditoriya", "room"] },
+  { to: "/payments", label: "To'lovlar", keywords: ["to'lov", "tolov", "payment", "pul kelgan", "kim to'ladi"] },
+  { to: "/finance", label: "Moliya", keywords: ["moliya", "daromad", "xarajat", "foyda", "finance", "kassa", "balans"] },
+  { to: "/leads", label: "Lidlar", keywords: ["lid", "lead", "mijoz", "yangi mijoz"] },
+  { to: "/behavior", label: "Xulq baholash", keywords: ["xulq", "behavior", "intizom"] },
+  { to: "/messages", label: "Xabarlar", keywords: ["xabar", "message", "yozishma", "chat"] },
+  { to: "/marketplace", label: "Marketplace", keywords: ["market", "do'kon", "dokon", "mahsulot", "sotib"] },
+  { to: "/teacher-balance", label: "O'qituvchi balansi", keywords: ["o'qituvchi balan", "oqituvchi balan", "oylik", "salary", "maosh"] },
+  { to: "/calls", label: "Qo'ng'iroqlar", keywords: ["qo'ng'iroq", "qongiroq", "call", "telefon"] },
+  { to: "/face-id", label: "Face ID", keywords: ["face", "yuz", "face id"] },
+  { to: "/reports", label: "Hisobotlar", keywords: ["hisobot", "report", "otchet"] },
+  { to: "/import", label: "Excel import", keywords: ["import", "excel", "yuklash"] },
+  { to: "/search", label: "Qidiruv", keywords: ["qidir", "search", "topish"] },
+  { to: "/settings", label: "Sozlamalar", keywords: ["sozlama", "setting", "konfig"] },
+  { to: "/teacher-panel", label: "O'qituvchi paneli", keywords: ["o'qituvchi panel", "oqituvchi panel", "teacher panel"] },
+];
+
+function detectRoute(text: string): RouteIntent | null {
+  const t = text.toLowerCase();
+  let best: { intent: RouteIntent; score: number } | null = null;
+  for (const intent of ROUTE_MAP) {
+    for (const k of intent.keywords) {
+      if (t.includes(k)) {
+        const score = k.length;
+        if (!best || score > best.score) best = { intent, score };
+      }
+    }
+  }
+  return best?.intent ?? null;
+}
 
 type Msg = { role: "user" | "assistant"; content: string };
 
