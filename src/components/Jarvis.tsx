@@ -241,7 +241,7 @@ export function Jarvis() {
               </button>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {["Bu oy foyda qancha?", "Kim qarzdor?", "Yangi lidlar", "Maslahat ber"].map((s) => (
+              {["O'quvchilar", "To'lovlar", "Moliya", "Lidlar", "Davomat", "Hisobotlar"].map((s) => (
                 <button
                   key={s}
                   onClick={() => send(s)}
