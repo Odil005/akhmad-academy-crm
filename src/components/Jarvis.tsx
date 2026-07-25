@@ -88,6 +88,14 @@ export function Jarvis() {
     const next = [...msgs, { role: "user" as const, content: q }];
     setMsgs(next);
     setBusy(true);
+
+    // Auto-navigate to matching CRM route
+    const intent = detectRoute(q);
+    if (intent) {
+      setMsgs((m) => [...m, { role: "assistant", content: `🧭 "${intent.label}" bo'limi ochilmoqda...` }]);
+      try { navigate({ to: intent.to }); } catch { /* ignore */ }
+    }
+
     try {
       const r = await chat({ data: { messages: next.map((m) => ({ role: m.role, content: m.content })) } });
       const reply = r.reply || "...";
