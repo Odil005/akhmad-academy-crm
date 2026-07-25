@@ -5,6 +5,7 @@ type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 
+// Lightweight context: only the fields the AI actually uses. Fewer/smaller queries = faster response.
 async function buildBusinessContext(supabase: any, userId: string) {
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = new Date();
@@ -12,41 +13,55 @@ async function buildBusinessContext(supabase: any, userId: string) {
   const monthISO = monthStart.toISOString().slice(0, 10);
 
   const [
-    { data: roleRows },
     { count: studentsCount },
     { count: groupsCount },
-    { data: activeStudents },
-    { data: recentLeads },
     { data: debtors },
     { data: monthPayments },
     { data: monthExpenses },
-    { data: todayLessons },
+    { data: recentLeads },
   ] = await Promise.all([
-    supabase.from("user_roles").select("role").eq("user_id", userId),
     supabase.from("students").select("id", { count: "exact", head: true }),
     supabase.from("groups").select("id", { count: "exact", head: true }),
-    supabase.from("students").select("id, first_name, last_name, balance, phone").order("created_at", { ascending: false }).limit(200),
-    supabase.from("leads").select("id, name, phone, course, status, created_at").order("created_at", { ascending: false }).limit(20),
-    supabase.from("students").select("id, first_name, last_name, balance, phone").lt("balance", 0).order("balance", { ascending: true }).limit(30),
-    supabase.from("payments").select("amount, paid_at, status").eq("status", "paid").gte("paid_at", monthISO).limit(1000),
-    supabase.from("expenses").select("amount, paid_at, category").gte("paid_at", monthISO).limit(1000),
-    supabase.from("groups").select("id, name, teacher_id, subject_id").limit(200),
+    supabase.from("students").select("first_name, last_name, balance, phone").lt("balance", 0).order("balance", { ascending: true }).limit(10),
+    supabase.from("payments").select("amount").eq("status", "paid").gte("paid_at", monthISO).limit(2000),
+    supabase.from("expenses").select("amount").gte("paid_at", monthISO).limit(2000),
+    supabase.from("leads").select("name, phone, course, status, created_at").order("created_at", { ascending: false }).limit(8),
   ]);
 
-  const roles = (roleRows ?? []).map((r: any) => r.role);
   const totalIncome = (monthPayments ?? []).reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
   const totalExpense = (monthExpenses ?? []).reduce((s: number, e: any) => s + Number(e.amount ?? 0), 0);
   const totalDebt = (debtors ?? []).reduce((s: number, d: any) => s + Math.abs(Number(d.balance ?? 0)), 0);
 
   return {
     date: today,
-    roles,
-    counts: { students: studentsCount ?? 0, groups: groupsCount ?? 0, debtors: (debtors ?? []).length, leads_new: (recentLeads ?? []).filter((l: any) => l.status === "new").length },
+    counts: { students: studentsCount ?? 0, groups: groupsCount ?? 0, debtors: (debtors ?? []).length },
     finance_this_month: { income: totalIncome, expense: totalExpense, profit: totalIncome - totalExpense, total_debt: totalDebt },
-    top_debtors: (debtors ?? []).slice(0, 10).map((d: any) => ({ name: `${d.first_name} ${d.last_name ?? ""}`.trim(), phone: d.phone, debt: Math.abs(Number(d.balance)) })),
-    recent_leads: (recentLeads ?? []).slice(0, 10),
-    students_sample: (activeStudents ?? []).slice(0, 40).map((s: any) => ({ name: `${s.first_name} ${s.last_name ?? ""}`.trim(), balance: s.balance, phone: s.phone })),
+    top_debtors: (debtors ?? []).map((d: any) => ({ name: `${d.first_name} ${d.last_name ?? ""}`.trim(), phone: d.phone, debt: Math.abs(Number(d.balance)) })),
+    recent_leads: recentLeads ?? [],
   };
+}
+
+// Simple in-memory cache per worker instance — context re-used within 60s across turns.
+const CTX_TTL_MS = 60_000;
+const ctxCache = new Map<string, { at: number; ctx: any }>();
+async function getContextCached(supabase: any, userId: string) {
+  const hit = ctxCache.get(userId);
+  const now = Date.now();
+  if (hit && now - hit.at < CTX_TTL_MS) return hit.ctx;
+  const ctx = await buildBusinessContext(supabase, userId);
+  ctxCache.set(userId, { at: now, ctx });
+  return ctx;
+}
+
+// Navigation-only shortcut: skip LLM entirely when user just asks to open a section.
+const NAV_WORDS = /^(och|ochib ber|ko'rsat|korsat|ber|menga|kerak|>|→)?\s*[a-zA-Z'oO'\u02BB\u2019\- ]{2,40}\??$/i;
+function isPureNavigation(text: string): boolean {
+  const t = text.trim();
+  if (t.length > 40) return false;
+  // No numbers, no question words that need data
+  if (/\d/.test(t)) return false;
+  if (/(qancha|necha|kim|nima|qanday|foyda|daromad|xarajat|qarz|maslahat|hisobot ber|tahlil)/i.test(t)) return false;
+  return NAV_WORDS.test(t);
 }
 
 export const jarvisChat = createServerFn({ method: "POST" })
