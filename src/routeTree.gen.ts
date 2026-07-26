@@ -34,6 +34,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
 import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authenticated/teacher-balance'
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
+import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_authenticated/settings.contact'
 import { Route as AuthenticatedSettingsCredentialsRouteImport } from './routes/_authenticated/settings.credentials'
@@ -186,6 +187,11 @@ const AuthenticatedTeacherPanelRoute =
     path: '/teacher-panel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ReceiptIdRoute = ReceiptIdRouteImport.update({
+  id: '/receipt/$id',
+  path: '/receipt/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
@@ -354,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/receipt/$id': typeof ReceiptIdRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -403,6 +410,7 @@ export interface FileRoutesByTo {
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/receipt/$id': typeof ReceiptIdRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -455,6 +463,7 @@ export interface FileRoutesById {
   '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
   '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/receipt/$id': typeof ReceiptIdRoute
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/_authenticated/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -507,6 +516,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/teacher-balance'
     | '/teacher-panel'
+    | '/receipt/$id'
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
@@ -556,6 +566,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/teacher-balance'
     | '/teacher-panel'
+    | '/receipt/$id'
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
@@ -607,6 +618,7 @@ export interface FileRouteTypes {
     | '/_authenticated/students'
     | '/_authenticated/teacher-balance'
     | '/_authenticated/teacher-panel'
+    | '/receipt/$id'
     | '/_authenticated/settings/contact'
     | '/_authenticated/settings/credentials'
     | '/_authenticated/settings/design'
@@ -638,6 +650,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BootstrapRoute: typeof BootstrapRoute
+  ReceiptIdRoute: typeof ReceiptIdRoute
   ApiPublicCronDailyReportRoute: typeof ApiPublicCronDailyReportRoute
   ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
@@ -824,6 +837,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/teacher-panel'
       preLoaderRoute: typeof AuthenticatedTeacherPanelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/receipt/$id': {
+      id: '/receipt/$id'
+      path: '/receipt/$id'
+      fullPath: '/receipt/$id'
+      preLoaderRoute: typeof ReceiptIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
@@ -1110,6 +1130,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BootstrapRoute: BootstrapRoute,
+  ReceiptIdRoute: ReceiptIdRoute,
   ApiPublicCronDailyReportRoute: ApiPublicCronDailyReportRoute,
   ApiPublicCronNotificationsDispatchRoute:
     ApiPublicCronNotificationsDispatchRoute,
