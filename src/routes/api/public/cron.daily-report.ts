@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-// Daily director report — called by pg_cron at 21:00 Asia/Tashkent (16:00 UTC).
+// Daily director report — called by pg_cron at 20:00 Asia/Tashkent (15:00 UTC).
 // Auth: Supabase anon key in `apikey` header (public /api/public/* endpoint).
 
 const TG_API = "https://api.telegram.org";
