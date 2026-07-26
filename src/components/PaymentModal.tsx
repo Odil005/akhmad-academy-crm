@@ -61,7 +61,7 @@ export function PaymentModal({ onClose, onDone }: { onClose: () => void; onDone:
     supabase
       .from("students")
       .select("id, first_name, last_name, group_id, parent_phone, parent_telegram_chat_id, profile:profiles(full_name, phone)")
-      .order("created_at" as never, { ascending: false })
+      .order("enrolled_at", { ascending: false })
       .limit(500)
       .then(({ data }) => setStudents((data as never) ?? []));
   }, []);
