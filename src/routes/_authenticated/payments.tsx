@@ -64,7 +64,7 @@ function PaymentsPage() {
     const nm: Record<string, string> = {};
     for (const x of (n ?? []) as any[]) if (x.payment_id && !nm[x.payment_id]) nm[x.payment_id] = x.status;
     setNotifs(nm);
-    setCourses(((c ?? []) as never) ?? []);
+    setCourses((c ?? []) as { id: string; name: string }[]);
     const cm: Record<string, string> = {};
     for (const x of (pr ?? []) as any[]) cm[x.id] = x.full_name ?? "—";
     setCashiers(cm);
