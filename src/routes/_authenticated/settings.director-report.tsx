@@ -74,7 +74,7 @@ function DirectorReportSettings() {
       <header>
         <h1 className="text-2xl font-extrabold">Direktor kunlik hisoboti</h1>
         <p className="text-sm text-muted-foreground">
-          Har kuni 21:00 da Telegram orqali kunlik xulosa yuboriladi (daromad, xarajat, qarzdorlar, davomat, Jarvis xulosasi).
+          Har kuni kechki 20:00 (Toshkent) da Telegram orqali kunlik xulosa yuboriladi (daromad, xarajat, qarzdorlar, davomat, Jarvis xulosasi).
         </p>
       </header>
 
