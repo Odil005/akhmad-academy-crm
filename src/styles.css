@@ -179,7 +179,7 @@
 }
 
 @utility gold-text {
-  background: linear-gradient(120deg, oklch(0.55 0.20 260), oklch(0.62 0.17 150), oklch(0.55 0.20 260));
+  background: linear-gradient(120deg, oklch(0.72 0.12 80), oklch(0.86 0.14 92), oklch(0.72 0.12 80));
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
