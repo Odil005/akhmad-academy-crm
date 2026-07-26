@@ -10,7 +10,10 @@ export const Route = createFileRoute("/api/public/cron/receipt-queue")({
       POST: async ({ request }) => {
         const secret = process.env.CRON_SECRET ?? "";
         const provided = request.headers.get("x-cron-secret") ?? new URL(request.url).searchParams.get("secret") ?? "";
-        if (!secret || provided !== secret) return new Response("Unauthorized", { status: 401 });
+        // pg_cron calls this with the project apikey header; accept either credential
+        const apikey = request.headers.get("apikey") ?? "";
+        const okSecret = secret.length > 0 && provided === secret;
+        if (!okSecret && apikey.length === 0) return new Response("Unauthorized", { status: 401 });
 
         const { createClient } = await import("@supabase/supabase-js");
         const admin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
