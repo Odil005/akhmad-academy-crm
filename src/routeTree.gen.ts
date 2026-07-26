@@ -34,7 +34,9 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
 import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authenticated/teacher-balance'
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
+import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedSettingsCashRegisterRouteImport } from './routes/_authenticated/settings.cash-register'
 import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_authenticated/settings.contact'
 import { Route as AuthenticatedSettingsCredentialsRouteImport } from './routes/_authenticated/settings.credentials'
 import { Route as AuthenticatedSettingsDesignRouteImport } from './routes/_authenticated/settings.design'
@@ -53,6 +55,7 @@ import { Route as AuthenticatedStudentsIdRouteImport } from './routes/_authentic
 import { Route as ApiPublicCronDailyReportRouteImport } from './routes/api/public/cron.daily-report'
 import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes/api/public/cron.notifications-dispatch'
 import { Route as ApiPublicCronParentDigestRouteImport } from './routes/api/public/cron.parent-digest'
+import { Route as ApiPublicCronReceiptQueueRouteImport } from './routes/api/public/cron.receipt-queue'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron.reminders'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
 import { Route as ApiPublicTelephonyOutboxRouteImport } from './routes/api/public/telephony.outbox'
@@ -186,10 +189,21 @@ const AuthenticatedTeacherPanelRoute =
     path: '/teacher-panel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ReceiptIdRoute = ReceiptIdRouteImport.update({
+  id: '/receipt/$id',
+  path: '/receipt/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsCashRegisterRoute =
+  AuthenticatedSettingsCashRegisterRouteImport.update({
+    id: '/cash-register',
+    path: '/cash-register',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedSettingsContactRoute =
@@ -299,6 +313,12 @@ const ApiPublicCronParentDigestRoute =
     path: '/api/public/cron/parent-digest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronReceiptQueueRoute =
+  ApiPublicCronReceiptQueueRouteImport.update({
+    id: '/api/public/cron/receipt-queue',
+    path: '/api/public/cron/receipt-queue',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
   id: '/api/public/cron/reminders',
   path: '/api/public/cron/reminders',
@@ -354,6 +374,8 @@ export interface FileRoutesByFullPath {
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/receipt/$id': typeof ReceiptIdRoute
+  '/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -373,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
@@ -403,6 +426,8 @@ export interface FileRoutesByTo {
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/receipt/$id': typeof ReceiptIdRoute
+  '/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -422,6 +447,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
@@ -455,6 +481,8 @@ export interface FileRoutesById {
   '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
   '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/receipt/$id': typeof ReceiptIdRoute
+  '/_authenticated/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/_authenticated/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -474,6 +502,7 @@ export interface FileRoutesById {
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
@@ -507,6 +536,8 @@ export interface FileRouteTypes {
     | '/students'
     | '/teacher-balance'
     | '/teacher-panel'
+    | '/receipt/$id'
+    | '/settings/cash-register'
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
@@ -526,6 +557,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-report'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
@@ -556,6 +588,8 @@ export interface FileRouteTypes {
     | '/students'
     | '/teacher-balance'
     | '/teacher-panel'
+    | '/receipt/$id'
+    | '/settings/cash-register'
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
@@ -575,6 +609,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-report'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
@@ -607,6 +642,8 @@ export interface FileRouteTypes {
     | '/_authenticated/students'
     | '/_authenticated/teacher-balance'
     | '/_authenticated/teacher-panel'
+    | '/receipt/$id'
+    | '/_authenticated/settings/cash-register'
     | '/_authenticated/settings/contact'
     | '/_authenticated/settings/credentials'
     | '/_authenticated/settings/design'
@@ -626,6 +663,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-report'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
@@ -638,9 +676,11 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BootstrapRoute: typeof BootstrapRoute
+  ReceiptIdRoute: typeof ReceiptIdRoute
   ApiPublicCronDailyReportRoute: typeof ApiPublicCronDailyReportRoute
   ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
+  ApiPublicCronReceiptQueueRoute: typeof ApiPublicCronReceiptQueueRoute
   ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
   ApiPublicTelephonyOutboxRoute: typeof ApiPublicTelephonyOutboxRoute
@@ -825,11 +865,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeacherPanelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/receipt/$id': {
+      id: '/receipt/$id'
+      path: '/receipt/$id'
+      fullPath: '/receipt/$id'
+      preLoaderRoute: typeof ReceiptIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/'
       fullPath: '/settings/'
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/cash-register': {
+      id: '/_authenticated/settings/cash-register'
+      path: '/cash-register'
+      fullPath: '/settings/cash-register'
+      preLoaderRoute: typeof AuthenticatedSettingsCashRegisterRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
     '/_authenticated/settings/contact': {
@@ -958,6 +1012,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronParentDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/receipt-queue': {
+      id: '/api/public/cron/receipt-queue'
+      path: '/api/public/cron/receipt-queue'
+      fullPath: '/api/public/cron/receipt-queue'
+      preLoaderRoute: typeof ApiPublicCronReceiptQueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/reminders': {
       id: '/api/public/cron/reminders'
       path: '/api/public/cron/reminders'
@@ -997,6 +1058,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsCashRegisterRoute: typeof AuthenticatedSettingsCashRegisterRoute
   AuthenticatedSettingsContactRoute: typeof AuthenticatedSettingsContactRoute
   AuthenticatedSettingsCredentialsRoute: typeof AuthenticatedSettingsCredentialsRoute
   AuthenticatedSettingsDesignRoute: typeof AuthenticatedSettingsDesignRoute
@@ -1015,6 +1077,8 @@ interface AuthenticatedSettingsRouteChildren {
 }
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsCashRegisterRoute:
+    AuthenticatedSettingsCashRegisterRoute,
   AuthenticatedSettingsContactRoute: AuthenticatedSettingsContactRoute,
   AuthenticatedSettingsCredentialsRoute: AuthenticatedSettingsCredentialsRoute,
   AuthenticatedSettingsDesignRoute: AuthenticatedSettingsDesignRoute,
@@ -1110,10 +1174,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BootstrapRoute: BootstrapRoute,
+  ReceiptIdRoute: ReceiptIdRoute,
   ApiPublicCronDailyReportRoute: ApiPublicCronDailyReportRoute,
   ApiPublicCronNotificationsDispatchRoute:
     ApiPublicCronNotificationsDispatchRoute,
   ApiPublicCronParentDigestRoute: ApiPublicCronParentDigestRoute,
+  ApiPublicCronReceiptQueueRoute: ApiPublicCronReceiptQueueRoute,
   ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
   ApiPublicTelephonyOutboxRoute: ApiPublicTelephonyOutboxRoute,

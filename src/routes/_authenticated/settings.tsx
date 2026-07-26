@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { KeyRound, Palette, ShoppingBag, Megaphone, MessageSquare, FileSpreadsheet, MapPin, BarChart3, BookOpen, GraduationCap, Star, Phone, Send } from "lucide-react";
+import { KeyRound, Palette, ShoppingBag, Megaphone, MessageSquare, FileSpreadsheet, MapPin, BarChart3, BookOpen, GraduationCap, Star, Phone, Send, Receipt } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   ssr: false,
@@ -36,6 +36,7 @@ function SettingsLayout() {
 
     { to: "/settings/integrations", label: "Telegram / SMS", icon: MessageSquare, show: true },
     { to: "/settings/telephony", label: "IP Telefoniya (SIP)", icon: Phone, show: isDirector },
+    { to: "/settings/cash-register", label: "Virtual kassa & fiskal chek", icon: Receipt, show: isDirector },
     { to: "/settings/director-report", label: "Direktor hisoboti", icon: Send, show: isDirector },
     { to: "/settings/reports", label: "Excel & Word", icon: FileSpreadsheet, show: true },
   ];

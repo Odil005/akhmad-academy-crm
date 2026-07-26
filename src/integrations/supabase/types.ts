@@ -278,6 +278,57 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_register_settings: {
+        Row: {
+          branch_address: string | null
+          branch_id: string | null
+          cashbox_id: string | null
+          company_name: string
+          company_tin: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          printer_type: string
+          provider_name: string
+          test_mode: boolean
+          updated_at: string
+          vat_enabled: boolean
+          vat_percent: number
+        }
+        Insert: {
+          branch_address?: string | null
+          branch_id?: string | null
+          cashbox_id?: string | null
+          company_name?: string
+          company_tin?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          printer_type?: string
+          provider_name?: string
+          test_mode?: boolean
+          updated_at?: string
+          vat_enabled?: boolean
+          vat_percent?: number
+        }
+        Update: {
+          branch_address?: string | null
+          branch_id?: string | null
+          cashbox_id?: string | null
+          company_name?: string
+          company_tin?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          printer_type?: string
+          provider_name?: string
+          test_mode?: boolean
+          updated_at?: string
+          vat_enabled?: boolean
+          vat_percent?: number
+        }
+        Relationships: []
+      }
       design_settings: {
         Row: {
           animated_bg_url: string | null
@@ -480,6 +531,68 @@ export type Database = {
             columns: ["cash_account_id"]
             isOneToOne: false
             referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiscal_receipts: {
+        Row: {
+          cashbox_id: string | null
+          cashier_name: string | null
+          company_tin: string | null
+          created_at: string
+          fiscal_qr_data: string | null
+          fiscal_sign: string | null
+          id: string
+          payment_id: string
+          provider_name: string
+          provider_transaction_id: string | null
+          raw_response: Json
+          receipt_number: string | null
+          receipt_url: string | null
+          status: string
+          test_mode: boolean
+        }
+        Insert: {
+          cashbox_id?: string | null
+          cashier_name?: string | null
+          company_tin?: string | null
+          created_at?: string
+          fiscal_qr_data?: string | null
+          fiscal_sign?: string | null
+          id?: string
+          payment_id: string
+          provider_name: string
+          provider_transaction_id?: string | null
+          raw_response?: Json
+          receipt_number?: string | null
+          receipt_url?: string | null
+          status?: string
+          test_mode?: boolean
+        }
+        Update: {
+          cashbox_id?: string | null
+          cashier_name?: string | null
+          company_tin?: string | null
+          created_at?: string
+          fiscal_qr_data?: string | null
+          fiscal_sign?: string | null
+          id?: string
+          payment_id?: string
+          provider_name?: string
+          provider_transaction_id?: string | null
+          raw_response?: Json
+          receipt_number?: string | null
+          receipt_url?: string | null
+          status?: string
+          test_mode?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_receipts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: true
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
         ]
@@ -919,6 +1032,56 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_queue: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string | null
+          message_text: string
+          payment_id: string | null
+          receipt_url: string | null
+          recipient_type: string
+          sent_at: string | null
+          status: string
+          telegram_chat_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          message_text: string
+          payment_id?: string | null
+          receipt_url?: string | null
+          recipient_type?: string
+          sent_at?: string | null
+          status?: string
+          telegram_chat_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          message_text?: string
+          payment_id?: string | null
+          receipt_url?: string | null
+          recipient_type?: string
+          sent_at?: string | null
+          status?: string
+          telegram_chat_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_queue_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_link_tokens: {
         Row: {
           created_at: string
@@ -1045,6 +1208,47 @@ export type Database = {
           },
         ]
       }
+      payment_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          payment_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          payment_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          payment_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_audit_log_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_notifications: {
         Row: {
           due_date: string | null
@@ -1095,39 +1299,72 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          branch_id: string | null
           cash_account_id: string | null
+          cashier_id: string | null
+          course_id: string | null
           created_at: string
+          discount_amount: number
+          discount_reason: string | null
+          fiscal_status: string
+          fiscalized_at: string | null
           id: string
+          idempotency_key: string | null
           next_due_date: string | null
           note: string | null
           paid_at: string | null
+          payment_method: string
           period_month: string
           status: string
           student_id: string
+          subtotal: number
+          total_amount: number
         }
         Insert: {
           amount: number
+          branch_id?: string | null
           cash_account_id?: string | null
+          cashier_id?: string | null
+          course_id?: string | null
           created_at?: string
+          discount_amount?: number
+          discount_reason?: string | null
+          fiscal_status?: string
+          fiscalized_at?: string | null
           id?: string
+          idempotency_key?: string | null
           next_due_date?: string | null
           note?: string | null
           paid_at?: string | null
+          payment_method?: string
           period_month: string
           status?: string
           student_id: string
+          subtotal?: number
+          total_amount?: number
         }
         Update: {
           amount?: number
+          branch_id?: string | null
           cash_account_id?: string | null
+          cashier_id?: string | null
+          course_id?: string | null
           created_at?: string
+          discount_amount?: number
+          discount_reason?: string | null
+          fiscal_status?: string
+          fiscalized_at?: string | null
           id?: string
+          idempotency_key?: string | null
           next_due_date?: string | null
           note?: string | null
           paid_at?: string | null
+          payment_method?: string
           period_month?: string
           status?: string
           student_id?: string
+          subtotal?: number
+          total_amount?: number
         }
         Relationships: [
           {
@@ -1135,6 +1372,13 @@ export type Database = {
             columns: ["cash_account_id"]
             isOneToOne: false
             referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
             referencedColumns: ["id"]
           },
           {

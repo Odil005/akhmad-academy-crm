@@ -415,3 +415,46 @@
   }
 }
 
+
+/* ---------------- 80 mm thermal receipt printing ---------------- */
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 3mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  /* hide everything except the receipt */
+  body * {
+    visibility: hidden !important;
+  }
+  .receipt-80,
+  .receipt-80 * {
+    visibility: visible !important;
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  .receipt-80 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    padding: 0 !important;
+  }
+  .receipt-80 .receipt-qr {
+    width: 32mm !important;
+    height: 32mm !important;
+  }
+  .no-print,
+  nav,
+  aside,
+  header button,
+  footer {
+    display: none !important;
+  }
+}
