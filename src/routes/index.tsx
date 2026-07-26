@@ -35,29 +35,17 @@ const NAV_LINKS = [
   { href: "#contact", label: "Aloqa" },
 ];
 
-function Logo({ size = "md" }: { size?: "sm" | "md" }) {
-  const dim = size === "sm" ? "h-10 w-10" : "h-12 w-12";
+function Monogram({ className = "h-10 w-10" }: { className?: string }) {
   return (
-    <a href="#home" className="flex items-center gap-3">
-      <img
-        src={logoAsset.url}
-        alt="Akhmad Academy logo"
-        className={`${dim} rounded-full object-cover shadow-lg shadow-primary/20`}
-        decoding="async"
-        fetchPriority="high"
-        width={48}
-        height={48}
-      />
-
-      <div className="leading-tight">
-        <div className="text-lg font-extrabold tracking-tight text-foreground">
-          Akhmad <span className="text-primary">Academy</span>
-        </div>
-        <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground">
-          O'QUV MARKAZI
-        </div>
-      </div>
-    </a>
+    <img
+      src={logoAsset.url}
+      alt="Akhmad Academy logo"
+      className={`${className} rounded-full object-cover`}
+      decoding="async"
+      fetchPriority="high"
+      width={48}
+      height={48}
+    />
   );
 }
 
@@ -69,72 +57,93 @@ function Header() {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   return (
-    <header className="absolute inset-x-0 top-0 z-40">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 md:px-8">
-        <Logo />
-        <div className="hidden items-center gap-8 lg:flex">
-          {NAV_LINKS.map((l) => (
-            <button
-              key={l.href}
-              onClick={() => handleNav(l.href)}
-              className="text-sm font-medium text-foreground/80 transition-colors hover:text-primary"
-            >
-              {l.label}
-            </button>
-          ))}
+    <header className="relative z-40">
+      {/* Ticker strip */}
+      <div className="bg-primary text-primary-foreground">
+        <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-2.5 md:px-8">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">
+            Akhmad Academy
+          </span>
+          <span className="hidden h-px flex-1 bg-accent/40 sm:block" />
+          <ArrowRight className="hidden h-4 w-4 text-accent/70 sm:block" />
         </div>
-        <div className="hidden items-center gap-4 lg:flex">
-          <Link
-            to="/auth"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/60 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-primary/10"
-          >
-            <LogIn className="h-4 w-4" /> Kabinet
-          </Link>
-          <button
-            onClick={() => handleNav("#contact")}
-            className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
-          >
-            Biz bilan bog'lanish
-          </button>
-        </div>
+      </div>
 
-        <button
-          className="rounded-lg border border-border p-2 text-foreground lg:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Menu"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </nav>
-      {open && (
-        <div className="mx-4 rounded-2xl border border-border bg-card/95 p-4 backdrop-blur lg:hidden">
-          <div className="flex flex-col gap-1">
+      {/* Nav */}
+      <div className="bg-primary">
+        <nav className="mx-auto flex max-w-[1400px] items-stretch justify-between px-4 md:px-8">
+          <a href="#home" className="flex items-center gap-4 py-4">
+            <Monogram className="h-11 w-11" />
+            <span className="font-display text-base tracking-[0.28em] text-primary-foreground">
+              AKHMAD ACADEMY
+            </span>
+          </a>
+
+          <div className="hidden items-center gap-9 lg:flex">
             {NAV_LINKS.map((l) => (
               <button
                 key={l.href}
                 onClick={() => handleNav(l.href)}
-                className="rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground/90 hover:bg-primary/10"
+                className="text-sm font-medium text-primary-foreground/85 transition-colors hover:text-accent"
               >
                 {l.label}
               </button>
             ))}
+          </div>
+
+          <div className="flex items-center gap-2">
             <Link
               to="/auth"
-              onClick={() => setOpen(false)}
-              className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-primary/60 px-4 py-2 text-sm font-semibold text-foreground hover:bg-primary/10"
+              className="hidden items-center gap-2 px-5 text-sm font-semibold text-primary-foreground/85 transition-colors hover:text-accent lg:inline-flex"
             >
               <LogIn className="h-4 w-4" /> Kabinet
             </Link>
             <button
               onClick={() => handleNav("#contact")}
-              className="mt-2 rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
+              className="hidden items-center gap-3 self-stretch bg-[oklch(0.45_0.22_265)] px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-[oklch(0.50_0.22_265)] lg:inline-flex"
             >
-              Biz bilan bog'lanish
+              Qabulga yozilish <ArrowRight className="h-4 w-4" />
             </button>
-
+            <button
+              className="my-3 rounded-lg border border-primary-foreground/25 p-2 text-primary-foreground lg:hidden"
+              onClick={() => setOpen((v) => !v)}
+              aria-label="Menu"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
-        </div>
-      )}
+        </nav>
+
+        {open && (
+          <div className="border-t border-primary-foreground/10 px-4 pb-4 lg:hidden">
+            <div className="flex flex-col gap-1 pt-3">
+              {NAV_LINKS.map((l) => (
+                <button
+                  key={l.href}
+                  onClick={() => handleNav(l.href)}
+                  className="rounded-lg px-3 py-2 text-left text-sm font-medium text-primary-foreground/90 hover:bg-primary-foreground/10"
+                >
+                  {l.label}
+                </button>
+              ))}
+              <Link
+                to="/auth"
+                onClick={() => setOpen(false)}
+                className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/60 px-4 py-2 text-sm font-semibold text-accent"
+              >
+                <LogIn className="h-4 w-4" /> Kabinet
+              </Link>
+              <button
+                onClick={() => handleNav("#contact")}
+                className="mt-2 rounded-lg bg-[oklch(0.45_0.22_265)] px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
+              >
+                Qabulga yozilish
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </header>
   );
 }
@@ -177,183 +186,78 @@ function useHomepageStats() {
 function Hero() {
   const stats = useHomepageStats();
   return (
-    <section
-      id="home"
-      className="relative overflow-hidden pb-16 pt-28 md:pb-24 md:pt-32"
-    >
-      {/* Animated gradient overlay */}
-      <div className="absolute inset-0 -z-10 hero-gradient-shift" aria-hidden />
-      {/* Floating glow orbs */}
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
-        <div className="hero-orb hero-orb-1" />
-        <div className="hero-orb hero-orb-2" />
-        <div className="hero-orb hero-orb-3" />
-      </div>
-      {/* Subtle grid shimmer */}
-      <div className="pointer-events-none absolute inset-0 -z-10 hero-shimmer opacity-30" aria-hidden />
-      <BackgroundAnimation variant="hero" position="absolute" />
+    <section id="home" className="relative bg-primary">
+      <div className="mx-auto max-w-[1400px] px-4 md:px-8">
+        <div className="relative grid gap-0 overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          {/* Left panel */}
+          <div className="relative z-10 bg-background px-6 py-14 md:px-14 md:py-24">
+            <div className="flex gap-8">
+              <div className="hidden flex-col items-center gap-4 pt-3 md:flex">
+                <span className="h-16 w-px bg-accent" />
+                {["01", "02", "03", "04"].map((n, i) => (
+                  <span
+                    key={n}
+                    className={`text-[11px] tracking-widest ${i === 0 ? "text-accent" : "text-muted-foreground/60"}`}
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
 
-      <style>{`
-        @keyframes heroGradient {
-          0%, 100% {
-            background: linear-gradient(90deg, oklch(1 0 0 / 0) 0%, oklch(0.55 0.20 260 / 0.06) 55%, oklch(0.62 0.17 150 / 0.05) 100%);
-          }
-          50% {
-            background: linear-gradient(120deg, oklch(0.62 0.17 150 / 0.05) 0%, oklch(0.55 0.20 260 / 0.08) 55%, oklch(0.70 0.22 25 / 0.05) 100%);
-          }
-        }
-        @keyframes orbFloat1 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(60px, -40px) scale(1.15); }
-          66% { transform: translate(-30px, 50px) scale(0.9); }
-        }
-        @keyframes orbFloat2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50% { transform: translate(-80px, 60px) scale(1.2); }
-        }
-        @keyframes orbFloat3 {
-          0%, 100% { transform: translate(0, 0) scale(0.95); }
-          50% { transform: translate(50px, -60px) scale(1.1); }
-        }
-        @keyframes heroShimmer {
-          0% { background-position: 0% 0%; }
-          100% { background-position: 200% 0%; }
-        }
-        .hero-gradient-shift { animation: heroGradient 14s ease-in-out infinite; }
-        .hero-orb {
-          position: absolute;
-          border-radius: 9999px;
-          filter: blur(60px);
-          will-change: transform;
-        }
-        .hero-orb-1 {
-          top: 10%; right: 10%;
-          width: 380px; height: 380px;
-          background: radial-gradient(circle, oklch(0.60 0.22 260 / 0.28), transparent 70%);
-          animation: orbFloat1 18s ease-in-out infinite;
-        }
-        .hero-orb-2 {
-          bottom: 5%; left: 5%;
-          width: 320px; height: 320px;
-          background: radial-gradient(circle, oklch(0.65 0.18 150 / 0.24), transparent 70%);
-          animation: orbFloat2 22s ease-in-out infinite;
-        }
-        .hero-orb-3 {
-          top: 40%; left: 40%;
-          width: 260px; height: 260px;
-          background: radial-gradient(circle, oklch(0.70 0.22 25 / 0.20), transparent 70%);
-          animation: orbFloat3 20s ease-in-out infinite;
-        }
-        .hero-shimmer {
-          background-image: linear-gradient(110deg, transparent 30%, oklch(0.55 0.20 260 / 0.06) 50%, transparent 70%);
-          background-size: 200% 100%;
-          animation: heroShimmer 12s linear infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .hero-gradient-shift, .hero-orb, .hero-shimmer { animation: none; }
-        }
-      `}</style>
-
-
-      <div className="relative mx-auto max-w-7xl px-4 md:px-8">
-        <div className="grid items-center gap-10 sm:grid-cols-[1.1fr_1fr]">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-6xl">
-              Bilimingizni
-              <br />
-              <span className="text-primary">Akhmad Academy</span> bilan
-              <br />
-              rivojlantiring
-            </h1>
-            <div className="mt-8 max-w-md rounded-2xl border border-border bg-card/70 p-5 backdrop-blur">
-              <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
-                <span className="mr-2 text-2xl leading-none text-primary">“</span>
-                Maqsadga erishish uchun bo'sh vaqtingiz qolmaydigan darajada qattiq
-                o'qishingiz kerak.
-              </p>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="#courses"
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
-              >
-                <GraduationCap className="h-4 w-4" /> Fanlarni ko'rish
-                <ArrowRight className="h-4 w-4" />
-              </a>
-              <a
-                href="#contact"
-                className="inline-flex items-center gap-2 rounded-lg border border-primary/60 bg-background/40 px-6 py-3 text-sm font-semibold text-foreground backdrop-blur transition-colors hover:bg-primary/10"
-              >
-                <Phone className="h-4 w-4" /> Bog'lanish
-              </a>
+              <div>
+                <h1 className="font-display text-[2.1rem] leading-[1.08] tracking-tight text-primary sm:text-5xl md:text-[3.4rem]">
+                  Natija tasodif emas.
+                  <br />U tizimdan boshlanadi.
+                </h1>
+                <div className="mt-8 h-px w-40 bg-accent" />
+                <a
+                  href="#courses"
+                  className="mt-10 inline-flex items-center gap-6 border border-primary/40 px-7 py-4 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  Akademiyani ko'rish <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-md sm:max-w-none">
-            <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/25 via-accent/15 to-destructive/15 blur-2xl" />
-            <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-primary/25 bg-card/70 p-10 shadow-2xl shadow-primary/10 backdrop-blur">
-              <div className="relative flex flex-col items-center gap-6 text-center">
-                <div className="absolute -inset-8 -z-10 rounded-full bg-gradient-to-br from-primary/20 via-accent/10 to-destructive/10 blur-2xl" />
-                <img
-                  src={logoAsset.url}
-                  alt="Akhmad Academy logo"
-                  className="h-40 w-40 rounded-full object-cover shadow-xl shadow-primary/30 md:h-56 md:w-56"
-                  decoding="async"
-                  width={224}
-                  height={224}
-                />
-                <div>
-                  <div className="text-2xl font-extrabold tracking-tight md:text-3xl">
-                    Akhmad <span className="text-primary">Academy</span>
-                  </div>
-                  <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-                    Bilim · Tarbiya · Natija
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Right image */}
+          <div className="relative min-h-[280px] md:min-h-[420px]">
+            <img
+              src={heroClassroom}
+              alt="Akhmad Academy o'quvchilari darsda"
+              className="absolute inset-0 h-full w-full object-cover"
+              width={1280}
+              height={1024}
+              fetchPriority="high"
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-primary/10" />
+            <div
+              className="absolute inset-y-0 -left-px hidden w-24 bg-background md:block"
+              style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
+              aria-hidden
+            />
           </div>
         </div>
       </div>
 
-
-      {/* Features */}
-      <div className="relative mx-auto mt-16 max-w-7xl px-4 md:px-8">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-          {features.map((f) => (
+      {/* Stats strip */}
+      <div className="border-t border-accent/20">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-y-6 px-4 py-7 md:grid-cols-4 md:px-8">
+          {stats.map((s, i) => (
             <div
-              key={f.title}
-              className="rounded-2xl border border-border bg-card/70 p-5 backdrop-blur transition-colors hover:border-primary/50"
+              key={s.label}
+              className={`flex items-center justify-center gap-3 ${i > 0 ? "md:border-l md:border-accent/25" : ""}`}
             >
-              <f.icon className="h-6 w-6 text-primary" />
-              <h3 className="mt-3 text-sm font-semibold text-foreground">{f.title}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{f.desc}</p>
+              <s.icon className="h-6 w-6 text-accent" />
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-2xl text-primary-foreground md:text-3xl">
+                  {s.value}
+                </span>
+                <span className="text-sm text-primary-foreground/70">{s.label}</span>
+              </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="relative mx-auto mt-6 max-w-7xl px-4 md:px-8">
-        <div className="rounded-2xl border border-border bg-card/70 px-6 py-6 backdrop-blur">
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {stats.map((s, i) => (
-              <div
-                key={s.label}
-                className={`flex items-center gap-3 ${
-                  i > 0 ? "md:border-l md:border-border md:pl-6" : ""
-                }`}
-              >
-                <s.icon className="h-6 w-6 text-primary" />
-                <div>
-                  <div className="text-xl font-extrabold text-foreground md:text-2xl">
-                    {s.value}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{s.label}</div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>
