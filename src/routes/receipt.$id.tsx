@@ -34,14 +34,22 @@ function ReceiptPage() {
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto max-w-md">
-        <div className="no-print mb-4 flex items-center justify-between gap-2">
+        <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-lg font-bold">To'lov cheki</h1>
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-          >
-            <Printer className="h-4 w-4" /> Chekni chiqarish
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Printer className="h-4 w-4" /> Chekni chiqarish
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:bg-secondary"
+            >
+              <Download className="h-4 w-4" /> PDF yuklab olish
+            </button>
+          </div>
         </div>
 
         {error && <p className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}
