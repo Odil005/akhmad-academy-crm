@@ -1872,10 +1872,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      teacher_teaches_student: {
-        Args: { _student_id: string; _teacher_id: string }
-        Returns: boolean
-      }
       teachers_for_student: {
         Args: { _student_id: string }
         Returns: {
