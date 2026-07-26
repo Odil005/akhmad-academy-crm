@@ -18,6 +18,7 @@ import {
   Instagram,
 } from "lucide-react";
 import logoAsset from "@/assets/akhmad-logo.png.asset.json";
+import heroClassroom from "@/assets/hero-classroom.jpg";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -550,7 +551,10 @@ function Footer() {
   return (
     <footer className="border-t border-border/60 bg-background/80 py-10">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-8">
-        <Logo size="sm" />
+        <div className="flex items-center gap-3">
+          <Monogram className="h-10 w-10" />
+          <span className="font-display text-sm tracking-[0.25em] text-primary">AKHMAD ACADEMY</span>
+        </div>
         <p className="text-xs text-muted-foreground">
           © {new Date().getFullYear()} Akhmad Academy. Barcha huquqlar himoyalangan.
         </p>
