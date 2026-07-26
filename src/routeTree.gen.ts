@@ -55,6 +55,7 @@ import { Route as AuthenticatedStudentsIdRouteImport } from './routes/_authentic
 import { Route as ApiPublicCronDailyReportRouteImport } from './routes/api/public/cron.daily-report'
 import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes/api/public/cron.notifications-dispatch'
 import { Route as ApiPublicCronParentDigestRouteImport } from './routes/api/public/cron.parent-digest'
+import { Route as ApiPublicCronReceiptQueueRouteImport } from './routes/api/public/cron.receipt-queue'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron.reminders'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
 import { Route as ApiPublicTelephonyOutboxRouteImport } from './routes/api/public/telephony.outbox'
@@ -312,6 +313,12 @@ const ApiPublicCronParentDigestRoute =
     path: '/api/public/cron/parent-digest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronReceiptQueueRoute =
+  ApiPublicCronReceiptQueueRouteImport.update({
+    id: '/api/public/cron/receipt-queue',
+    path: '/api/public/cron/receipt-queue',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
   id: '/api/public/cron/reminders',
   path: '/api/public/cron/reminders',
@@ -388,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
@@ -439,6 +447,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
@@ -493,6 +502,7 @@ export interface FileRoutesById {
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
@@ -547,6 +557,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-report'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
@@ -598,6 +609,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-report'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
@@ -651,6 +663,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-report'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/telephony/outbox'
@@ -667,6 +680,7 @@ export interface RootRouteChildren {
   ApiPublicCronDailyReportRoute: typeof ApiPublicCronDailyReportRoute
   ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
+  ApiPublicCronReceiptQueueRoute: typeof ApiPublicCronReceiptQueueRoute
   ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
   ApiPublicTelephonyOutboxRoute: typeof ApiPublicTelephonyOutboxRoute
@@ -998,6 +1012,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronParentDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/receipt-queue': {
+      id: '/api/public/cron/receipt-queue'
+      path: '/api/public/cron/receipt-queue'
+      fullPath: '/api/public/cron/receipt-queue'
+      preLoaderRoute: typeof ApiPublicCronReceiptQueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/reminders': {
       id: '/api/public/cron/reminders'
       path: '/api/public/cron/reminders'
@@ -1158,6 +1179,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronNotificationsDispatchRoute:
     ApiPublicCronNotificationsDispatchRoute,
   ApiPublicCronParentDigestRoute: ApiPublicCronParentDigestRoute,
+  ApiPublicCronReceiptQueueRoute: ApiPublicCronReceiptQueueRoute,
   ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
   ApiPublicTelephonyOutboxRoute: ApiPublicTelephonyOutboxRoute,
