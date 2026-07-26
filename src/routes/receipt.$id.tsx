@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getPublicReceipt } from "@/lib/payments.functions";
 import { ReceiptView, type ReceiptData } from "@/components/ReceiptView";
-import { Printer, RefreshCw } from "lucide-react";
+import { Printer, RefreshCw, Download } from "lucide-react";
 
 export const Route = createFileRoute("/receipt/$id")({
   component: ReceiptPage,
