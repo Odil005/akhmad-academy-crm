@@ -525,7 +525,7 @@ export const getPublicReceipt = createServerFn({ method: "GET" })
       .from("payments")
       .select("id, amount, subtotal, discount_amount, total_amount, payment_method, period_month, paid_at, created_at, fiscal_status, student_id, course_id, cashier_id")
       .eq("id", data.payment_id).maybeSingle();
-    if (!payment) throw new Response("Chek topilmadi", { status: 404 });
+    if (!payment) return null;
 
     const [{ data: receipt }, { data: settings }, { data: student }] = await Promise.all([
       supabaseAdmin.from("fiscal_receipts").select("receipt_number, fiscal_sign, fiscal_qr_data, receipt_url, cashbox_id, test_mode, provider_name, created_at").eq("payment_id", payment.id).maybeSingle(),

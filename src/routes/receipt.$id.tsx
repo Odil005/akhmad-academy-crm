@@ -26,7 +26,7 @@ function ReceiptPage() {
   useEffect(() => {
     let alive = true;
     getPublicReceipt({ data: { payment_id: id } })
-      .then((d) => { if (alive) setData(d as unknown as ReceiptData); })
+      .then((d) => { if (!alive) return; if (d) setData(d as unknown as ReceiptData); else setError("Chek topilmadi"); })
       .catch(() => { if (alive) setError("Chek topilmadi"); });
     return () => { alive = false; };
   }, [id]);
