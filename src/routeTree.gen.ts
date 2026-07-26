@@ -36,6 +36,7 @@ import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authe
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
 import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedSettingsCashRegisterRouteImport } from './routes/_authenticated/settings.cash-register'
 import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_authenticated/settings.contact'
 import { Route as AuthenticatedSettingsCredentialsRouteImport } from './routes/_authenticated/settings.credentials'
 import { Route as AuthenticatedSettingsDesignRouteImport } from './routes/_authenticated/settings.design'
@@ -196,6 +197,12 @@ const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsCashRegisterRoute =
+  AuthenticatedSettingsCashRegisterRouteImport.update({
+    id: '/cash-register',
+    path: '/cash-register',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedSettingsContactRoute =
@@ -361,6 +368,7 @@ export interface FileRoutesByFullPath {
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
+  '/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -411,6 +419,7 @@ export interface FileRoutesByTo {
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
+  '/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -464,6 +473,7 @@ export interface FileRoutesById {
   '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
+  '/_authenticated/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/_authenticated/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/teacher-balance'
     | '/teacher-panel'
     | '/receipt/$id'
+    | '/settings/cash-register'
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/teacher-balance'
     | '/teacher-panel'
     | '/receipt/$id'
+    | '/settings/cash-register'
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
@@ -619,6 +631,7 @@ export interface FileRouteTypes {
     | '/_authenticated/teacher-balance'
     | '/_authenticated/teacher-panel'
     | '/receipt/$id'
+    | '/_authenticated/settings/cash-register'
     | '/_authenticated/settings/contact'
     | '/_authenticated/settings/credentials'
     | '/_authenticated/settings/design'
@@ -852,6 +865,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/cash-register': {
+      id: '/_authenticated/settings/cash-register'
+      path: '/cash-register'
+      fullPath: '/settings/cash-register'
+      preLoaderRoute: typeof AuthenticatedSettingsCashRegisterRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/contact': {
       id: '/_authenticated/settings/contact'
       path: '/contact'
@@ -1017,6 +1037,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsCashRegisterRoute: typeof AuthenticatedSettingsCashRegisterRoute
   AuthenticatedSettingsContactRoute: typeof AuthenticatedSettingsContactRoute
   AuthenticatedSettingsCredentialsRoute: typeof AuthenticatedSettingsCredentialsRoute
   AuthenticatedSettingsDesignRoute: typeof AuthenticatedSettingsDesignRoute
@@ -1035,6 +1056,8 @@ interface AuthenticatedSettingsRouteChildren {
 }
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsCashRegisterRoute:
+    AuthenticatedSettingsCashRegisterRoute,
   AuthenticatedSettingsContactRoute: AuthenticatedSettingsContactRoute,
   AuthenticatedSettingsCredentialsRoute: AuthenticatedSettingsCredentialsRoute,
   AuthenticatedSettingsDesignRoute: AuthenticatedSettingsDesignRoute,
