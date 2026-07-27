@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { Users, BookOpen, CreditCard, GraduationCap, TrendingUp } from "lucide-react";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
+import { AdminDesk } from "@/components/AdminDesk";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -11,6 +12,9 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { user, roles } = Route.useRouteContext();
   const isStaff = roles.includes("director") || roles.includes("admin");
+  const isAdminOnly = roles.includes("admin") && !roles.includes("director");
+
+  if (isAdminOnly) return <AdminDesk />;
 
   return (
     <div className="space-y-8">
@@ -23,7 +27,14 @@ function Dashboard() {
         </p>
       </header>
 
-      {isStaff ? <StaffDashboard /> : <StudentDashboard userId={user.id} />}
+      {isStaff ? (
+        <>
+          <StaffDashboard />
+          <AdminDesk />
+        </>
+      ) : (
+        <StudentDashboard userId={user.id} />
+      )}
     </div>
   );
 }
