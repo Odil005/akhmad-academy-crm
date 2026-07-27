@@ -154,6 +154,8 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AmbientBackground />
       <Outlet />
+      <InstallAppPrompt />
+
     </QueryClientProvider>
 
   );
