@@ -364,8 +364,7 @@
   .animate-float-orb-2,
   .animate-watermark,
   .animate-gradient,
-  .ambient-orb,
-  .ambient-conic {
+  .ambient-orb {
     animation: none !important;
   }
   *,
