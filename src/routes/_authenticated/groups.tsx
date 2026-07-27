@@ -401,17 +401,19 @@ function GroupModal({
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [localSubjects, setLocalSubjects] = useState<Subject[]>(subjects);
 
   // Suggest teachers whose level matches the subject name (loose match).
   const suggestedTeachers = useMemo(() => {
-    const subj = subjects.find((s) => s.id === form.subject_id)?.name.toLowerCase() ?? "";
+    const subj = localSubjects.find((s) => s.id === form.subject_id)?.name.toLowerCase() ?? "";
     if (!subj) return teachers;
     return [...teachers].sort((a, b) => {
       const aMatch = (a.teacher_level ?? "").toLowerCase().includes(subj) ? -1 : 0;
       const bMatch = (b.teacher_level ?? "").toLowerCase().includes(subj) ? -1 : 0;
       return aMatch - bMatch;
     });
-  }, [teachers, subjects, form.subject_id]);
+  }, [teachers, localSubjects, form.subject_id]);
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
