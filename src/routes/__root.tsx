@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AmbientBackground } from "@/components/AmbientBackground";
+import { InstallAppPrompt } from "@/components/InstallAppPrompt";
 
 
 function NotFoundComponent() {
