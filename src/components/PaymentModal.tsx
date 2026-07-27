@@ -33,7 +33,7 @@ const fmt = (n: number) => Number(n || 0).toLocaleString("uz-UZ");
 const nameOf = (s: StudentRow) =>
   s.profile?.full_name || [s.last_name, s.first_name].filter(Boolean).join(" ") || "O'quvchi";
 
-export function PaymentModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: () => void; onDone: () => void; initialStudentId?: string }) {
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [query, setQuery] = useState("");
@@ -63,8 +63,15 @@ export function PaymentModal({ onClose, onDone }: { onClose: () => void; onDone:
       .select("id, first_name, last_name, group_id, parent_phone, parent_telegram_chat_id, profile:profiles(full_name, phone)")
       .order("enrolled_at", { ascending: false })
       .limit(500)
-      .then(({ data }) => setStudents((data as never) ?? []));
-  }, []);
+      .then(({ data }) => {
+        const list = ((data as never) ?? []) as StudentRow[];
+        setStudents(list);
+        if (initialStudentId) {
+          const pre = list.find((x) => x.id === initialStudentId);
+          if (pre) setStudent(pre);
+        }
+      });
+  }, [initialStudentId]);
 
   useEffect(() => {
     if (!student) { setCourses([]); setCourseId(""); return; }

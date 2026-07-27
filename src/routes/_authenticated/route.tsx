@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { LogOut, LayoutDashboard, Users, BookOpen, CreditCard, Menu, X, Settings, ShoppingBag, Smile, Search, Wallet, CalendarDays, ClipboardCheck, DoorOpen, BarChart3, Phone, ScanFace, GraduationCap, Inbox, Upload, MessageSquare, DollarSign } from "lucide-react";
+import { ChevronDown, LogOut, LayoutDashboard, Users, BookOpen, CreditCard, Menu, X, Settings, ShoppingBag, Smile, Search, Wallet, CalendarDays, ClipboardCheck, DoorOpen, BarChart3, Phone, ScanFace, GraduationCap, Inbox, Upload, MessageSquare, DollarSign } from "lucide-react";
 import { Jarvis } from "@/components/Jarvis";
 import logoAsset from "@/assets/akhmad-logo.png.asset.json";
 
@@ -30,6 +30,7 @@ function AuthenticatedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   const [open, setOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     supabase
@@ -75,6 +76,13 @@ function AuthenticatedLayout() {
 
   const visibleNav = nav.filter((n) => n.show);
 
+  // Administrator menyusi soddalashtiriladi: faqat 4 ta asosiy bo'lim,
+  // qolganlari "Boshqa bo'limlar" ichida. Director menyusi to'liq qoladi.
+  const adminSimplified = isAdmin && !isDirector;
+  const ADMIN_PRIMARY = ["/dashboard", "/students", "/payments", "/groups"];
+  const primaryNav = adminSimplified ? visibleNav.filter((n) => ADMIN_PRIMARY.includes(n.to)) : visibleNav;
+  const moreNav = adminSimplified ? visibleNav.filter((n) => !ADMIN_PRIMARY.includes(n.to)) : [];
+
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
@@ -109,7 +117,7 @@ function AuthenticatedLayout() {
       </div>
 
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
-        {visibleNav.map((n) => {
+        {primaryNav.map((n) => {
           const active = pathname === n.to || pathname.startsWith(n.to + "/");
           return (
             <Link
@@ -126,6 +134,37 @@ function AuthenticatedLayout() {
             </Link>
           );
         })}
+
+        {moreNav.length > 0 && (
+          <div className="pt-2">
+            <button
+              onClick={() => setMoreOpen((v) => !v)}
+              className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-sidebar-foreground/75 transition hover:bg-sidebar-accent"
+            >
+              <Menu className="h-[18px] w-[18px]" />
+              <span className="flex-1 text-left">Boshqa bo'limlar</span>
+              <ChevronDown className={`h-4 w-4 transition ${moreOpen ? "rotate-180" : ""}`} />
+            </button>
+            {moreOpen &&
+              moreNav.map((n) => {
+                const active = pathname === n.to || pathname.startsWith(n.to + "/");
+                return (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    className={`ml-3 flex items-center gap-3 rounded-xl px-3.5 py-2 text-sm transition ${
+                      active
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    }`}
+                  >
+                    <n.icon className="h-4 w-4" />
+                    <span className="truncate">{n.label}</span>
+                  </Link>
+                );
+              })}
+          </div>
+        )}
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
