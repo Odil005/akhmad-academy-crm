@@ -457,20 +457,38 @@ function GroupModal({
             />
           </label>
           <label className="block text-sm">
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fan</div>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fan</span>
+              <button
+                type="button"
+                onClick={async () => {
+                  const name = prompt("Yangi fan nomi (masalan: Ingliz tili)")?.trim();
+                  if (!name) return;
+                  const { data, error } = await supabase.from("subjects").insert({ name }).select("id, name").single();
+                  if (error) return toast.error(error.message);
+                  setLocalSubjects((p) => [...p, data as Subject].sort((a, b) => a.name.localeCompare(b.name)));
+                  setForm((f) => ({ ...f, subject_id: (data as Subject).id }));
+                  toast.success("Fan qo'shildi");
+                }}
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                + Yangi fan
+              </button>
+            </div>
             <select
               value={form.subject_id}
               onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
             >
               <option value="">— tanlanmagan —</option>
-              {subjects.map((s) => (
+              {localSubjects.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>
               ))}
             </select>
           </label>
+
           <label className="block text-sm">
             <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               O'qituvchi
