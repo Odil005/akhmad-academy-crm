@@ -104,6 +104,9 @@ export function Jarvis() {
       const r = await chat({ data: { messages: next.map((m) => ({ role: m.role, content: m.content })) } });
       const reply = r.reply || "...";
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
+      if (r.navigate) {
+        try { navigate({ to: r.navigate }); } catch { /* ignore */ }
+      }
       void speakOut(reply);
     } catch (e) {
       const err = e instanceof Response ? await e.text() : (e as Error).message;
@@ -111,6 +114,7 @@ export function Jarvis() {
     } finally {
       setBusy(false);
     }
+
   };
 
   const startRec = async () => {
