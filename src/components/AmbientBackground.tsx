@@ -1,11 +1,10 @@
 /**
- * AmbientBackground — global, GPU-optimized animated background.
+ * AmbientBackground — ultra-light global background.
  *
- * - Pure CSS keyframe animations (no JS re-renders, no matchMedia listeners)
- * - Only 3 fixed layers → very low paint cost
- * - `will-change: transform` + `translate3d` for GPU compositing
- * - `pointer-events-none`, `aria-hidden`, `-z-10` — never affects layout
- * - Respects `prefers-reduced-motion` via CSS
+ * Perf notes:
+ * - Static, composited gradient layers only (no full-screen blur/conic/noise)
+ * - Two small drifting orbs, animation paused on small screens & reduced motion
+ * - `contain: strict` + `-z-10` + `pointer-events-none` → zero layout/paint impact
  */
 export function AmbientBackground() {
   return (
@@ -13,9 +12,6 @@ export function AmbientBackground() {
       <div className="ambient-grid" />
       <div className="ambient-orb ambient-orb-1" />
       <div className="ambient-orb ambient-orb-2" />
-      <div className="ambient-orb ambient-orb-3" />
-      <div className="ambient-conic" />
-      <div className="ambient-noise" />
       <div className="ambient-vignette" />
     </div>
   );
