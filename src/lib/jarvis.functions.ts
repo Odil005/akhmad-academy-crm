@@ -64,6 +64,161 @@ function isPureNavigation(text: string): boolean {
   return NAV_WORDS.test(t);
 }
 
+// ---- Tools: Jarvis can read AND act across the whole CRM ----
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "search_students",
+      description: "O'quvchini ism, familiya yoki telefon bo'yicha qidirish (balans bilan).",
+      parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_groups",
+      description: "Barcha guruhlar ro'yxati (fan, oylik to'lov, jadval).",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_subject",
+      description: "Yangi fan yaratish.",
+      parameters: { type: "object", properties: { name: { type: "string" } }, required: ["name"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_group",
+      description: "Yangi guruh yaratish. subject_name berilsa fan avtomatik topiladi/yaratiladi.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          subject_name: { type: "string" },
+          monthly_fee: { type: "number" },
+          schedule: { type: "string" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_student",
+      description: "Yangi o'quvchi qo'shish.",
+      parameters: {
+        type: "object",
+        properties: {
+          first_name: { type: "string" },
+          last_name: { type: "string" },
+          phone: { type: "string" },
+          parent_phone: { type: "string" },
+        },
+        required: ["first_name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_lead",
+      description: "Yangi lid (potensial mijoz) qo'shish.",
+      parameters: {
+        type: "object",
+        properties: { name: { type: "string" }, phone: { type: "string" }, course: { type: "string" } },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "open_page",
+      description: "CRM'da kerakli bo'limni ochish. path: /dashboard,/students,/groups,/schedule,/attendance,/grades,/rooms,/payments,/finance,/leads,/messages,/reports,/settings",
+      parameters: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
+    },
+  },
+] as const;
+
+async function runTool(supabase: any, name: string, args: any): Promise<{ result: any; navigate?: string }> {
+  switch (name) {
+    case "search_students": {
+      const q = String(args?.query ?? "").trim();
+      const { data } = await supabase
+        .from("students")
+        .select("id, first_name, last_name, phone, parent_phone, balance")
+        .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`)
+        .limit(10);
+      return { result: data ?? [] };
+    }
+    case "list_groups": {
+      const { data } = await supabase
+        .from("groups")
+        .select("id, name, monthly_fee, schedule, subject:subjects(name)")
+        .order("name")
+        .limit(50);
+      return { result: data ?? [] };
+    }
+    case "create_subject": {
+      const { data, error } = await supabase.from("subjects").insert({ name: args.name }).select("id, name").single();
+      return { result: error ? { error: error.message } : data, navigate: error ? undefined : "/settings/subjects" };
+    }
+    case "create_group": {
+      let subject_id: string | null = null;
+      if (args?.subject_name) {
+        const { data: found } = await supabase.from("subjects").select("id").ilike("name", args.subject_name).maybeSingle();
+        if (found) subject_id = found.id;
+        else {
+          const { data: made } = await supabase.from("subjects").insert({ name: args.subject_name }).select("id").single();
+          subject_id = made?.id ?? null;
+        }
+      }
+      const { data, error } = await supabase
+        .from("groups")
+        .insert({
+          name: args.name,
+          subject_id,
+          monthly_fee: Number(args.monthly_fee ?? 400000),
+          schedule: args.schedule ?? null,
+        })
+        .select("id, name")
+        .single();
+      return { result: error ? { error: error.message } : data, navigate: error ? undefined : "/groups" };
+    }
+    case "create_student": {
+      const { data, error } = await supabase
+        .from("students")
+        .insert({
+          first_name: args.first_name,
+          last_name: args.last_name ?? null,
+          phone: args.phone ?? null,
+          parent_phone: args.parent_phone ?? null,
+        })
+        .select("id, first_name, last_name")
+        .single();
+      return { result: error ? { error: error.message } : data, navigate: error ? undefined : "/students" };
+    }
+    case "create_lead": {
+      const { data, error } = await supabase
+        .from("leads")
+        .insert({ name: args.name, phone: args.phone ?? null, course: args.course ?? null })
+        .select("id, name")
+        .single();
+      return { result: error ? { error: error.message } : data, navigate: error ? undefined : "/leads" };
+    }
+    case "open_page":
+      return { result: { opened: args.path }, navigate: String(args.path ?? "") };
+    default:
+      return { result: { error: "noma'lum tool" } };
+  }
+}
+
 export const jarvisChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => d as { messages: ChatMsg[] })
@@ -75,42 +230,62 @@ export const jarvisChat = createServerFn({ method: "POST" })
 
     // Ultra-fast path: pure navigation queries skip the LLM entirely (~0ms vs ~2000ms).
     if (isPureNavigation(lastUser)) {
-      return { reply: "Ochilmoqda..." };
+      return { reply: "Ochilmoqda...", navigate: undefined as string | undefined };
     }
 
     const ctx = await getContextCached(context.supabase, context.userId);
 
     const system: ChatMsg = {
       role: "system",
-      content: `Sen — Akhmad Academy uchun biznes-sherik AI (Jarvis). O'zbek tilida, qisqa va aniq javob ber (2-4 gap). Markdown ishlatma. Raqamlarni so'mda ko'rsat.
+      content: `Sen — Akhmad Academy CRM uchun biznes-sherik AI (Jarvis). O'zbek tilida, qisqa va aniq javob ber (2-4 gap). Markdown ishlatma. Raqamlarni so'mda ko'rsat.
+Sen faqat gapirmaysan — CRM ustida amal ham qilasan: guruh/fan/o'quvchi/lid yaratish, qidirish va kerakli bo'limni ochish uchun tool'lardan foydalan. Ma'lumot yetishmasa qisqa aniqlashtiruvchi savol ber.
 
 HOLAT: ${JSON.stringify(ctx)}`,
     };
 
     // Only send last 6 turns — long history = slow model. Keep memory light.
-    const recent = data.messages.slice(-6);
+    const convo: any[] = [system, ...data.messages.slice(-6)];
+    let navigate: string | undefined;
 
-    const res = await fetch(`${GATEWAY}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.6-flash",
-        messages: [system, ...recent],
-        max_tokens: 400,
-      }),
-    });
+    for (let step = 0; step < 4; step++) {
+      const res = await fetch(`${GATEWAY}/chat/completions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "google/gemini-3.6-flash",
+          messages: convo,
+          tools: TOOLS,
+          max_tokens: 600,
+        }),
+      });
 
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Response(`AI xatolik: ${res.status} ${txt}`, { status: 500 });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Response(`AI xatolik: ${res.status} ${txt}`, { status: 500 });
+      }
+      const json = await res.json();
+      const msg = json?.choices?.[0]?.message;
+      const calls = msg?.tool_calls ?? [];
+
+      if (!calls.length) {
+        return { reply: msg?.content ?? "", navigate };
+      }
+
+      convo.push(msg);
+      for (const call of calls) {
+        let args: any = {};
+        try { args = JSON.parse(call.function?.arguments || "{}"); } catch { /* ignore */ }
+        const out = await runTool(context.supabase, call.function?.name, args);
+        if (out.navigate) navigate = out.navigate;
+        convo.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(out.result).slice(0, 4000) });
+      }
+      // Data changed — invalidate cached snapshot.
+      ctxCache.delete(context.userId);
     }
-    const json = await res.json();
-    const reply = json?.choices?.[0]?.message?.content ?? "";
-    return { reply };
+
+    return { reply: "Bajarildi.", navigate };
   });
+
 
 export const jarvisTranscribe = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
