@@ -164,81 +164,167 @@ function StudentsPage() {
   );
 }
 
+type NewRole = "student" | "teacher";
+
 function NewStudentModal({ groups, onClose, onDone }: { groups: Group[]; onClose: () => void; onDone: () => void }) {
+  const create = useServerFn(createManagedUser);
+  const [role, setRole] = useState<NewRole>("student");
   const [form, setForm] = useState({
     first_name: "", last_name: "", phone: "", group_id: groups[0]?.id ?? "",
     parent_full_name: "", parent_phone: "", parent_telegram_chat_id: "",
     status_enum: "trial" as StudentStatus,
+    username: "", access_code: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [created, setCreated] = useState<{ username: string; access_code: string } | null>(null);
+
+  const regenerate = () => {
+    setForm((f) => ({
+      ...f,
+      username: generateUsername(f.first_name, f.last_name, f.phone),
+      access_code: generateAccessCode(8),
+    }));
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const profileId = crypto.randomUUID();
     const full_name = `${form.first_name} ${form.last_name}`.trim();
-    const { error: pe } = await supabase.from("profiles").insert({ id: profileId, full_name, phone: form.phone });
-    if (pe) { setError("Profil xatosi: " + pe.message); setLoading(false); return; }
-    const { error: se } = await supabase.from("students").insert({
-      profile_id: profileId,
-      group_id: form.group_id || null,
-      first_name: form.first_name,
-      last_name: form.last_name,
-      parent_full_name: form.parent_full_name || null,
-      parent_phone: form.parent_phone || null,
-      parent_telegram_chat_id: form.parent_telegram_chat_id || null,
-      status_enum: form.status_enum,
-    });
-    if (se) { setError(se.message); setLoading(false); return; }
-    onDone();
+    const username = (form.username || generateUsername(form.first_name, form.last_name, form.phone)).trim().toLowerCase();
+    const access_code = form.access_code || generateAccessCode(8);
+    try {
+      const res = await create({
+        data: {
+          username,
+          access_code,
+          full_name,
+          phone: form.phone || null,
+          role,
+          group_id: role === "student" && form.group_id ? form.group_id : null,
+          status_enum: role === "student" ? form.status_enum : null,
+          parent_full_name: role === "student" ? form.parent_full_name || null : null,
+          parent_phone: role === "student" ? form.parent_phone || null : null,
+          parent_telegram_chat_id: role === "student" ? form.parent_telegram_chat_id || null : null,
+        },
+      });
+      if (!res.ok) { setError(res.error ?? "Saqlanmadi"); setLoading(false); return; }
+      setCreated({ username, access_code: res.access_code ?? access_code });
+      toast.success(role === "student" ? "O'quvchi yaratildi" : "O'qituvchi yaratildi");
+    } catch (err: any) {
+      setError(err?.message ?? "Xatolik");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">Yangi o'quvchi</h2>
+          <h2 className="text-lg font-bold">{role === "student" ? "Yangi o'quvchi" : "Yangi o'qituvchi"}</h2>
           <button onClick={onClose}><X className="h-5 w-5" /></button>
         </div>
-        <form onSubmit={submit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Ism" value={form.first_name} onChange={(v) => setForm({ ...form, first_name: v })} required />
-            <Field label="Familiya" value={form.last_name} onChange={(v) => setForm({ ...form, last_name: v })} />
+
+        {created ? (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Login ma'lumotlari faqat bir marta ko'rsatiladi — nusxa oling.
+            </p>
+            <CopyRow label="Foydalanuvchi nomi" value={created.username} />
+            <CopyRow label="Kirish kodi" value={created.access_code} />
+            <button onClick={onDone} className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
+              Yopish
+            </button>
           </div>
-          <Field label="Telefon" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm">
-              <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Guruh</div>
-              <select value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5">
-                <option value="">—</option>
-                {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-              </select>
-            </label>
-            <label className="block text-sm">
-              <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Status</div>
-              <select value={form.status_enum} onChange={(e) => setForm({ ...form, status_enum: e.target.value as StudentStatus })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5">
-                {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
-              </select>
-            </label>
-          </div>
-          <div className="rounded-lg border border-border bg-background/50 p-3">
-            <div className="mb-2 text-xs font-bold uppercase text-muted-foreground">Ota-ona ma'lumotlari</div>
-            <div className="space-y-2">
-              <Field label="F.I.O" value={form.parent_full_name} onChange={(v) => setForm({ ...form, parent_full_name: v })} />
-              <Field label="Telefon" value={form.parent_phone} onChange={(v) => setForm({ ...form, parent_phone: v })} />
-              <Field label="Telegram chat ID" value={form.parent_telegram_chat_id} onChange={(v) => setForm({ ...form, parent_telegram_chat_id: v })} />
+        ) : (
+          <form onSubmit={submit} className="space-y-3">
+            <div className="flex gap-2">
+              {(["student", "teacher"] as NewRole[]).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold ${role === r ? "bg-primary text-primary-foreground" : "border border-border"}`}
+                >
+                  {r === "student" ? "O'quvchi" : "O'qituvchi"}
+                </button>
+              ))}
             </div>
-          </div>
-          {error && <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">{error}</p>}
-          <button disabled={loading} className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60">
-            {loading ? "..." : "Saqlash"}
-          </button>
-          <p className="text-xs text-muted-foreground">
-            Login/parol yaratish uchun <b>Sozlamalar → Login generator</b> ni ishlating.
-          </p>
-        </form>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Ism" value={form.first_name} onChange={(v) => setForm({ ...form, first_name: v })} required />
+              <Field label="Familiya" value={form.last_name} onChange={(v) => setForm({ ...form, last_name: v })} />
+            </div>
+            <Field label="Telefon" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
+
+            {role === "student" && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-sm">
+                    <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Guruh</div>
+                    <select value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5">
+                      <option value="">—</option>
+                      {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+                    </select>
+                  </label>
+                  <label className="block text-sm">
+                    <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Status</div>
+                    <select value={form.status_enum} onChange={(e) => setForm({ ...form, status_enum: e.target.value as StudentStatus })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5">
+                      {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="rounded-lg border border-border bg-background/50 p-3">
+                  <div className="mb-2 text-xs font-bold uppercase text-muted-foreground">Ota-ona ma'lumotlari</div>
+                  <div className="space-y-2">
+                    <Field label="F.I.O" value={form.parent_full_name} onChange={(v) => setForm({ ...form, parent_full_name: v })} />
+                    <Field label="Telefon" value={form.parent_phone} onChange={(v) => setForm({ ...form, parent_phone: v })} />
+                    <Field label="Telegram chat ID" value={form.parent_telegram_chat_id} onChange={(v) => setForm({ ...form, parent_telegram_chat_id: v })} />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="rounded-lg border border-border bg-background/50 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-xs font-bold uppercase text-muted-foreground">Login generator</div>
+                <button type="button" onClick={regenerate} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold hover:border-primary">
+                  <RefreshCw className="h-3.5 w-3.5" /> Avto-generatsiya
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Username" value={form.username} onChange={(v) => setForm({ ...form, username: v })} />
+                <Field label="Kirish kodi" value={form.access_code} onChange={(v) => setForm({ ...form, access_code: v })} />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">Bo'sh qoldirsangiz avtomatik yaratiladi.</p>
+            </div>
+
+            {error && <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">{error}</p>}
+            <button disabled={loading} className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60">
+              {loading ? "..." : "Saqlash"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CopyRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-background/50 p-3">
+      <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{label}</div>
+      <div className="flex items-center gap-2">
+        <span className="flex-1 truncate font-mono text-sm">{value}</span>
+        <button
+          type="button"
+          onClick={() => { navigator.clipboard.writeText(value); toast.success("Nusxa olindi"); }}
+          className="rounded-md border border-border p-1.5 hover:border-primary"
+        >
+          <Copy className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
