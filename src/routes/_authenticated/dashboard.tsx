@@ -15,7 +15,13 @@ function Dashboard() {
   const isStaff = roles.includes("director") || roles.includes("admin");
   const isAdminOnly = roles.includes("admin") && !roles.includes("director");
 
-  if (isAdminOnly) return <AdminDesk />;
+  if (isAdminOnly)
+    return (
+      <div className="space-y-6">
+        <SetupBanner />
+        <AdminDesk />
+      </div>
+    );
 
   return (
     <div className="space-y-8">
@@ -30,6 +36,7 @@ function Dashboard() {
 
       {isStaff ? (
         <>
+          <SetupBanner />
           <StaffDashboard />
           <AdminDesk />
         </>
