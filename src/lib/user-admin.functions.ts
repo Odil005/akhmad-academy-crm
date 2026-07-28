@@ -11,6 +11,10 @@ const CreateUserSchema = z.object({
   // student-only linkage
   student_id: z.string().uuid().optional().nullable(),
   group_id: z.string().uuid().optional().nullable(),
+  status_enum: z.enum(["trial", "active", "frozen", "archived", "left"]).optional().nullable(),
+  parent_full_name: z.string().optional().nullable(),
+  parent_phone: z.string().optional().nullable(),
+  parent_telegram_chat_id: z.string().optional().nullable(),
 });
 
 /**
