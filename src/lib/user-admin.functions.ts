@@ -98,7 +98,10 @@ export const createManagedUser = createServerFn({ method: "POST" })
             group_id: data.group_id ?? null,
             first_name: data.full_name.split(" ")[0] ?? data.full_name,
             last_name: data.full_name.split(" ").slice(1).join(" ") || null,
-            status_enum: "trial",
+            status_enum: data.status_enum ?? "trial",
+            parent_full_name: data.parent_full_name || null,
+            parent_phone: data.parent_phone || null,
+            parent_telegram_chat_id: data.parent_telegram_chat_id || null,
           })
           .select("id")
           .single();
