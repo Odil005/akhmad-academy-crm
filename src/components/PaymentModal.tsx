@@ -233,6 +233,23 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
                 </select>
               </Field>
 
+              <Field label="Kassa hisobi">
+                {((ctx as any)?.cashAccounts ?? []).length > 0 ? (
+                  <select value={cashAccountId} onChange={(e) => setCashAccountId(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm">
+                    {((ctx as any).cashAccounts as { id: string; name: string }[]).map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <a href="/finance" className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-xs font-semibold text-amber-700">
+                    <AlertTriangle className="h-4 w-4 shrink-0" /> Kassa hisobi yo'q — Moliya bo'limida yarating
+                  </a>
+                )}
+              </Field>
+
+
+
               {ctx?.canDiscount && (
                 <>
                   <Field label="Chegirma (so'm)">
