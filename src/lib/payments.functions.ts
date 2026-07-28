@@ -133,6 +133,7 @@ const CreateInput = z.object({
   discount_amount: z.number().min(0).default(0),
   discount_reason: z.string().max(300).nullable().optional(),
   payment_method: z.enum(["cash", "card", "qr", "transfer"]),
+  cash_account_id: z.string().uuid().nullable().optional(),
   fiscalize: z.boolean().default(true),
   notify_parent: z.boolean().default(true),
   idempotency_key: z.string().min(8).max(120),
