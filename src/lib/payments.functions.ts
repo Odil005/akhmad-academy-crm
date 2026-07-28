@@ -98,8 +98,15 @@ export const getCashierContext = createServerFn({ method: "GET" })
 
     const token = await getBotToken(supabaseAdmin);
 
+    const { data: cashAccounts } = await supabaseAdmin
+      .from("cash_accounts")
+      .select("id, name, type")
+      .eq("is_active", true)
+      .order("created_at");
+
     return {
       settings: settings ?? null,
+      cashAccounts: (cashAccounts ?? []) as { id: string; name: string; type: string }[],
       fiscal: {
         real,
         reason: reason ?? null,
