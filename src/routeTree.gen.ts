@@ -47,6 +47,7 @@ import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/
 import { Route as AuthenticatedSettingsMarketplaceRouteImport } from './routes/_authenticated/settings.marketplace'
 import { Route as AuthenticatedSettingsNewsRouteImport } from './routes/_authenticated/settings.news'
 import { Route as AuthenticatedSettingsReportsRouteImport } from './routes/_authenticated/settings.reports'
+import { Route as AuthenticatedSettingsSetupRouteImport } from './routes/_authenticated/settings.setup'
 import { Route as AuthenticatedSettingsStatsRouteImport } from './routes/_authenticated/settings.stats'
 import { Route as AuthenticatedSettingsSubjectsRouteImport } from './routes/_authenticated/settings.subjects'
 import { Route as AuthenticatedSettingsTeachersRouteImport } from './routes/_authenticated/settings.teachers'
@@ -266,6 +267,12 @@ const AuthenticatedSettingsReportsRoute =
     path: '/reports',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsSetupRoute =
+  AuthenticatedSettingsSetupRouteImport.update({
+    id: '/setup',
+    path: '/setup',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsStatsRoute =
   AuthenticatedSettingsStatsRouteImport.update({
     id: '/stats',
@@ -386,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
   '/settings/news': typeof AuthenticatedSettingsNewsRoute
   '/settings/reports': typeof AuthenticatedSettingsReportsRoute
+  '/settings/setup': typeof AuthenticatedSettingsSetupRoute
   '/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
@@ -438,6 +446,7 @@ export interface FileRoutesByTo {
   '/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
   '/settings/news': typeof AuthenticatedSettingsNewsRoute
   '/settings/reports': typeof AuthenticatedSettingsReportsRoute
+  '/settings/setup': typeof AuthenticatedSettingsSetupRoute
   '/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
@@ -493,6 +502,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
   '/_authenticated/settings/news': typeof AuthenticatedSettingsNewsRoute
   '/_authenticated/settings/reports': typeof AuthenticatedSettingsReportsRoute
+  '/_authenticated/settings/setup': typeof AuthenticatedSettingsSetupRoute
   '/_authenticated/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/_authenticated/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/_authenticated/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
@@ -548,6 +558,7 @@ export interface FileRouteTypes {
     | '/settings/marketplace'
     | '/settings/news'
     | '/settings/reports'
+    | '/settings/setup'
     | '/settings/stats'
     | '/settings/subjects'
     | '/settings/teachers'
@@ -600,6 +611,7 @@ export interface FileRouteTypes {
     | '/settings/marketplace'
     | '/settings/news'
     | '/settings/reports'
+    | '/settings/setup'
     | '/settings/stats'
     | '/settings/subjects'
     | '/settings/teachers'
@@ -654,6 +666,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/marketplace'
     | '/_authenticated/settings/news'
     | '/_authenticated/settings/reports'
+    | '/_authenticated/settings/setup'
     | '/_authenticated/settings/stats'
     | '/_authenticated/settings/subjects'
     | '/_authenticated/settings/teachers'
@@ -956,6 +969,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsReportsRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/setup': {
+      id: '/_authenticated/settings/setup'
+      path: '/setup'
+      fullPath: '/settings/setup'
+      preLoaderRoute: typeof AuthenticatedSettingsSetupRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/stats': {
       id: '/_authenticated/settings/stats'
       path: '/stats'
@@ -1069,6 +1089,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsMarketplaceRoute: typeof AuthenticatedSettingsMarketplaceRoute
   AuthenticatedSettingsNewsRoute: typeof AuthenticatedSettingsNewsRoute
   AuthenticatedSettingsReportsRoute: typeof AuthenticatedSettingsReportsRoute
+  AuthenticatedSettingsSetupRoute: typeof AuthenticatedSettingsSetupRoute
   AuthenticatedSettingsStatsRoute: typeof AuthenticatedSettingsStatsRoute
   AuthenticatedSettingsSubjectsRoute: typeof AuthenticatedSettingsSubjectsRoute
   AuthenticatedSettingsTeachersRoute: typeof AuthenticatedSettingsTeachersRoute
@@ -1093,6 +1114,7 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsMarketplaceRoute: AuthenticatedSettingsMarketplaceRoute,
   AuthenticatedSettingsNewsRoute: AuthenticatedSettingsNewsRoute,
   AuthenticatedSettingsReportsRoute: AuthenticatedSettingsReportsRoute,
+  AuthenticatedSettingsSetupRoute: AuthenticatedSettingsSetupRoute,
   AuthenticatedSettingsStatsRoute: AuthenticatedSettingsStatsRoute,
   AuthenticatedSettingsSubjectsRoute: AuthenticatedSettingsSubjectsRoute,
   AuthenticatedSettingsTeachersRoute: AuthenticatedSettingsTeachersRoute,
@@ -1189,13 +1211,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

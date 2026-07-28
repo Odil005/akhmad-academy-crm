@@ -1,74 +1,68 @@
 
-# Akhmad Academy — To'liq avtomatlashtirish
+# Tizimdagi kamchiliklar (tekshiruv natijasi)
 
-Tizim bitta o'quv markaz uchun optimallashtiriladi. Uchta yirik blok bir migratsiya + kod paketi bilan yakunlanadi.
+Kodni va bazani tekshirdim. Funksional modullar yozilgan, lekin **tizim real ishga tushirilmagan** — asosiy kamchiliklar ma'lumot va sozlama darajasida.
 
-## 1) Kunlik direktor hisoboti (avtomatik)
+## 1. Baza deyarli bo'sh (eng katta muammo)
+Haqiqiy holat (bazadan o'qildi):
 
-**Ma'lumotlar bazasi**
-- `director_daily_reports` jadval: `report_date`, `revenue`, `expenses`, `profit`, `new_leads`, `new_students`, `attendance_rate`, `debtors_count`, `debtors_amount`, `top_teachers` jsonb, `payload` jsonb, `sent_at`, `telegram_message_id`.
-- `director_report_recipients` jadval: `user_id`, `telegram_chat_id`, `is_active` — direktor(lar) uchun chat_id ro'yxati.
-- RLS: faqat director/admin roli o'qiy oladi; yozishni service_role qiladi.
+```text
+subjects   0     students  0     lessons     0
+groups     0     payments  0     attendance  0
+cash_accounts 0  teacher/student credentials 0
+user_roles 2 (1 director + 1 admin) — o'qituvchi yo'q
+```
 
-**Server route (cron target)**
-- `src/routes/api/public/cron.daily-report.ts` — har kuni 21:00 (Asia/Tashkent) da chaqiriladi.
-- Kecha bo'yicha to'lov, xarajat, davomat, yangi lid/o'quvchi statistikasini yig'adi.
-- Jarvis (Gemini) orqali qisqacha uzbek tilida sharh yozadi (top-o'qituvchi, qarzdorlar ro'yxati, kunlik xulosa).
-- Har direktorga Telegram orqali batafsil xabar + tugmalar ("To'liq hisobot", "Qarzdorlar", "Lidlar") jo'natadi.
+Natijada: Guruhlar, Dars jadvali, Davomat, Baholar, To'lovlar, Hisobotlar, Jarvis KPI — hammasi bo'sh ko'rinadi. Bu "xatolik" emas, ma'lumot yo'qligi.
 
-**pg_cron**
-- `daily_director_report_21` — `0 16 * * *` (UTC = 21:00 Toshkent), `apikey` header + anon key bilan chaqiradi.
+## 2. Kassa (to'lov) ishlamaydi
+- `cash_accounts` = 0 → to'lov qabul qilinganda pul qaysi kassaga tushishi yo'q.
+- `cash_register_settings`: `enabled = false`, `provider_name = mock`, `cashbox_id` yo'q → fiskal chek **haqiqiy chiqmaydi**, faqat mock.
 
-## 2) Ota-ona ↔ Jarvis (Telegram) to'liq avtomatlashtirish
+## 3. Direktor kunlik hisoboti hech kimga bormaydi
+- Cron ishlayapti (`daily_director_report`, 20:00 Toshkent) ✅
+- Lekin `director_report_recipients` = 0 → Telegram chat_id yo'q, xabar jo'natilmaydi.
 
-**Onboarding kuchaytiriladi**
-- Mavjud telegram webhook'ga davom: ota-ona ism+familiya+tel raqamini kiritganda avtomatik `students` bilan bog'lanadi.
-- `parent_chat_links` mavjud (parent_telegram_chat_id ustunlari orqali). Yangi bo'lsa — `parent_link_tokens`ni admin panelidan yaratmasdan ham telefon orqali topish ishlaydi (allaqachon mavjud, kengaytiriladi).
+## 4. Ota-ona Telegram oqimi bo'sh
+- `parent_notifications` = 0, o'quvchi yo'q → bot bog'lanadigan bola yo'q.
+- Har bir o'quvchida `parent_telegram_chat_id` to'ldirilishi kerak (bot orqali onboarding).
 
-**Kunlik avtomatik xabarlar (ota-onaga)**
-- `src/routes/api/public/cron.parent-digest.ts` har kuni 20:00 da:
-  - Bugungi davomat holati (bor / yo'q / kech qoldi)
-  - Bugungi baho(lar)
-  - Xulq bahosi (agar bugungi bo'lsa)
-  - To'lov qolgani va muddati (7 kun / 3 kun / kech ogohlantirishlar bilan)
-- Har bir xabar `parent_notifications`ga yoziladi (deduplikatsiya uchun `kind + date` unique index).
+## 5. IP telefoniya (SIP) faqat "joy" holatida
+- `sip_config` = 0 → `click-to-call` `not_configured` qaytaradi. Provayder ma'lumoti kiritilmagan.
 
-**Trigger-based real vaqt xabarlar**
-- Yangi `payment` qo'shilganda / `paid` bo'lganda → trigger `parent_notifications`ga qatorlar qo'yadi.
-- Yangi `grade` / `behavior_evaluation` / `attendance` (absent) → trigger.
-- Har 5 daqiqada `cron.notifications-dispatch.ts` `pending` yozuvlarni Telegramga jo'natadi.
+## 6. Rollar to'liq emas
+- Faqat director va admin bor. `teacher` va `student` roli hech kimda yo'q → O'qituvchi paneli, Teacher balans, Face-ID, O'quvchi kabineti sinovdan o'tmagan.
 
-**Jarvis suhbat (ota-ona)**
-- Telegram webhook: ota-ona xabari erkin matnda kelsa (menyu tugmalari o'rniga) — Gemini AI o'sha bolaning kontekstini (guruh, o'qituvchilar, so'nggi baho/davomat/to'lov) berib javob beradi.
-- Menyu tugmalari saqlanadi: "📊 Hozirgi holat", "💰 To'lov", "📅 Bugungi dars", "✍️ O'qituvchiga xabar", "🤖 Jarvis'ga so'rov".
+---
 
-## 3) SIP Trunk / IP telefoniya uchun tayyor joy
+# Tavsiya qilinadigan reja (ishga tushirish paketi)
 
-**Ma'lumotlar bazasi**
-- `sip_config` jadval (singleton): `provider` (masalan `beeline`, `uztelecom`, `mango`, `custom`), `sip_uri`, `username`, `auth_id`, `caller_id`, `webhook_secret`, `is_active`, `notes`.
-- `sip_extensions` jadval: xodim → ichki raqam ma'lumoti.
-- `calls` jadvali mavjud — kengaytiramiz: `sip_call_id`, `trunk`, `answered_at`, `hangup_cause`, `cost`, `recording_storage_path`.
+**Bosqich 1 — Boshlang'ich sozlash sehrgari (Setup Wizard)**
+`/settings` ichida yangi "Tizimni ishga tushirish" sahifasi: bajarilmagan qadamlarni checklist qilib ko'rsatadi va har birini shu yerdan hal qiladi:
+1. Kassa hisoblari (Naqd / Karta / Bank) yaratish
+2. Fanlar qo'shish
+3. O'qituvchilarni login bilan yaratish
+4. Guruhlar + dars jadvali
+5. O'quvchilarni qo'shish / Excel import
+6. Direktor Telegram chat_id ni ulash
+7. Virtual kassa (fiskal) yoqish
+8. SIP trunk (ixtiyoriy)
 
-**Server routes**
-- `src/routes/api/public/telephony.sip-webhook.ts` — SIP provayder eventlari (`ringing`, `answered`, `hangup`, `recording_ready`) uchun HMAC-signed endpoint.
-- `src/routes/api/public/telephony.click-to-call.ts` — CRM ichidan qo'ng'iroq boshlash (autentifikatsiyalangan). Hozircha stub: `sip_config.is_active` bo'lsa provayder API'siga POST, aks holda `not_configured` qaytaradi.
-- Mavjud `telephony.outbox.ts` va `telephony.webhook.ts` shu doiraga moslashtiriladi.
+Dashboardda esa qadamlar tugamaguncha "Tizim X% sozlangan" banneri chiqadi.
 
-**Sozlamalar UI**
-- `src/routes/_authenticated/settings.telephony.tsx` — SIP config formasi (direktor uchun): trunk parametrlari, ichki raqamlar, webhook URL ko'rsatiladi. Test tugmasi.
+**Bosqich 2 — Bo'sh holat (empty state) sifatini oshirish**
+Har bir bo'sh sahifada "Ma'lumot yo'q" o'rniga aniq harakat tugmasi: "Birinchi guruhni yarating", "Kassa hisobi qo'shing" va h.k.
 
-## 4) Umumiy
+**Bosqich 3 — To'lov modulini yopish**
+- Kassa hisobi bo'lmasa to'lov oynasi ogohlantiradi va shu yerdan yaratishga ruxsat beradi.
+- Fiskal `enabled=false` bo'lsa chekda "Fiskalsiz (mock)" belgisi aniq ko'rinadi.
 
-- Yagona migratsiya: barcha jadvallar, GRANT'lar, RLS, triggerlar, indekslar.
-- pg_cron ikkita yangi ish: kunlik direktor hisoboti va ota-ona digest + har 5 daq notif-dispatch.
-- Nav'ga qo'shiladi: **Sozlamalar → Telefoniya**, **Sozlamalar → Direktor hisoboti (qabul qiluvchilar)**.
-- Barcha AI chaqiruvlari `google/gemini-2.5-flash` orqali Lovable AI Gateway'da.
+**Bosqich 4 — Direktor va ota-ona kanalini tekshirish**
+- Sozlamalarda "Sinov xabarini yuborish" tugmasi (direktor hisoboti va ota-ona bildirishnomasi uchun).
 
 ## Texnik izohlar
+- Yangi jadval kerak emas; barcha kamchiliklar mavjud sxema ichida yopiladi.
+- Setup checklist holati mavjud jadvallardagi `count` orqali hisoblanadi (qo'shimcha state saqlanmaydi).
+- Cron va webhook'lar allaqachon to'g'ri, faqat qabul qiluvchi ma'lumot yetishmaydi.
 
-- Cron endpointlar `/api/public/*` — anon key `apikey` header bilan.
-- Telegram jo'natish `sendMessage` va `parse_mode: HTML`.
-- SIP provider sirlar `add_secret` orqali (keyingi bosqichda user o'zi kiritadi) — kod hozirdan `process.env.SIP_*` o'qishga tayyor.
-- Ota-ona real-time notif triggerlari `payments`, `grades`, `behavior_evaluations`, `attendance` jadvallariga qo'shiladi (idempotent — INSERT yoki status o'zgarganda).
-
-Tayyor bo'lsa, "ha" desangiz — bitta migratsiya + fayllar to'plamini yozaman.
+Qaysi bosqichdan boshlaymiz — hammasini bittada qilaymi, yoki avval Setup Wizard + kassa qismini?

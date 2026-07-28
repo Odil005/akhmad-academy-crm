@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Users, BookOpen, CreditCard, GraduationCap, TrendingUp } from "lucide-react";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { AdminDesk } from "@/components/AdminDesk";
+import { SetupBanner } from "@/components/SetupBanner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -14,7 +15,13 @@ function Dashboard() {
   const isStaff = roles.includes("director") || roles.includes("admin");
   const isAdminOnly = roles.includes("admin") && !roles.includes("director");
 
-  if (isAdminOnly) return <AdminDesk />;
+  if (isAdminOnly)
+    return (
+      <div className="space-y-6">
+        <SetupBanner />
+        <AdminDesk />
+      </div>
+    );
 
   return (
     <div className="space-y-8">
@@ -29,6 +36,7 @@ function Dashboard() {
 
       {isStaff ? (
         <>
+          <SetupBanner />
           <StaffDashboard />
           <AdminDesk />
         </>

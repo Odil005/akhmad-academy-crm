@@ -47,6 +47,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
   const [discount, setDiscount] = useState(0);
   const [discountReason, setDiscountReason] = useState("");
   const [method, setMethod] = useState<(typeof METHODS)[number]["v"]>("cash");
+  const [cashAccountId, setCashAccountId] = useState<string>("");
   const [fiscalize, setFiscalize] = useState(true);
   const [notify, setNotify] = useState(true);
 
@@ -57,7 +58,13 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
   const [idemKey] = useState(() => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`));
 
   useEffect(() => {
-    getCashierContext().then(setCtx).catch(() => setCtx(null));
+    getCashierContext()
+      .then((c) => {
+        setCtx(c);
+        const accs = (c as any)?.cashAccounts ?? [];
+        if (accs[0]) setCashAccountId(accs[0].id);
+      })
+      .catch(() => setCtx(null));
     supabase
       .from("students")
       .select("id, first_name, last_name, group_id, parent_phone, parent_telegram_chat_id, profile:profiles(full_name, phone)")
@@ -118,6 +125,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
           discount_amount: discount,
           discount_reason: discount > 0 ? (discountReason || null) : null,
           payment_method: method,
+          cash_account_id: cashAccountId || null,
           fiscalize,
           notify_parent: notify,
           idempotency_key: idemKey,
@@ -224,6 +232,23 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
                   {METHODS.map((m) => <option key={m.v} value={m.v}>{m.label}</option>)}
                 </select>
               </Field>
+
+              <Field label="Kassa hisobi">
+                {((ctx as any)?.cashAccounts ?? []).length > 0 ? (
+                  <select value={cashAccountId} onChange={(e) => setCashAccountId(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm">
+                    {((ctx as any).cashAccounts as { id: string; name: string }[]).map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <a href="/finance" className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-xs font-semibold text-amber-700">
+                    <AlertTriangle className="h-4 w-4 shrink-0" /> Kassa hisobi yo'q — Moliya bo'limida yarating
+                  </a>
+                )}
+              </Field>
+
+
 
               {ctx?.canDiscount && (
                 <>

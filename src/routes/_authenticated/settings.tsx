@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { KeyRound, Palette, ShoppingBag, Megaphone, MessageSquare, FileSpreadsheet, MapPin, BarChart3, BookOpen, GraduationCap, Star, Phone, Send, Receipt } from "lucide-react";
+import { KeyRound, Palette, ShoppingBag, Megaphone, MessageSquare, FileSpreadsheet, MapPin, BarChart3, BookOpen, GraduationCap, Star, Phone, Send, Receipt, Rocket } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   ssr: false,
@@ -23,6 +23,7 @@ function SettingsLayout() {
   const isDirector = roles.includes("director");
 
   const tabs = [
+    { to: "/settings/setup", label: "Tizimni ishga tushirish", icon: Rocket, show: true },
     { to: "/settings/credentials", label: "Login generator", icon: KeyRound, show: true },
     { to: "/settings/subjects", label: "Fanlar", icon: BookOpen, show: isDirector },
     { to: "/settings/homepage-courses", label: "Bosh sahifa fanlari", icon: Star, show: isDirector },
