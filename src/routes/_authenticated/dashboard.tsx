@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Users, BookOpen, CreditCard, GraduationCap, TrendingUp } from "lucide-react";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { AdminDesk } from "@/components/AdminDesk";
+import { SetupBanner } from "@/components/SetupBanner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
