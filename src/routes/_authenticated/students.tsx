@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X, RefreshCw, Copy } from "lucide-react";
+import { toast } from "sonner";
+import { createManagedUser } from "@/lib/user-admin.functions";
+import { generateUsername, generateAccessCode } from "@/lib/credentials";
 
 import { z } from "zod";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
