@@ -47,6 +47,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
   const [discount, setDiscount] = useState(0);
   const [discountReason, setDiscountReason] = useState("");
   const [method, setMethod] = useState<(typeof METHODS)[number]["v"]>("cash");
+  const [cashAccountId, setCashAccountId] = useState<string>("");
   const [fiscalize, setFiscalize] = useState(true);
   const [notify, setNotify] = useState(true);
 
