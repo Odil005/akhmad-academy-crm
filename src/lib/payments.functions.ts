@@ -179,6 +179,20 @@ export const createPaymentWithReceipt = createServerFn({ method: "POST" })
 
     const period = data.period_month.length === 7 ? `${data.period_month}-01` : data.period_month;
 
+    // resolve cash account: explicit choice, else best match for the method, else first active
+    let cashAccountId = data.cash_account_id ?? null;
+    if (!cashAccountId) {
+      const preferred =
+        data.payment_method === "cash" ? "cash"
+        : data.payment_method === "card" ? "card"
+        : data.payment_method === "transfer" ? "bank"
+        : "online";
+      const { data: accs } = await supabaseAdmin
+        .from("cash_accounts").select("id, type").eq("is_active", true).order("created_at");
+      const list = (accs ?? []) as { id: string; type: string }[];
+      cashAccountId = (list.find((a) => a.type === preferred) ?? list[0])?.id ?? null;
+    }
+
     // 1. persist as processing
     const { data: payment, error: insErr } = await supabaseAdmin
       .from("payments")
@@ -191,6 +205,7 @@ export const createPaymentWithReceipt = createServerFn({ method: "POST" })
         discount_reason: data.discount_reason ?? null,
         total_amount: total,
         payment_method: data.payment_method,
+        cash_account_id: cashAccountId,
         period_month: period,
         status: "pending",
         cashier_id: context.userId,
