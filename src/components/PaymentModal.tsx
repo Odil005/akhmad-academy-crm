@@ -58,7 +58,13 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
   const [idemKey] = useState(() => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`));
 
   useEffect(() => {
-    getCashierContext().then(setCtx).catch(() => setCtx(null));
+    getCashierContext()
+      .then((c) => {
+        setCtx(c);
+        const accs = (c as any)?.cashAccounts ?? [];
+        if (accs[0]) setCashAccountId(accs[0].id);
+      })
+      .catch(() => setCtx(null));
     supabase
       .from("students")
       .select("id, first_name, last_name, group_id, parent_phone, parent_telegram_chat_id, profile:profiles(full_name, phone)")
@@ -119,6 +125,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
           discount_amount: discount,
           discount_reason: discount > 0 ? (discountReason || null) : null,
           payment_method: method,
+          cash_account_id: cashAccountId || null,
           fiscalize,
           notify_parent: notify,
           idempotency_key: idemKey,
