@@ -11,6 +11,10 @@ const CreateUserSchema = z.object({
   // student-only linkage
   student_id: z.string().uuid().optional().nullable(),
   group_id: z.string().uuid().optional().nullable(),
+  status_enum: z.enum(["trial", "active", "frozen", "archived", "left"]).optional().nullable(),
+  parent_full_name: z.string().optional().nullable(),
+  parent_phone: z.string().optional().nullable(),
+  parent_telegram_chat_id: z.string().optional().nullable(),
 });
 
 /**
@@ -94,7 +98,10 @@ export const createManagedUser = createServerFn({ method: "POST" })
             group_id: data.group_id ?? null,
             first_name: data.full_name.split(" ")[0] ?? data.full_name,
             last_name: data.full_name.split(" ").slice(1).join(" ") || null,
-            status_enum: "trial",
+            status_enum: data.status_enum ?? "trial",
+            parent_full_name: data.parent_full_name || null,
+            parent_phone: data.parent_phone || null,
+            parent_telegram_chat_id: data.parent_telegram_chat_id || null,
           })
           .select("id")
           .single();
