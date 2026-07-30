@@ -107,7 +107,24 @@ export const bulkImport = createServerFn({ method: "POST" })
         groupIdByName.set(g.name.trim().toLowerCase(), g.id);
       });
 
+      // Auto-create missing groups so students are always assigned.
+      const missing = new Set<string>();
+      data.rows.forEach((r) => {
+        const gn = String((r as any).group_name ?? "").trim();
+        if (gn && !groupIdByName.has(gn.toLowerCase())) missing.add(gn);
+      });
+      if (missing.size) {
+        const { data: madeGroups } = await supabase
+          .from("groups")
+          .insert([...missing].map((name) => ({ name, monthly_fee: 0 })))
+          .select("id, name");
+        (madeGroups ?? []).forEach((g: { id: string; name: string }) => {
+          groupIdByName.set(g.name.trim().toLowerCase(), g.id);
+        });
+      }
+
       const good: any[] = [];
+      const enrollFor: { key: string; group_id: string }[] = [];
       data.rows.forEach((r, i) => {
         const parsed = StudentRow.safeParse(r);
         if (!parsed.success) { errors.push({ row: i + 2, message: parsed.error.message }); return; }
@@ -124,13 +141,106 @@ export const bulkImport = createServerFn({ method: "POST" })
           status_enum: "active",
           enrolled_at: new Date().toISOString(),
         });
+        if (gid) enrollFor.push({ key: `${v.first_name} ${v.last_name}`.trim().toLowerCase(), group_id: gid });
       });
       if (good.length) {
-        const { error, count } = await supabase.from("students").insert(good, { count: "exact" });
+        const { data: madeStudents, error, count } = await supabase
+          .from("students")
+          .insert(good, { count: "exact" })
+          .select("id, first_name, last_name, group_id");
         if (error) throw new Response(error.message, { status: 400 });
         inserted = count ?? good.length;
+
+        // Auto-enroll each imported student into their group.
+        const enrollments = (madeStudents ?? [])
+          .filter((s: any) => s.group_id)
+          .map((s: any) => ({
+            student_id: s.id,
+            group_id: s.group_id,
+            started_at: new Date().toISOString().slice(0, 10),
+            status: "active",
+          }));
+        if (enrollments.length) {
+          await supabase.from("student_enrollments").insert(enrollments);
+        }
       }
     }
+
+    if (data.kind === "teachers") {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { generateUsername, generateAccessCode } = await import("@/lib/credentials");
+
+      const { data: groupsData } = await supabase.from("groups").select("id, name");
+      const groupIdByName = new Map<string, string>();
+      (groupsData ?? []).forEach((g: { id: string; name: string }) => {
+        groupIdByName.set(g.name.trim().toLowerCase(), g.id);
+      });
+      const { data: subjectsData } = await supabase.from("subjects").select("id, name");
+      const subjectIdByName = new Map<string, string>();
+      (subjectsData ?? []).forEach((s: { id: string; name: string }) => {
+        subjectIdByName.set(s.name.trim().toLowerCase(), s.id);
+      });
+
+      for (let i = 0; i < data.rows.length; i++) {
+        const parsed = TeacherRow.safeParse(data.rows[i]);
+        if (!parsed.success) { errors.push({ row: i + 2, message: parsed.error.message }); continue; }
+        const v = parsed.data;
+        const parts = v.full_name.trim().split(/\s+/);
+        const username = (v.username || generateUsername(parts[0] ?? "", parts.slice(1).join(" "), v.phone)).toLowerCase();
+        const accessCode = v.access_code || generateAccessCode();
+
+        const { data: exists } = await supabaseAdmin
+          .from("teacher_credentials").select("id").eq("username", username).maybeSingle();
+        if (exists) { errors.push({ row: i + 2, message: `Login band: ${username}` }); continue; }
+
+        const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+          email: `${username}@edunest.local`,
+          password: accessCode,
+          email_confirm: true,
+          user_metadata: { full_name: v.full_name, phone: v.phone },
+        });
+        if (createErr || !created?.user) {
+          errors.push({ row: i + 2, message: createErr?.message ?? "Foydalanuvchi yaratilmadi" });
+          continue;
+        }
+        const uid = created.user.id;
+        await supabaseAdmin.from("profiles").upsert({ id: uid, full_name: v.full_name, phone: v.phone || null });
+        await supabaseAdmin.from("user_roles").delete().eq("user_id", uid);
+        await supabaseAdmin.from("user_roles").insert({ user_id: uid, role: "teacher" });
+        await supabaseAdmin.from("teacher_credentials").insert({
+          teacher_user_id: uid, username, access_code: "***", created_by: userId,
+        });
+
+        // Subject + group auto-wiring.
+        let subjectId: string | null = null;
+        if (v.subject_name) {
+          const key = v.subject_name.trim().toLowerCase();
+          subjectId = subjectIdByName.get(key) ?? null;
+          if (!subjectId) {
+            const { data: made } = await supabaseAdmin
+              .from("subjects").insert({ name: v.subject_name.trim() }).select("id").single();
+            if (made) { subjectId = made.id; subjectIdByName.set(key, made.id); }
+          }
+        }
+        if (v.group_name) {
+          const key = v.group_name.trim().toLowerCase();
+          let gid = groupIdByName.get(key) ?? null;
+          if (!gid) {
+            const { data: made } = await supabaseAdmin
+              .from("groups")
+              .insert({ name: v.group_name.trim(), monthly_fee: 0, subject_id: subjectId, teacher_id: uid })
+              .select("id").single();
+            if (made) { gid = made.id; groupIdByName.set(key, made.id); }
+          } else {
+            await supabaseAdmin.from("groups").update({ teacher_id: uid, subject_id: subjectId ?? undefined }).eq("id", gid);
+          }
+        }
+
+        credentials.push({ full_name: v.full_name, username, access_code: accessCode });
+        inserted++;
+      }
+    }
+
 
     if (data.kind === "payments") {
       const { data: studentsData } = await supabase
