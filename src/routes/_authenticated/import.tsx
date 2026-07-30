@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/import")({
   component: ImportPage,
 });
 
-type Kind = "students" | "groups" | "payments" | "leads";
+type Kind = "students" | "groups" | "teachers" | "payments" | "leads";
 
 const TEMPLATES: Record<Kind, { headers: string[]; sample: Record<string, string | number>[]; label: string }> = {
   students: {
@@ -21,6 +21,13 @@ const TEMPLATES: Record<Kind, { headers: string[]; sample: Record<string, string
     headers: ["first_name", "last_name", "parent_full_name", "parent_phone", "group_name", "notes"],
     sample: [
       { first_name: "Ali", last_name: "Valiev", parent_full_name: "Valijon Valiev", parent_phone: "+998901234567", group_name: "English A1", notes: "" },
+    ],
+  },
+  teachers: {
+    label: "O'qituvchilar",
+    headers: ["full_name", "phone", "subject_name", "group_name", "username", "access_code"],
+    sample: [
+      { full_name: "Aziz Karimov", phone: "+998901234567", subject_name: "English", group_name: "English A1", username: "", access_code: "" },
     ],
   },
   groups: {
@@ -44,7 +51,12 @@ function ImportPage() {
   const [kind, setKind] = useState<Kind>("students");
   const [rows, setRows] = useState<Record<string, any>[]>([]);
   const [fileName, setFileName] = useState<string>("");
-  const [result, setResult] = useState<{ inserted: number; total: number; errors: { row: number; message: string }[] } | null>(null);
+  const [result, setResult] = useState<{
+    inserted: number;
+    total: number;
+    errors: { row: number; message: string }[];
+    credentials?: { full_name: string; username: string; access_code: string }[];
+  } | null>(null);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const run = useServerFn(bulkImport);
@@ -96,7 +108,7 @@ function ImportPage() {
       <div>
         <h1 className="text-2xl font-bold">Excel importi</h1>
         <p className="text-sm text-muted-foreground">
-          Excel yoki CSV faylni tanlang — ma'lumot avtomatik bazaga qo'shiladi.
+          Excel yoki CSV faylni tanlang — ma'lumot avtomatik bazaga qo'shiladi. O'quvchilar guruhga, o'qituvchilar fan va guruhga avtomatik biriktiriladi.
         </p>
       </div>
 
@@ -175,6 +187,20 @@ function ImportPage() {
               Jami: <b>{result.total}</b> · Qo'shildi: <b className="text-green-500">{result.inserted}</b> ·
               Xato: <b className="text-amber-500">{result.errors.length}</b>
             </p>
+            {result.credentials && result.credentials.length > 0 && (
+              <div className="rounded-md border bg-muted/30 p-2">
+                <div className="mb-1 text-xs font-semibold">O'qituvchi loginlari (faqat hozir ko'rinadi)</div>
+                <div className="max-h-64 overflow-y-auto text-xs">
+                  {result.credentials.map((c, i) => (
+                    <div key={i} className="flex flex-wrap gap-2 border-b py-1 last:border-0">
+                      <span className="font-medium">{c.full_name}</span>
+                      <span className="font-mono text-muted-foreground">{c.username}</span>
+                      <span className="font-mono text-primary">{c.access_code}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {result.errors.length > 0 && (
               <div className="max-h-64 overflow-y-auto rounded-md border bg-muted/30 p-2 text-xs">
                 {result.errors.slice(0, 100).map((e, i) => (
