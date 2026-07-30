@@ -65,6 +65,7 @@ export const bulkImport = createServerFn({ method: "POST" })
 
     let inserted = 0;
     const errors: { row: number; message: string }[] = [];
+    const credentials: { full_name: string; username: string; access_code: string }[] = [];
 
     if (data.kind === "groups") {
       const rows = data.rows.map((r, i) => {
@@ -276,5 +277,5 @@ export const bulkImport = createServerFn({ method: "POST" })
       }
     }
 
-    return { inserted, errors, total: data.rows.length };
+    return { inserted, errors, credentials, total: data.rows.length };
   });
