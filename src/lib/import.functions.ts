@@ -41,10 +41,20 @@ const LeadRow = z.object({
   note: z.string().optional().default(""),
 });
 
+const TeacherRow = z.object({
+  full_name: z.string().min(1),
+  phone: z.string().optional().default(""),
+  subject_name: z.string().optional().default(""),
+  group_name: z.string().optional().default(""),
+  username: z.string().optional().default(""),
+  access_code: z.string().optional().default(""),
+});
+
 const Input = z.object({
-  kind: z.enum(["students", "groups", "payments", "leads"]),
+  kind: z.enum(["students", "groups", "payments", "leads", "teachers"]),
   rows: z.array(z.record(z.string(), z.any())).min(1).max(5000),
 });
+
 
 export const bulkImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
