@@ -139,8 +139,40 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "list_teachers",
+      description: "O'qituvchilar ro'yxati (ism, telefon).",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "assign_student_to_group",
+      description: "O'quvchini guruhga biriktirish (ism va guruh nomi bo'yicha).",
+      parameters: {
+        type: "object",
+        properties: { student_name: { type: "string" }, group_name: { type: "string" } },
+        required: ["student_name", "group_name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "assign_teacher_to_group",
+      description: "O'qituvchini guruhga biriktirish (ism va guruh nomi bo'yicha).",
+      parameters: {
+        type: "object",
+        properties: { teacher_name: { type: "string" }, group_name: { type: "string" } },
+        required: ["teacher_name", "group_name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "open_page",
-      description: "CRM'da kerakli bo'limni ochish. path: /dashboard,/students,/groups,/schedule,/attendance,/grades,/rooms,/payments,/finance,/leads,/messages,/reports,/settings",
+      description: "CRM'da kerakli bo'limni ochish. path: /dashboard,/students,/groups,/schedule,/attendance,/grades,/rooms,/payments,/finance,/leads,/messages,/reports,/import,/settings",
       parameters: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
     },
   },
@@ -211,6 +243,53 @@ async function runTool(supabase: any, name: string, args: any): Promise<{ result
         .select("id, name")
         .single();
       return { result: error ? { error: error.message } : data, navigate: error ? undefined : "/leads" };
+    }
+    case "list_teachers": {
+      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "teacher");
+      const ids = (roles ?? []).map((r: any) => r.user_id);
+      if (!ids.length) return { result: [] };
+      const { data } = await supabase.from("profiles").select("id, full_name, phone").in("id", ids);
+      return { result: data ?? [] };
+    }
+    case "assign_student_to_group": {
+      const sName = String(args?.student_name ?? "").trim();
+      const gName = String(args?.group_name ?? "").trim();
+      const { data: st } = await supabase
+        .from("students").select("id, first_name, last_name")
+        .or(`first_name.ilike.%${sName}%,last_name.ilike.%${sName}%`).limit(1).maybeSingle();
+      if (!st) return { result: { error: `O'quvchi topilmadi: ${sName}` } };
+      let { data: gr } = await supabase.from("groups").select("id, name").ilike("name", gName).maybeSingle();
+      if (!gr) {
+        const { data: made } = await supabase.from("groups").insert({ name: gName, monthly_fee: 0 }).select("id, name").single();
+        gr = made ?? null;
+      }
+      if (!gr) return { result: { error: "Guruh yaratilmadi" } };
+      const { error } = await supabase.from("students").update({ group_id: gr.id }).eq("id", st.id);
+      if (error) return { result: { error: error.message } };
+      await supabase.from("student_enrollments").insert({
+        student_id: st.id, group_id: gr.id, status: "active",
+        started_at: new Date().toISOString().slice(0, 10),
+      });
+      return { result: { ok: true, student: `${st.first_name} ${st.last_name ?? ""}`.trim(), group: gr.name }, navigate: "/groups" };
+    }
+    case "assign_teacher_to_group": {
+      const tName = String(args?.teacher_name ?? "").trim();
+      const gName = String(args?.group_name ?? "").trim();
+      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "teacher");
+      const ids = (roles ?? []).map((r: any) => r.user_id);
+      if (!ids.length) return { result: { error: "O'qituvchi yo'q" } };
+      const { data: prof } = await supabase
+        .from("profiles").select("id, full_name").in("id", ids).ilike("full_name", `%${tName}%`).limit(1).maybeSingle();
+      if (!prof) return { result: { error: `O'qituvchi topilmadi: ${tName}` } };
+      let { data: gr } = await supabase.from("groups").select("id, name").ilike("name", gName).maybeSingle();
+      if (!gr) {
+        const { data: made } = await supabase
+          .from("groups").insert({ name: gName, monthly_fee: 0, teacher_id: prof.id }).select("id, name").single();
+        gr = made ?? null;
+      } else {
+        await supabase.from("groups").update({ teacher_id: prof.id }).eq("id", gr.id);
+      }
+      return { result: { ok: true, teacher: prof.full_name, group: gr?.name ?? gName }, navigate: "/groups" };
     }
     case "open_page":
       return { result: { opened: args.path }, navigate: String(args.path ?? "") };
