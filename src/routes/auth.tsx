@@ -5,6 +5,9 @@ import { GraduationCap, ArrowLeft, User, Mail } from "lucide-react";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Kirish — Akhmad Academy CRM" },
@@ -14,10 +17,19 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+
 type Tab = "username" | "email";
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const goAfterAuth = () => {
+    if (next) {
+      window.location.href = next;
+      return;
+    }
+    navigate({ to: "/dashboard" });
+  };
   const [tab, setTab] = useState<Tab>("username");
 
   // email tab state
@@ -33,13 +45,14 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
+      if (data.session) goAfterAuth();
     });
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("edunest.auth-tab") as Tab | null;
       if (saved === "username" || saved === "email") setTab(saved);
     }
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, next]);
 
   const switchTab = (t: Tab) => {
     setTab(t);
@@ -63,7 +76,7 @@ function AuthPage() {
         password: accessCode,
       });
       if (error) throw new Error("Foydalanuvchi nomi yoki kod xato");
-      navigate({ to: "/dashboard" });
+      goAfterAuth();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
     } finally {
@@ -78,7 +91,7 @@ function AuthPage() {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      navigate({ to: "/dashboard" });
+      goAfterAuth();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
     } finally {
