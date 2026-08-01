@@ -13,6 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BootstrapRouteImport } from './routes/bootstrap'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedBehaviorRouteImport } from './routes/_authenticated/behavior'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
@@ -36,6 +39,7 @@ import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authe
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
 import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedSettingsCashRegisterRouteImport } from './routes/_authenticated/settings.cash-register'
 import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_authenticated/settings.contact'
@@ -83,6 +87,23 @@ const BootstrapRoute = BootstrapRouteImport.update({
   path: '/bootstrap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
@@ -201,6 +222,12 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
@@ -366,6 +393,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
+  '/mcp': typeof McpRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/calls': typeof AuthenticatedCallsRoute
@@ -389,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
@@ -421,6 +452,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
+  '/mcp': typeof McpRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/calls': typeof AuthenticatedCallsRoute
@@ -443,6 +477,7 @@ export interface FileRoutesByTo {
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
@@ -477,6 +512,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
+  '/mcp': typeof McpRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/behavior': typeof AuthenticatedBehaviorRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
@@ -500,6 +538,7 @@ export interface FileRoutesById {
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
@@ -534,6 +573,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/bootstrap'
+    | '/mcp'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/attendance'
     | '/behavior'
     | '/calls'
@@ -557,6 +599,7 @@ export interface FileRouteTypes {
     | '/teacher-panel'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/settings/cash-register'
     | '/settings/contact'
     | '/settings/credentials'
@@ -589,6 +632,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/bootstrap'
+    | '/mcp'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/attendance'
     | '/behavior'
     | '/calls'
@@ -611,6 +657,7 @@ export interface FileRouteTypes {
     | '/teacher-panel'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/settings/cash-register'
     | '/settings/contact'
     | '/settings/credentials'
@@ -644,6 +691,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/bootstrap'
+    | '/mcp'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/attendance'
     | '/_authenticated/behavior'
     | '/_authenticated/calls'
@@ -667,6 +717,7 @@ export interface FileRouteTypes {
     | '/_authenticated/teacher-panel'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/settings/cash-register'
     | '/_authenticated/settings/contact'
     | '/_authenticated/settings/credentials'
@@ -701,8 +752,12 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BootstrapRoute: typeof BootstrapRoute
+  McpRoute: typeof McpRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ReceiptIdRoute: typeof ReceiptIdRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicCronDailyReportRoute: typeof ApiPublicCronDailyReportRoute
   ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
@@ -742,6 +797,27 @@ declare module '@tanstack/react-router' {
       path: '/bootstrap'
       fullPath: '/bootstrap'
       preLoaderRoute: typeof BootstrapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/attendance': {
@@ -903,6 +979,13 @@ declare module '@tanstack/react-router' {
       path: '/.lovable/oauth/consent'
       fullPath: '/.lovable/oauth/consent'
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/': {
@@ -1216,8 +1299,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BootstrapRoute: BootstrapRoute,
+  McpRoute: McpRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ReceiptIdRoute: ReceiptIdRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicCronDailyReportRoute: ApiPublicCronDailyReportRoute,
   ApiPublicCronNotificationsDispatchRoute:
     ApiPublicCronNotificationsDispatchRoute,
