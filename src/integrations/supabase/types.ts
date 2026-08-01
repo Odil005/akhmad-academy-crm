@@ -765,6 +765,71 @@ export type Database = {
         }
         Relationships: []
       }
+      import_batches: {
+        Row: {
+          academic_year: string | null
+          created_at: string
+          created_by: string | null
+          details: Json
+          duplicates: number
+          errors: number
+          file_name: string | null
+          group_id: string | null
+          id: string
+          inserted: number
+          kind: string
+          total: number
+          undone_at: string | null
+          updated: number
+          updated_at: string
+          warnings: number
+        }
+        Insert: {
+          academic_year?: string | null
+          created_at?: string
+          created_by?: string | null
+          details?: Json
+          duplicates?: number
+          errors?: number
+          file_name?: string | null
+          group_id?: string | null
+          id?: string
+          inserted?: number
+          kind?: string
+          total?: number
+          undone_at?: string | null
+          updated?: number
+          updated_at?: string
+          warnings?: number
+        }
+        Update: {
+          academic_year?: string | null
+          created_at?: string
+          created_by?: string | null
+          details?: Json
+          duplicates?: number
+          errors?: number
+          file_name?: string | null
+          group_id?: string | null
+          id?: string
+          inserted?: number
+          kind?: string
+          total?: number
+          undone_at?: string | null
+          updated?: number
+          updated_at?: string
+          warnings?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batches_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           course: string | null
@@ -1706,47 +1771,74 @@ export type Database = {
       }
       students: {
         Row: {
+          academic_year: string | null
           enrolled_at: string
           first_name: string | null
+          full_name: string | null
           group_id: string | null
           id: string
+          import_batch_id: string | null
           last_name: string | null
+          lesson_time: string | null
+          monthly_fee: number | null
           notes: string | null
           parent_full_name: string | null
           parent_notifications_enabled: boolean
           parent_phone: string | null
+          parent_phones: string[]
           parent_telegram_chat_id: string | null
           profile_id: string | null
+          schedule_raw: string | null
+          schedule_type: string | null
+          start_date: string | null
           status: string
           status_enum: Database["public"]["Enums"]["student_status"]
         }
         Insert: {
+          academic_year?: string | null
           enrolled_at?: string
           first_name?: string | null
+          full_name?: string | null
           group_id?: string | null
           id?: string
+          import_batch_id?: string | null
           last_name?: string | null
+          lesson_time?: string | null
+          monthly_fee?: number | null
           notes?: string | null
           parent_full_name?: string | null
           parent_notifications_enabled?: boolean
           parent_phone?: string | null
+          parent_phones?: string[]
           parent_telegram_chat_id?: string | null
           profile_id?: string | null
+          schedule_raw?: string | null
+          schedule_type?: string | null
+          start_date?: string | null
           status?: string
           status_enum?: Database["public"]["Enums"]["student_status"]
         }
         Update: {
+          academic_year?: string | null
           enrolled_at?: string
           first_name?: string | null
+          full_name?: string | null
           group_id?: string | null
           id?: string
+          import_batch_id?: string | null
           last_name?: string | null
+          lesson_time?: string | null
+          monthly_fee?: number | null
           notes?: string | null
           parent_full_name?: string | null
           parent_notifications_enabled?: boolean
           parent_phone?: string | null
+          parent_phones?: string[]
           parent_telegram_chat_id?: string | null
           profile_id?: string | null
+          schedule_raw?: string | null
+          schedule_type?: string | null
+          start_date?: string | null
           status?: string
           status_enum?: Database["public"]["Enums"]["student_status"]
         }

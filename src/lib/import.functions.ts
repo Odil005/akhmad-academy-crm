@@ -10,14 +10,31 @@ async function requireStaff(supabase: any, userId: string) {
   }
 }
 
-const StudentRow = z.object({
-  first_name: z.string().min(1),
-  last_name: z.string().optional().default(""),
-  parent_full_name: z.string().optional().default(""),
-  parent_phone: z.string().optional().default(""),
-  group_name: z.string().optional().default(""),
-  notes: z.string().optional().default(""),
-});
+// Flexible: legacy sheets have a single "F.I.O" column, so neither first_name
+// nor last_name is required — a full_name alone is enough.
+const StudentRow = z
+  .object({
+    full_name: z.string().optional().default(""),
+    first_name: z.string().optional().default(""),
+    last_name: z.string().optional().default(""),
+    parent_full_name: z.string().optional().default(""),
+    parent_phone: z.string().optional().default(""),
+    group_name: z.string().optional().default(""),
+    notes: z.string().optional().default(""),
+  })
+  .transform((v) => {
+    const full = (v.full_name || `${v.last_name} ${v.first_name}`).replace(/\s+/g, " ").trim();
+    let first = v.first_name.trim();
+    let last = v.last_name.trim();
+    if (!first && !last && full) {
+      const parts = full.split(" ");
+      last = parts[0] ?? "";
+      first = parts.slice(1).join(" ");
+    }
+    return { ...v, full_name: full, first_name: first, last_name: last };
+  })
+  .refine((v) => Boolean(v.full_name), { message: "F.I.O (yoki ism) majburiy" });
+
 
 const GroupRow = z.object({
   name: z.string().min(1),
@@ -132,7 +149,9 @@ export const bulkImport = createServerFn({ method: "POST" })
         const v = parsed.data;
         const gid = v.group_name ? groupIdByName.get(v.group_name.trim().toLowerCase()) ?? null : null;
         good.push({
-          first_name: v.first_name,
+          full_name: v.full_name || null,
+          first_name: v.first_name || null,
+
           last_name: v.last_name || null,
           parent_full_name: v.parent_full_name || null,
           parent_phone: v.parent_phone || null,
