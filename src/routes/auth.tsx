@@ -5,6 +5,9 @@ import { GraduationCap, ArrowLeft, User, Mail } from "lucide-react";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Kirish — Akhmad Academy CRM" },
@@ -13,6 +16,7 @@ export const Route = createFileRoute("/auth")({
   }),
   component: AuthPage,
 });
+
 
 type Tab = "username" | "email";
 
