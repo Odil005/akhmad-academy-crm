@@ -3,7 +3,7 @@ import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
 export default defineConfig({
   nitro: {
-    preset: "render_com",
+    preset: "netlify",
   },
 
   tanstackStart: {
