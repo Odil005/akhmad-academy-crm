@@ -35,6 +35,7 @@ import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authenticated/teacher-balance'
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
 import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedSettingsCashRegisterRouteImport } from './routes/_authenticated/settings.cash-register'
 import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_authenticated/settings.contact'
@@ -193,6 +194,11 @@ const AuthenticatedTeacherPanelRoute =
 const ReceiptIdRoute = ReceiptIdRouteImport.update({
   id: '/receipt/$id',
   path: '/receipt/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsIndexRoute =
@@ -382,6 +388,7 @@ export interface FileRoutesByFullPath {
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
@@ -435,6 +442,7 @@ export interface FileRoutesByTo {
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
@@ -491,6 +499,7 @@ export interface FileRoutesById {
   '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/receipt/$id': typeof ReceiptIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/settings/cash-register': typeof AuthenticatedSettingsCashRegisterRoute
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
@@ -547,6 +556,7 @@ export interface FileRouteTypes {
     | '/teacher-balance'
     | '/teacher-panel'
     | '/receipt/$id'
+    | '/.lovable/oauth/consent'
     | '/settings/cash-register'
     | '/settings/contact'
     | '/settings/credentials'
@@ -600,6 +610,7 @@ export interface FileRouteTypes {
     | '/teacher-balance'
     | '/teacher-panel'
     | '/receipt/$id'
+    | '/.lovable/oauth/consent'
     | '/settings/cash-register'
     | '/settings/contact'
     | '/settings/credentials'
@@ -655,6 +666,7 @@ export interface FileRouteTypes {
     | '/_authenticated/teacher-balance'
     | '/_authenticated/teacher-panel'
     | '/receipt/$id'
+    | '/.lovable/oauth/consent'
     | '/_authenticated/settings/cash-register'
     | '/_authenticated/settings/contact'
     | '/_authenticated/settings/credentials'
@@ -690,6 +702,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BootstrapRoute: typeof BootstrapRoute
   ReceiptIdRoute: typeof ReceiptIdRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiPublicCronDailyReportRoute: typeof ApiPublicCronDailyReportRoute
   ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
@@ -883,6 +896,13 @@ declare module '@tanstack/react-router' {
       path: '/receipt/$id'
       fullPath: '/receipt/$id'
       preLoaderRoute: typeof ReceiptIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/': {
@@ -1197,6 +1217,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BootstrapRoute: BootstrapRoute,
   ReceiptIdRoute: ReceiptIdRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiPublicCronDailyReportRoute: ApiPublicCronDailyReportRoute,
   ApiPublicCronNotificationsDispatchRoute:
     ApiPublicCronNotificationsDispatchRoute,
