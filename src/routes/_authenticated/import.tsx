@@ -1,226 +1,406 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import * as XLSX from "xlsx";
-import { bulkImport } from "@/lib/import.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { importLegacyStudents, listImportBatches, undoImportBatch } from "@/lib/import-legacy.functions";
+import {
+  LEGACY_FIELD_LABELS,
+  detectMapping,
+  parseRows,
+  toSheet,
+  type LegacyField,
+  type ParsedStudentRow,
+  type RawSheet,
+} from "@/lib/import-parse";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Upload, Download, FileSpreadsheet, CheckCircle2, AlertCircle } from "lucide-react";
+import { Upload, FileSpreadsheet, Undo2, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/import")({
   component: ImportPage,
+  head: () => ({
+    meta: [
+      { title: "Excel import — Akhmad Academy CRM" },
+      { name: "description", content: "Guruh ro'yxatlarini eski Excel formatida import qilish." },
+    ],
+  }),
 });
 
-type Kind = "students" | "groups" | "teachers" | "payments" | "leads";
+const FIELDS: LegacyField[] = ["ignore", "row_no", "full_name", "start_date", "schedule", "parents", "amount"];
 
-const TEMPLATES: Record<Kind, { headers: string[]; sample: Record<string, string | number>[]; label: string }> = {
-  students: {
-    label: "O'quvchilar",
-    headers: ["first_name", "last_name", "parent_full_name", "parent_phone", "group_name", "notes"],
-    sample: [
-      { first_name: "Ali", last_name: "Valiev", parent_full_name: "Valijon Valiev", parent_phone: "+998901234567", group_name: "English A1", notes: "" },
-    ],
-  },
-  teachers: {
-    label: "O'qituvchilar",
-    headers: ["full_name", "phone", "subject_name", "group_name", "username", "access_code"],
-    sample: [
-      { full_name: "Aziz Karimov", phone: "+998901234567", subject_name: "English", group_name: "English A1", username: "", access_code: "" },
-    ],
-  },
-  groups: {
-    label: "Guruhlar",
-    headers: ["name", "monthly_fee", "schedule"],
-    sample: [{ name: "English A1", monthly_fee: 500000, schedule: "Du/Chor/Ju 15:00" }],
-  },
-  payments: {
-    label: "To'lovlar",
-    headers: ["student_name", "amount", "period_month", "status", "note"],
-    sample: [{ student_name: "Ali Valiev", amount: 500000, period_month: "2026-07", status: "paid", note: "" }],
-  },
-  leads: {
-    label: "Leadlar",
-    headers: ["name", "phone", "course", "source", "note"],
-    sample: [{ name: "Sardor", phone: "+998901112233", course: "English", source: "instagram", note: "" }],
-  },
-};
+function academicYears(): string[] {
+  const now = new Date().getFullYear();
+  return [now - 2, now - 1, now, now + 1].map((y) => `${y}-${y + 1}`);
+}
+
+type Subject = { id: string; name: string };
+type Group = { id: string; name: string; subject_id: string | null; teacher_id: string | null };
+type Teacher = { id: string; full_name: string | null };
 
 function ImportPage() {
-  const [kind, setKind] = useState<Kind>("students");
-  const [rows, setRows] = useState<Record<string, any>[]>([]);
-  const [fileName, setFileName] = useState<string>("");
-  const [result, setResult] = useState<{
-    inserted: number;
-    total: number;
-    errors: { row: number; message: string }[];
-    credentials?: { full_name: string; username: string; access_code: string }[];
-  } | null>(null);
-  const [busy, setBusy] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const run = useServerFn(bulkImport);
+  const runImport = useServerFn(importLegacyStudents);
+  const runUndo = useServerFn(undoImportBatch);
+  const loadBatches = useServerFn(listImportBatches);
 
-  function downloadTemplate() {
-    const t = TEMPLATES[kind];
-    const ws = XLSX.utils.json_to_sheet(t.sample, { header: t.headers });
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, t.label);
-    XLSX.writeFile(wb, `akhmad-academy-${kind}-shablon.xlsx`);
-  }
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [subjectId, setSubjectId] = useState("");
+  const [groupId, setGroupId] = useState("");
+  const [teacherId, setTeacherId] = useState("");
+  const [year, setYear] = useState(academicYears()[2]!);
+  const [newGroupName, setNewGroupName] = useState("");
+
+  const [sheet, setSheet] = useState<RawSheet | null>(null);
+  const [mapping, setMapping] = useState<LegacyField[]>([]);
+  const [fileName, setFileName] = useState("");
+  const [dupStrategy, setDupStrategy] = useState<"skip" | "update" | "create">("skip");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof importLegacyStudents>> | null>(null);
+  const [batches, setBatches] = useState<any[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    void (async () => {
+      const [s, g, p, r] = await Promise.all([
+        supabase.from("subjects").select("id, name").order("name"),
+        supabase.from("groups").select("id, name, subject_id, teacher_id").order("name"),
+        supabase.from("profiles").select("id, full_name").order("full_name"),
+        supabase.from("user_roles").select("user_id, role").eq("role", "teacher"),
+      ]);
+      setSubjects(s.data ?? []);
+      setGroups((g.data ?? []) as Group[]);
+      const teacherIds = new Set((r.data ?? []).map((x: any) => x.user_id));
+      setTeachers((p.data ?? []).filter((x: any) => teacherIds.has(x.id)) as Teacher[]);
+      const b = await loadBatches();
+      setBatches(b.items ?? []);
+    })();
+  }, [loadBatches]);
+
+  const yearStart = Number(year.slice(0, 4));
+  const parsed: ParsedStudentRow[] = useMemo(
+    () => (sheet ? parseRows(sheet, mapping, { academicYearStart: yearStart }) : []),
+    [sheet, mapping, yearStart],
+  );
+
+  const stats = useMemo(() => {
+    const errors = parsed.filter((r) => r.errors.length).length;
+    const warns = parsed.filter((r) => !r.errors.length && r.warnings.length).length;
+    return { total: parsed.length, errors, warns, ok: parsed.length - errors };
+  }, [parsed]);
+
+  const groupOptions = subjectId ? groups.filter((g) => g.subject_id === subjectId) : groups;
+  const selectedGroup = groups.find((g) => g.id === groupId) ?? null;
 
   async function handleFile(file: File) {
     setResult(null);
     setFileName(file.name);
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: "array" });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
-    setRows(json);
-    // Auto-import
-    if (json.length > 0) {
-      await doImport(json);
-    } else {
-      toast.error("Faylda ma'lumot topilmadi");
+    const wb = XLSX.read(buf, { type: "array", cellDates: true, codepage: 65001 });
+    const ws = wb.Sheets[wb.SheetNames[0]!];
+    if (!ws) return toast.error("Faylda varaq topilmadi");
+    const matrix = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "", raw: false, blankrows: false });
+    const s = toSheet(matrix as unknown[][]);
+    if (!s.rows.length) return toast.error("Faylda ma'lumot topilmadi");
+    setSheet(s);
+    setMapping(detectMapping(s.headers));
+    toast.success(`${s.rows.length} qator o'qildi`);
+  }
+
+  async function createGroup() {
+    const name = newGroupName.trim();
+    if (!name) return;
+    const { data, error } = await supabase
+      .from("groups")
+      .insert({ name, subject_id: subjectId || null, teacher_id: teacherId || null, monthly_fee: 0 })
+      .select("id, name, subject_id, teacher_id")
+      .single();
+    if (error) return toast.error(error.message);
+    setGroups((g) => [...g, data as Group]);
+    setGroupId(data!.id);
+    setNewGroupName("");
+    toast.success("Guruh yaratildi");
+  }
+
+  async function doImport() {
+    if (!groupId) return toast.error("Avval guruhni tanlang");
+    const rows = parsed.filter((r) => !r.errors.length);
+    if (!rows.length) return toast.error("Import uchun to'g'ri qator yo'q");
+    setBusy(true);
+    try {
+      // Keep the teacher/subject binding of the chosen group in sync.
+      if (teacherId && selectedGroup && selectedGroup.teacher_id !== teacherId) {
+        await supabase.from("groups").update({ teacher_id: teacherId }).eq("id", groupId);
+      }
+      const res = await runImport({
+        data: {
+          file_name: fileName,
+          group_id: groupId,
+          academic_year: year,
+          duplicate_strategy: dupStrategy,
+          rows: rows.map((r) => ({
+            full_name: r.full_name,
+            start_date: r.start_date,
+            start_date_raw: r.start_date_raw,
+            schedule_raw: r.schedule_raw,
+            schedule_type: r.schedule_type,
+            subject_name: r.subject_name,
+            lesson_time: r.lesson_time,
+            parent_full_name: r.parent_full_name,
+            parent_phones: r.parent_phones,
+            monthly_fee: r.monthly_fee,
+          })),
+        },
+      });
+      setResult(res);
+      const b = await loadBatches();
+      setBatches(b.items ?? []);
+      toast.success(`${res.inserted} o'quvchi qo'shildi`);
+    } catch (e) {
+      const msg = e instanceof Response ? await e.text() : (e as Error).message;
+      toast.error(msg);
+    } finally {
+      setBusy(false);
     }
   }
 
-  async function doImport(list: Record<string, any>[]) {
+  async function undo(id: string) {
     setBusy(true);
     try {
-      const res = await run({ data: { kind, rows: list } });
-      setResult(res);
-      if (res.inserted > 0) {
-        toast.success(`${res.inserted} ta yozuv qo'shildi`);
-      }
-      if (res.errors.length > 0) {
-        toast.warning(`${res.errors.length} ta yozuvda xato`);
-      }
-    } catch (e: any) {
-      toast.error(e?.message ?? "Import xatosi");
+      const res = await runUndo({ data: { batch_id: id } });
+      toast.success(`${res.removed} yozuv qaytarildi`);
+      const b = await loadBatches();
+      setBatches(b.items ?? []);
+    } catch (e) {
+      const msg = e instanceof Response ? await e.text() : (e as Error).message;
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Excel importi</h1>
+        <h1 className="text-2xl font-bold">Excel import</h1>
         <p className="text-sm text-muted-foreground">
-          Excel yoki CSV faylni tanlang — ma'lumot avtomatik bazaga qo'shiladi. O'quvchilar guruhga, o'qituvchilar fan va guruhga avtomatik biriktiriladi.
+          Eski guruh ro'yxatlari (№, F.I.O, boshlagan sanasi, soati, ota-ona nomerlari, to'lov summasi) qo'llab-quvvatlanadi.
         </p>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">1. Ma'lumot turi</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <Select value={kind} onValueChange={(v) => { setKind(v as Kind); setRows([]); setResult(null); setFileName(""); }}>
-              <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+        <CardHeader><CardTitle className="text-base">1. Guruhni tanlang (majburiy)</CardTitle></CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-4">
+          <div>
+            <div className="mb-1 text-xs font-medium text-muted-foreground">Fan</div>
+            <Select value={subjectId} onValueChange={setSubjectId}>
+              <SelectTrigger><SelectValue placeholder="Fan" /></SelectTrigger>
               <SelectContent>
-                {(Object.keys(TEMPLATES) as Kind[]).map((k) => (
-                  <SelectItem key={k} value={k}>{TEMPLATES[k].label}</SelectItem>
-                ))}
+                {subjects.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={downloadTemplate}>
-              <Download className="mr-2 h-4 w-4" /> Shablon yuklab olish
-            </Button>
           </div>
-          <div className="rounded-md border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground">
-            Ustunlar: <span className="font-mono">{TEMPLATES[kind].headers.join(", ")}</span>
+          <div>
+            <div className="mb-1 text-xs font-medium text-muted-foreground">Guruh</div>
+            <Select value={groupId} onValueChange={setGroupId}>
+              <SelectTrigger><SelectValue placeholder="Guruh" /></SelectTrigger>
+              <SelectContent>
+                {groupOptions.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <div className="mt-2 flex gap-2">
+              <Input placeholder="Yangi guruh nomi" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} />
+              <Button variant="outline" onClick={createGroup} disabled={!newGroupName.trim()}>+</Button>
+            </div>
+          </div>
+          <div>
+            <div className="mb-1 text-xs font-medium text-muted-foreground">O'qituvchi</div>
+            <Select value={teacherId} onValueChange={setTeacherId}>
+              <SelectTrigger><SelectValue placeholder="O'qituvchi" /></SelectTrigger>
+              <SelectContent>
+                {teachers.map((t) => <SelectItem key={t.id} value={t.id}>{t.full_name ?? t.id}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <div className="mb-1 text-xs font-medium text-muted-foreground">O'quv yili</div>
+            <Select value={year} onValueChange={setYear}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {academicYears().map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">2. Excel faylni tashlang</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div
-            onDragOver={(e) => { e.preventDefault(); }}
-            onDrop={(e) => {
-              e.preventDefault();
-              const f = e.dataTransfer.files?.[0];
-              if (f) handleFile(f);
-            }}
-            onClick={() => fileRef.current?.click()}
-            className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/20 p-10 text-center transition hover:border-primary hover:bg-muted/40"
-          >
-            <FileSpreadsheet className="mb-3 h-10 w-10 text-muted-foreground" />
-            <p className="font-medium">Faylni bu yerga tashlang yoki bosing</p>
-            <p className="mt-1 text-xs text-muted-foreground">.xlsx, .xls, .csv — max 5000 qator</p>
-            {fileName && <p className="mt-2 text-xs text-primary">{fileName}</p>}
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) handleFile(f);
-              }}
-            />
-          </div>
-          {busy && <p className="mt-3 text-sm text-muted-foreground">Yuklanmoqda...</p>}
+        <CardHeader><CardTitle className="text-base">2. Faylni yuklang (.xlsx, .xls, .csv)</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-3">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }}
+          />
+          <Button onClick={() => fileRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Fayl tanlash</Button>
+          {fileName && (
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              <FileSpreadsheet className="h-4 w-4" /> {fileName}
+            </span>
+          )}
         </CardContent>
       </Card>
 
-      {result && (
+      {sheet && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">3. Ustunlarni moslashtirish</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-3">
+            {sheet.headers.map((h, i) => (
+              <div key={i}>
+                <div className="mb-1 truncate text-xs font-medium text-muted-foreground">{h || `Ustun ${i + 1}`}</div>
+                <Select
+                  value={mapping[i] ?? "ignore"}
+                  onValueChange={(v) => setMapping((m) => m.map((x, j) => (j === i ? (v as LegacyField) : x)))}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {FIELDS.map((f) => <SelectItem key={f} value={f}>{LEGACY_FIELD_LABELS[f]}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {parsed.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              {result.errors.length === 0 ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-amber-500" />
-              )}
-              Natija
+            <CardTitle className="text-base">
+              4. Ko'rib chiqish — {stats.total} qator · {stats.ok} to'g'ri · {stats.warns} ogohlantirish · {stats.errors} xato
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              Jami: <b>{result.total}</b> · Qo'shildi: <b className="text-green-500">{result.inserted}</b> ·
-              Xato: <b className="text-amber-500">{result.errors.length}</b>
-            </p>
-            {result.credentials && result.credentials.length > 0 && (
-              <div className="rounded-md border bg-muted/30 p-2">
-                <div className="mb-1 text-xs font-semibold">O'qituvchi loginlari (faqat hozir ko'rinadi)</div>
-                <div className="max-h-64 overflow-y-auto text-xs">
-                  {result.credentials.map((c, i) => (
-                    <div key={i} className="flex flex-wrap gap-2 border-b py-1 last:border-0">
-                      <span className="font-medium">{c.full_name}</span>
-                      <span className="font-mono text-muted-foreground">{c.username}</span>
-                      <span className="font-mono text-primary">{c.access_code}</span>
-                    </div>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <div className="mb-1 text-xs font-medium text-muted-foreground">Dublikat topilsa</div>
+                <Select value={dupStrategy} onValueChange={(v) => setDupStrategy(v as typeof dupStrategy)}>
+                  <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="skip">O'tkazib yuborish</SelectItem>
+                    <SelectItem value="update">Mavjudni yangilash</SelectItem>
+                    <SelectItem value="create">Yangi o'quvchi sifatida qo'shish</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={doImport} disabled={busy || !groupId}>Import qilish</Button>
+              {!groupId && (
+                <span className="flex items-center gap-1 text-xs text-destructive">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Guruhni tanlang
+                </span>
+              )}
+            </div>
+
+            <div className="max-h-[460px] overflow-auto rounded-xl border border-border">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-muted text-xs uppercase">
+                  <tr>
+                    {["#", "O'quvchi", "Boshlagan", "Jadval / fan", "Ota-ona", "Telefonlar", "Summa", "Guruh", "Holat"].map((h) => (
+                      <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {parsed.map((r, i) => (
+                    <tr key={i} className={`border-t border-border ${r.errors.length ? "bg-destructive/10" : ""}`}>
+                      <td className="px-3 py-1.5">{i + 1}</td>
+                      <td className="px-3 py-1.5 font-medium">{r.full_name || "—"}</td>
+                      <td className="px-3 py-1.5">{r.start_date ?? r.start_date_raw || "—"}</td>
+                      <td className="px-3 py-1.5">
+                        {[r.schedule_type, r.subject_name, r.lesson_time].filter(Boolean).join(" · ") || r.schedule_raw || "—"}
+                      </td>
+                      <td className="px-3 py-1.5">{r.parent_full_name || "—"}</td>
+                      <td className="px-3 py-1.5">{r.parent_phones.join(", ") || "—"}</td>
+                      <td className="px-3 py-1.5">{r.monthly_fee?.toLocaleString("uz-UZ") ?? "—"}</td>
+                      <td className="px-3 py-1.5">{selectedGroup?.name ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-xs">
+                        {r.errors.length ? (
+                          <span className="text-destructive">{r.errors.join("; ")}</span>
+                        ) : r.warnings.length ? (
+                          <span className="text-amber-600">{r.warnings.join("; ")}</span>
+                        ) : (
+                          <span className="text-emerald-600">OK</span>
+                        )}
+                      </td>
+                    </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {result && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Import natijasi</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+              {[
+                ["Jami", result.total],
+                ["Qo'shildi", result.inserted],
+                ["Yangilandi", result.updated],
+                ["Dublikat", result.duplicates],
+                ["Ogohlantirish", result.warnings],
+                ["Xato", result.errors],
+              ].map(([label, value]) => (
+                <div key={String(label)} className="rounded-xl border border-border p-3">
+                  <div className="text-xs text-muted-foreground">{label}</div>
+                  <div className="text-xl font-bold">{value}</div>
                 </div>
-              </div>
-            )}
-            {result.errors.length > 0 && (
-              <div className="max-h-64 overflow-y-auto rounded-md border bg-muted/30 p-2 text-xs">
-                {result.errors.slice(0, 100).map((e, i) => (
-                  <div key={i} className="border-b py-1 last:border-0">
-                    <span className="font-mono text-muted-foreground">Qator {e.row}:</span> {e.message}
-                  </div>
-                ))}
-              </div>
+              ))}
+            </div>
+            {result.details.length > 0 && (
+              <ul className="max-h-48 space-y-1 overflow-auto text-xs text-muted-foreground">
+                {result.details.map((d, i) => <li key={i}>#{d.row} · {d.level} · {d.message}</li>)}
+              </ul>
             )}
           </CardContent>
         </Card>
       )}
 
-      {rows.length > 0 && !busy && (
-        <div className="text-xs text-muted-foreground">
-          <Upload className="mr-1 inline h-3 w-3" />
-          {rows.length} qator o'qildi
-        </div>
+      {batches.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Import tarixi (undo)</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {batches.map((b) => (
+              <div key={b.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border px-3 py-2 text-sm">
+                <span className="font-medium">{b.file_name || "fayl"}</span>
+                <span className="text-xs text-muted-foreground">{b.academic_year}</span>
+                <span className="text-xs text-muted-foreground">
+                  jami {b.total} · qo'shildi {b.inserted} · yangilandi {b.updated} · xato {b.errors}
+                </span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {new Date(b.created_at).toLocaleString("uz-UZ")}
+                </span>
+                {b.undone_at ? (
+                  <span className="text-xs text-muted-foreground">qaytarilgan</span>
+                ) : (
+                  <Button size="sm" variant="outline" disabled={busy} onClick={() => undo(b.id)}>
+                    <Undo2 className="mr-1 h-3.5 w-3.5" /> Qaytarish
+                  </Button>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       )}
-      <Outlet />
     </div>
   );
 }
