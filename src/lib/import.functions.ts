@@ -149,7 +149,9 @@ export const bulkImport = createServerFn({ method: "POST" })
         const v = parsed.data;
         const gid = v.group_name ? groupIdByName.get(v.group_name.trim().toLowerCase()) ?? null : null;
         good.push({
-          first_name: v.first_name,
+          full_name: v.full_name || null,
+          first_name: v.first_name || null,
+
           last_name: v.last_name || null,
           parent_full_name: v.parent_full_name || null,
           parent_phone: v.parent_phone || null,
