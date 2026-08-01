@@ -321,7 +321,7 @@ function ImportPage() {
                     <tr key={i} className={`border-t border-border ${r.errors.length ? "bg-destructive/10" : ""}`}>
                       <td className="px-3 py-1.5">{i + 1}</td>
                       <td className="px-3 py-1.5 font-medium">{r.full_name || "—"}</td>
-                      <td className="px-3 py-1.5">{r.start_date ?? r.start_date_raw || "—"}</td>
+                      <td className="px-3 py-1.5">{r.start_date ?? (r.start_date_raw || "—")}</td>
                       <td className="px-3 py-1.5">
                         {[r.schedule_type, r.subject_name, r.lesson_time].filter(Boolean).join(" · ") || r.schedule_raw || "—"}
                       </td>
