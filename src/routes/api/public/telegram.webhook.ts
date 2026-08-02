@@ -322,7 +322,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             if (uni.kind === "student") {
               const { data: st } = await supabaseAdmin
                 .from("students").select("id, first_name, last_name, parent_telegram_chat_id")
-                .eq("id", uni.student_id).maybeSingle();
+                .eq("id", uni.student_id!).maybeSingle();
               if (!st) { await reply(chatId, "❌ O'quvchi topilmadi."); return new Response("ok"); }
               if (st.parent_telegram_chat_id && st.parent_telegram_chat_id !== String(chatId)) {
                 await reply(chatId, "⚠️ Boshqa akkaunt biriktirilgan. Ma'muriyatga murojaat qiling.");
@@ -343,7 +343,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
 
             // Staff link (teacher / admin / director)
             await supabaseAdmin.from("staff_telegram_links").upsert({
-              user_id: uni.user_id,
+              user_id: uni.user_id!,
               role: uni.kind,
               full_name: uni.label,
               telegram_chat_id: String(chatId),
