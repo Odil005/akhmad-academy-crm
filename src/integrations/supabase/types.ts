@@ -1623,6 +1623,36 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_telegram_links: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          notifications_enabled: boolean
+          role: string
+          telegram_chat_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          notifications_enabled?: boolean
+          role: string
+          telegram_chat_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          notifications_enabled?: boolean
+          role?: string
+          telegram_chat_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       student_credentials: {
         Row: {
           access_code: string
@@ -2094,6 +2124,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      telegram_link_tokens: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          kind: string
+          label: string | null
+          student_id: string | null
+          token: string
+          used_at: string | null
+          used_by_chat_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          kind: string
+          label?: string | null
+          student_id?: string | null
+          token: string
+          used_at?: string | null
+          used_by_chat_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          kind?: string
+          label?: string | null
+          student_id?: string | null
+          token?: string
+          used_at?: string | null
+          used_by_chat_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telegram_link_tokens_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {

@@ -305,6 +305,67 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             await askContact(chatId, "Havola noto'g'ri. ");
             return new Response("ok");
           }
+          // New unified link tokens (student / teacher / admin / director)
+          const { data: uni } = await supabaseAdmin
+            .from("telegram_link_tokens")
+            .select("token, kind, student_id, user_id, label, expires_at, used_at")
+            .eq("token", arg).maybeSingle();
+          if (uni) {
+            if (uni.used_at) { await askContact(chatId, "Havoladan foydalanilgan. "); return new Response("ok"); }
+            if (new Date(uni.expires_at).getTime() < Date.now()) {
+              await askContact(chatId, "Havola muddati tugagan. "); return new Response("ok");
+            }
+            const consume = () => supabaseAdmin.from("telegram_link_tokens").update({
+              used_at: new Date().toISOString(), used_by_chat_id: String(chatId),
+            }).eq("token", arg).is("used_at", null);
+
+            if (uni.kind === "student") {
+              const { data: st } = await supabaseAdmin
+                .from("students").select("id, first_name, last_name, parent_telegram_chat_id")
+                .eq("id", uni.student_id!).maybeSingle();
+              if (!st) { await reply(chatId, "❌ O'quvchi topilmadi."); return new Response("ok"); }
+              if (st.parent_telegram_chat_id && st.parent_telegram_chat_id !== String(chatId)) {
+                await reply(chatId, "⚠️ Boshqa akkaunt biriktirilgan. Ma'muriyatga murojaat qiling.");
+                return new Response("ok");
+              }
+              await supabaseAdmin.from("students").update({
+                parent_telegram_chat_id: String(chatId),
+                parent_notifications_enabled: true,
+              }).eq("id", st.id);
+              await consume();
+              await reply(
+                chatId,
+                `✅ Bog'landi. Endi ${st.first_name ?? ""} ${st.last_name ?? ""} bo'yicha bildirishnomalarni olasiz.`.replace(/\s+/g, " "),
+                mainMenu,
+              );
+              return new Response("ok");
+            }
+
+            // Staff link (teacher / admin / director)
+            await supabaseAdmin.from("staff_telegram_links").upsert({
+              user_id: uni.user_id!,
+              role: uni.kind,
+              full_name: uni.label,
+              telegram_chat_id: String(chatId),
+              notifications_enabled: true,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: "user_id" });
+            if (uni.kind === "director") {
+              await supabaseAdmin.from("director_report_recipients").upsert({
+                user_id: uni.user_id,
+                full_name: uni.label ?? "Direktor",
+                telegram_chat_id: String(chatId),
+                is_active: true,
+              }, { onConflict: "telegram_chat_id" });
+            }
+            await consume();
+            await reply(
+              chatId,
+              `✅ Telegram ID saqlandi (${uni.kind}). Chat ID: ${chatId}\nEndi tizim xabarnomalarini shu chatga olasiz.`,
+            );
+            return new Response("ok");
+          }
+
           const { data: linkRow } = await supabaseAdmin
             .from("parent_link_tokens")
             .select("token, student_id, expires_at, used_at")
