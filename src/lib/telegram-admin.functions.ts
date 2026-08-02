@@ -110,3 +110,66 @@ export const createParentLinkToken = createServerFn({ method: "POST" })
       link: username ? `https://t.me/${username}?start=${token}` : null,
     };
   });
+
+/**
+ * Staff-only: mint a single-use Telegram link for any CRM subject —
+ * student (parent chat), teacher, admin or director. The webhook consumes
+ * the token and stores the resulting chat id in the right place.
+ */
+export const createTelegramLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({
+      kind: z.enum(["student", "teacher", "admin", "director"]),
+      studentId: z.string().uuid().optional().nullable(),
+      targetUserId: z.string().uuid().optional().nullable(),
+      label: z.string().max(200).optional().nullable(),
+      ttlMinutes: z.number().int().min(5).max(60 * 24 * 7).optional(),
+    }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: rolesData } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    const roles = (rolesData ?? []).map((r) => r.role as string);
+    if (!roles.includes("director") && !roles.includes("admin") && !roles.includes("teacher")) {
+      return { ok: false as const, error: "Ruxsat yo'q" };
+    }
+    if (data.kind === "student" && !data.studentId) return { ok: false as const, error: "O'quvchi tanlanmagan" };
+    if (data.kind !== "student" && !data.targetUserId) return { ok: false as const, error: "Foydalanuvchi tanlanmagan" };
+
+    const buf = new Uint8Array(32);
+    crypto.getRandomValues(buf);
+    const token = btoa(String.fromCharCode(...buf))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+    const expiresAt = new Date(Date.now() + (data.ttlMinutes ?? 60 * 24) * 60 * 1000).toISOString();
+
+    const { error } = await supabase.from("telegram_link_tokens").insert({
+      token,
+      kind: data.kind,
+      student_id: data.kind === "student" ? data.studentId! : null,
+      user_id: data.kind === "student" ? null : data.targetUserId!,
+      label: data.label ?? null,
+      created_by: userId,
+      expires_at: expiresAt,
+    });
+    if (error) return { ok: false as const, error: error.message };
+
+    let username: string | null = null;
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (botToken) {
+      try {
+        const meResp = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+        const me = (await meResp.json().catch(() => ({}))) as { result?: { username?: string } };
+        username = me.result?.username ?? null;
+      } catch { /* ignore */ }
+    }
+
+    return {
+      ok: true as const,
+      token,
+      expires_at: expiresAt,
+      username,
+      link: username ? `https://t.me/${username}?start=${token}` : null,
+    };
+  });
