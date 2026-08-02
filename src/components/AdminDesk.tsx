@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Search, UserPlus, CreditCard, Loader2, Users, Wallet, CalendarDays, AlertTriangle, Clock,
+  Search, UserPlus, CreditCard, Loader2, Users, Wallet, CalendarDays, AlertTriangle, Clock, GraduationCap,
 } from "lucide-react";
 import {
   loadStudentIndex, searchIndex, initialsOf, shortId, type StudentIndexRow,
@@ -10,6 +10,8 @@ import {
 import { STATUS_META } from "@/lib/status";
 import { Student360 } from "@/components/Student360";
 import { PaymentModal } from "@/components/PaymentModal";
+import { NewTeacherModal } from "@/components/NewTeacherModal";
+import { TelegramLinkPanel } from "@/components/TelegramLinkPanel";
 
 const fmt = (n: number) => Number(n || 0).toLocaleString("uz-UZ");
 
@@ -32,6 +34,7 @@ export function AdminDesk() {
   const [openList, setOpenList] = useState(false);
   const [selected, setSelected] = useState<StudentIndexRow | null>(null);
   const [payFor, setPayFor] = useState<string | null>(null);
+  const [newTeacher, setNewTeacher] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
   const refreshIndex = useCallback(async () => {
@@ -188,6 +191,9 @@ export function AdminDesk() {
         <div className="grid gap-5 lg:grid-cols-2">
           <DebtorsBlock rows={index} onPick={setSelected} onPay={(id) => setPayFor(id)} />
           <TodayLessons />
+          <div className="lg:col-span-2">
+            <TelegramLinkPanel />
+          </div>
         </div>
       )}
 
@@ -199,6 +205,8 @@ export function AdminDesk() {
           ← Ish stoliga qaytish
         </button>
       )}
+
+      {newTeacher && <NewTeacherModal onClose={() => setNewTeacher(false)} />}
 
       {payFor !== null && (
         <PaymentModal
