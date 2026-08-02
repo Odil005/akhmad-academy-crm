@@ -93,6 +93,12 @@ export function AdminDesk() {
             <UserPlus className="h-4 w-4" /> Yangi o'quvchi
           </Link>
           <button
+            onClick={() => setNewTeacher(true)}
+            className="flex items-center gap-2 rounded-xl border border-primary/50 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/10"
+          >
+            <GraduationCap className="h-4 w-4" /> Yangi o'qituvchi
+          </button>
+          <button
             onClick={() => setPayFor("")}
             className="flex items-center gap-2 rounded-xl border border-primary/50 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/10"
           >
