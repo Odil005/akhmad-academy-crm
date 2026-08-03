@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, X, CalendarDays } from "lucide-react";
+import { Plus, Trash2, X, CalendarDays, Users } from "lucide-react";
+import { BirthdayReminders } from "@/components/BirthdayReminders";
 
 
 type Lesson = {
@@ -20,6 +21,16 @@ type Lesson = {
 };
 
 type Ref = { id: string; name: string };
+type StudentRow = {
+  id: string;
+  name: string;
+  group_id: string | null;
+  group_name: string | null;
+  lesson_time: string | null;
+  schedule_raw: string | null;
+  parent_phone: string | null;
+  birth_date: string | null;
+};
 type Teacher = { user_id: string; name: string };
 
 const DAYS = ["Du", "Se", "Ch", "Pa", "Ju", "Sha", "Ya"];
@@ -39,6 +50,9 @@ function SchedulePage() {
   const [subjects, setSubjects] = useState<Ref[]>([]);
   const [rooms, setRooms] = useState<Ref[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [students, setStudents] = useState<StudentRow[]>([]);
+  const [studentGroupFilter, setStudentGroupFilter] = useState("");
+  const [studentQuery, setStudentQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [filterMine, setFilterMine] = useState(isTeacher && !isStaff);
@@ -75,6 +89,22 @@ function SchedulePage() {
     } else {
       setTeachers([]);
     }
+    const { data: st } = await supabase
+      .from("students")
+      .select("id, full_name, first_name, last_name, group_id, lesson_time, schedule_raw, parent_phone, birth_date, group:groups(name)")
+      .order("full_name");
+    setStudents(
+      ((st as any[]) ?? []).map((r) => ({
+        id: r.id,
+        name: r.full_name || `${r.last_name ?? ""} ${r.first_name ?? ""}`.trim() || "—",
+        group_id: r.group_id ?? null,
+        group_name: r.group?.name ?? null,
+        lesson_time: r.lesson_time ?? null,
+        schedule_raw: r.schedule_raw ?? null,
+        parent_phone: r.parent_phone ?? null,
+        birth_date: r.birth_date ?? null,
+      })),
+    );
     setLoading(false);
   };
 
@@ -91,6 +121,21 @@ function SchedulePage() {
     for (const l of filtered) m[l.day_of_week]?.push(l);
     return m;
   }, [filtered]);
+
+  const countByGroup = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of students) if (s.group_id) m.set(s.group_id, (m.get(s.group_id) ?? 0) + 1);
+    return m;
+  }, [students]);
+
+  const visibleStudents = useMemo(() => {
+    const q = studentQuery.trim().toLowerCase();
+    return students.filter(
+      (s) =>
+        (!studentGroupFilter || s.group_id === studentGroupFilter) &&
+        (!q || s.name.toLowerCase().includes(q) || (s.parent_phone ?? "").includes(q)),
+    );
+  }, [students, studentGroupFilter, studentQuery]);
 
   const remove = async (id: string) => {
     if (!confirm("Dars o'chirilsinmi?")) return;
@@ -152,6 +197,9 @@ function SchedulePage() {
                           <div className="text-xs text-muted-foreground">
                             {l.subject?.name ?? "—"}{l.room?.name ? ` · ${l.room.name}` : ""}
                           </div>
+                          <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-primary">
+                            <Users className="h-3 w-3" /> {countByGroup.get(l.group_id) ?? 0} o'quvchi
+                          </div>
                         </div>
                         {isStaff && (
                           <button onClick={() => remove(l.id)} className="ml-2 text-destructive hover:opacity-70">
@@ -167,6 +215,59 @@ function SchedulePage() {
           })}
         </div>
       )}
+
+      <BirthdayReminders days={3} />
+
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Users className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-bold">O'quvchilar ro'yxati</h2>
+          <span className="text-xs text-muted-foreground">{visibleStudents.length}</span>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <input
+              value={studentQuery}
+              onChange={(e) => setStudentQuery(e.target.value)}
+              placeholder="Ism yoki telefon..."
+              className="rounded-lg border border-border bg-background px-3 py-2 text-xs"
+            />
+            <select
+              value={studentGroupFilter}
+              onChange={(e) => setStudentGroupFilter(e.target.value)}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-xs"
+            >
+              <option value="">Barcha guruhlar</option>
+              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="max-h-[420px] overflow-auto rounded-xl border border-border">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-muted text-xs uppercase">
+              <tr>
+                {["#", "O'quvchi", "Guruh", "Dars vaqti", "Ota-ona tel", "Tug'ilgan sana"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {visibleStudents.length === 0 ? (
+                <tr><td colSpan={6} className="px-3 py-6 text-center text-xs text-muted-foreground">O'quvchi topilmadi</td></tr>
+              ) : visibleStudents.map((s, i) => (
+                <tr key={s.id} className="border-t border-border">
+                  <td className="px-3 py-1.5 text-xs text-muted-foreground">{i + 1}</td>
+                  <td className="px-3 py-1.5 font-medium">
+                    <Link to="/students/$id" params={{ id: s.id }} className="hover:text-primary">{s.name}</Link>
+                  </td>
+                  <td className="px-3 py-1.5">{s.group_name ?? "—"}</td>
+                  <td className="px-3 py-1.5">{s.lesson_time ?? s.schedule_raw ?? "—"}</td>
+                  <td className="px-3 py-1.5 font-mono text-xs">{s.parent_phone ?? "—"}</td>
+                  <td className="px-3 py-1.5">{s.birth_date ? new Date(s.birth_date).toLocaleDateString("uz-UZ") : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {open && (
         <NewLessonModal
