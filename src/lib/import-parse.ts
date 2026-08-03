@@ -6,6 +6,7 @@ export type LegacyField =
   | "row_no"
   | "full_name"
   | "start_date"
+  | "birth_date"
   | "schedule"
   | "parents"
   | "amount";
@@ -15,6 +16,7 @@ export const LEGACY_FIELD_LABELS: Record<LegacyField, string> = {
   row_no: "№ (qator raqami)",
   full_name: "F.I.O (to'liq ism)",
   start_date: "Boshlagan sanasi",
+  birth_date: "Tug'ilgan sana",
   schedule: "Soati / jadval",
   parents: "Ota-ona nomerlari",
   amount: "To'lov summasi",
@@ -31,6 +33,7 @@ const norm = (s: string) =>
 
 const HEADER_PATTERNS: { field: LegacyField; tests: RegExp[] }[] = [
   { field: "full_name", tests: [/^f ?i ?o$/, /^fio$/, /f\.?\s?i\.?\s?o/, /ism ?familiya/, /familiya/, /o'?quvchi/, /talaba/, /student/, /full ?name/, /name/] },
+  { field: "birth_date", tests: [/tug'?il/, /tugil/, /tavallud/, /birth/, /^dob$/, /рожд/] },
   { field: "start_date", tests: [/boshla/, /sana/, /kelgan/, /date/, /start/] },
   { field: "schedule", tests: [/soat/, /kun/, /jadval/, /schedule/, /vaqt/, /time/] },
   { field: "parents", tests: [/ota ?ona/, /ota-?ona/, /parent/, /nomer/, /raqam/, /telefon/, /tel$/, /phone/] },
@@ -269,6 +272,8 @@ export type ParsedStudentRow = {
   last_name: string;
   start_date: string | null;
   start_date_raw: string;
+  birth_date: string | null;
+  birth_date_raw: string;
   schedule_raw: string;
   schedule_type: string | null;
   subject_name: string | null;
@@ -309,6 +314,7 @@ export function parseRows(
   const col = (field: LegacyField) => mapping.indexOf(field);
   const iName = col("full_name");
   const iDate = col("start_date");
+  const iBirth = col("birth_date");
   const iSched = col("schedule");
   const iParents = col("parents");
   const iAmount = col("amount");
@@ -328,6 +334,9 @@ export function parseRows(
     const d = parseStartDate(cell(iDate), opts.academicYearStart);
     if (d.raw && !d.iso) warnings.push(d.needsYear ? "Sana yili aniqlanmadi" : "Sana o'qilmadi");
 
+    const b = parseStartDate(cell(iBirth));
+    if (b.raw && !b.iso) warnings.push("Tug'ilgan sana o'qilmadi");
+
     const sched = parseSchedule(cell(iSched));
     if (!sched.raw) warnings.push("Jadval (soati) ko'rsatilmagan");
 
@@ -346,6 +355,8 @@ export function parseRows(
       last_name,
       start_date: d.iso,
       start_date_raw: d.raw,
+      birth_date: b.iso,
+      birth_date_raw: b.raw,
       schedule_raw: sched.raw,
       schedule_type: sched.schedule_type,
       subject_name: sched.subject_name,
@@ -353,6 +364,100 @@ export function parseRows(
       parent_full_name: parentName,
       parent_phones: phones,
       monthly_fee: fee,
+      warnings,
+      errors,
+    });
+  });
+  return out;
+}
+
+
+/* ---------------- teachers ---------------- */
+
+export type TeacherField = "ignore" | "row_no" | "full_name" | "phone" | "subject" | "group" | "birth_date";
+
+export const TEACHER_FIELD_LABELS: Record<TeacherField, string> = {
+  ignore: "— e'tiborsiz —",
+  row_no: "№ (qator raqami)",
+  full_name: "F.I.O (to'liq ism)",
+  phone: "Telefon",
+  subject: "Fan",
+  group: "Guruh",
+  birth_date: "Tug'ilgan sana",
+};
+
+export const TEACHER_FIELDS: TeacherField[] = [
+  "ignore", "row_no", "full_name", "phone", "subject", "group", "birth_date",
+];
+
+const TEACHER_PATTERNS: { field: TeacherField; tests: RegExp[] }[] = [
+  { field: "birth_date", tests: [/tug'?il/, /tugil/, /tavallud/, /birth/, /рожд/] },
+  { field: "full_name", tests: [/^f ?i ?o$/, /^fio$/, /f\.?\s?i\.?\s?o/, /ism/, /familiya/, /o'?qituvchi/, /teacher/, /name/] },
+  { field: "phone", tests: [/telefon/, /nomer/, /raqam/, /^tel$/, /phone/] },
+  { field: "subject", tests: [/fan/, /subject/, /predmet/] },
+  { field: "group", tests: [/guruh/, /gurux/, /group/, /sinf/] },
+  { field: "row_no", tests: [/^n[o°]?$/, /^№$/, /^#$/, /tartib/] },
+];
+
+export function detectTeacherMapping(headers: string[]): TeacherField[] {
+  const used = new Set<TeacherField>();
+  return headers.map((h) => {
+    const key = norm(h);
+    if (!key) return "ignore";
+    const found = TEACHER_PATTERNS.find((p) => p.tests.some((re) => re.test(key)));
+    const f = found?.field ?? "ignore";
+    if (f === "ignore" || f === "row_no") return f;
+    if (used.has(f)) return "ignore";
+    used.add(f);
+    return f;
+  });
+}
+
+export type ParsedTeacherRow = {
+  index: number;
+  full_name: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  subject_name: string | null;
+  group_name: string | null;
+  birth_date: string | null;
+  warnings: string[];
+  errors: string[];
+};
+
+export function parseTeacherRows(sheet: RawSheet, mapping: TeacherField[]): ParsedTeacherRow[] {
+  const col = (f: TeacherField) => mapping.indexOf(f);
+  const iName = col("full_name");
+  const iPhone = col("phone");
+  const iSubject = col("subject");
+  const iGroup = col("group");
+  const iBirth = col("birth_date");
+
+  const out: ParsedTeacherRow[] = [];
+  sheet.rows.forEach((row, idx) => {
+    if (!row.some((c) => String(c ?? "").trim() !== "")) return;
+    const cell = (i: number) => (i >= 0 ? row[i] : undefined);
+    const full = String(cell(iName) ?? "").replace(/\s+/g, " ").trim();
+    const warnings: string[] = [];
+    const errors: string[] = [];
+    if (!full) errors.push("F.I.O topilmadi");
+    const { first_name, last_name } = splitFullName(full);
+    const phones = extractPhones(cell(iPhone));
+    if (iPhone >= 0 && String(cell(iPhone) ?? "").trim() && !phones.length) warnings.push("Telefon o'qilmadi");
+    const b = parseStartDate(cell(iBirth));
+    if (b.raw && !b.iso) warnings.push("Tug'ilgan sana o'qilmadi");
+    const subject = String(cell(iSubject) ?? "").trim();
+    const group = String(cell(iGroup) ?? "").trim();
+    out.push({
+      index: idx,
+      full_name: full,
+      first_name,
+      last_name,
+      phone: phones[0] ?? null,
+      subject_name: subject || null,
+      group_name: group || null,
+      birth_date: b.iso,
       warnings,
       errors,
     });

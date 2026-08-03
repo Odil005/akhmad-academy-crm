@@ -4,24 +4,31 @@ import { useServerFn } from "@tanstack/react-start";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { importLegacyStudents, listImportBatches, undoImportBatch } from "@/lib/import-legacy.functions";
+import { importTeachers } from "@/lib/import-teachers.functions";
 import {
   LEGACY_FIELD_LABELS,
+  TEACHER_FIELDS,
+  TEACHER_FIELD_LABELS,
   detectMapping,
+  detectTeacherMapping,
   parseRows,
+  parseTeacherRows,
   toSheet,
   type LegacyField,
   type ParsedStudentRow,
+  type ParsedTeacherRow,
   type RawSheet,
+  type TeacherField,
 } from "@/lib/import-parse";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Upload, FileSpreadsheet, Undo2, AlertTriangle } from "lucide-react";
+import { Upload, FileSpreadsheet, Undo2, AlertTriangle, Copy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/import")({
-  component: ImportPage,
+  component: ImportTabsPage,
   head: () => ({
     meta: [
       { title: "Excel import — Akhmad Academy CRM" },
@@ -30,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/import")({
   }),
 });
 
-const FIELDS: LegacyField[] = ["ignore", "row_no", "full_name", "start_date", "schedule", "parents", "amount"];
+const FIELDS: LegacyField[] = ["ignore", "row_no", "full_name", "start_date", "birth_date", "schedule", "parents", "amount"];
 
 function academicYears(): string[] {
   const now = new Date().getFullYear();
@@ -40,6 +47,28 @@ function academicYears(): string[] {
 type Subject = { id: string; name: string };
 type Group = { id: string; name: string; subject_id: string | null; teacher_id: string | null };
 type Teacher = { id: string; full_name: string | null };
+
+function ImportTabsPage() {
+  const [tab, setTab] = useState<"students" | "teachers">("students");
+  return (
+    <div className="space-y-6">
+      <div className="inline-flex rounded-xl border border-border p-1">
+        {([["students", "O'quvchilar"], ["teachers", "O'qituvchilar"]] as const).map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => setTab(k)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              tab === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {tab === "students" ? <ImportPage /> : <TeacherImport />}
+    </div>
+  );
+}
 
 function ImportPage() {
   const runImport = useServerFn(importLegacyStudents);
@@ -152,6 +181,7 @@ function ImportPage() {
             lesson_time: r.lesson_time,
             parent_full_name: r.parent_full_name,
             parent_phones: r.parent_phones,
+            birth_date: r.birth_date,
             monthly_fee: r.monthly_fee,
           })),
         },
@@ -311,7 +341,7 @@ function ImportPage() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-muted text-xs uppercase">
                   <tr>
-                    {["#", "O'quvchi", "Boshlagan", "Jadval / fan", "Ota-ona", "Telefonlar", "Summa", "Guruh", "Holat"].map((h) => (
+                    {["#", "O'quvchi", "Boshlagan", "Tug'ilgan", "Jadval / fan", "Ota-ona", "Telefonlar", "Summa", "Guruh", "Holat"].map((h) => (
                       <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
                     ))}
                   </tr>
@@ -322,6 +352,7 @@ function ImportPage() {
                       <td className="px-3 py-1.5">{i + 1}</td>
                       <td className="px-3 py-1.5 font-medium">{r.full_name || "—"}</td>
                       <td className="px-3 py-1.5">{r.start_date ?? (r.start_date_raw || "—")}</td>
+                      <td className="px-3 py-1.5">{r.birth_date ?? (r.birth_date_raw || "—")}</td>
                       <td className="px-3 py-1.5">
                         {[r.schedule_type, r.subject_name, r.lesson_time].filter(Boolean).join(" · ") || r.schedule_raw || "—"}
                       </td>
@@ -398,6 +429,260 @@ function ImportPage() {
                 )}
               </div>
             ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function TeacherImport() {
+  const run = useServerFn(importTeachers);
+  const [sheet, setSheet] = useState<RawSheet | null>(null);
+  const [mapping, setMapping] = useState<TeacherField[]>([]);
+  const [fileName, setFileName] = useState("");
+  const [createLogins, setCreateLogins] = useState(true);
+  const [createGroups, setCreateGroups] = useState(true);
+  const [monthlyFee, setMonthlyFee] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof importTeachers>> | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const parsed: ParsedTeacherRow[] = useMemo(
+    () => (sheet ? parseTeacherRows(sheet, mapping) : []),
+    [sheet, mapping],
+  );
+  const okRows = parsed.filter((r) => !r.errors.length);
+
+  async function handleFile(file: File) {
+    setResult(null);
+    setFileName(file.name);
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array", cellDates: true, codepage: 65001 });
+    const ws = wb.Sheets[wb.SheetNames[0]!];
+    if (!ws) return toast.error("Faylda varaq topilmadi");
+    const matrix = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "", raw: false, blankrows: false });
+    const s = toSheet(matrix as unknown[][]);
+    if (!s.rows.length) return toast.error("Faylda ma'lumot topilmadi");
+    setSheet(s);
+    setMapping(detectTeacherMapping(s.headers));
+    toast.success(`${s.rows.length} qator o'qildi`);
+  }
+
+  async function doImport() {
+    if (!okRows.length) return toast.error("Import uchun to'g'ri qator yo'q");
+    setBusy(true);
+    try {
+      const res = await run({
+        data: {
+          file_name: fileName,
+          create_logins: createLogins,
+          create_groups: createGroups,
+          monthly_fee: monthlyFee,
+          rows: okRows.map((r) => ({
+            full_name: r.full_name,
+            first_name: r.first_name,
+            last_name: r.last_name,
+            phone: r.phone,
+            subject_name: r.subject_name,
+            group_name: r.group_name,
+            birth_date: r.birth_date,
+          })),
+        },
+      });
+      setResult(res);
+      toast.success(`${res.inserted} o'qituvchi qo'shildi · ${res.groups_created} guruh yaratildi`);
+    } catch (e) {
+      const msg = e instanceof Response ? await e.text() : (e as Error).message;
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">O'qituvchilar importi</h1>
+        <p className="text-sm text-muted-foreground">
+          F.I.O, telefon, fan, guruh, tug'ilgan sana ustunlari qo'llab-quvvatlanadi. Har bir o'qituvchi uchun login/parol avtomatik yaratiladi va guruh ochiladi.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">1. Faylni yuklang (.xlsx, .xls, .csv)</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-4">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }}
+          />
+          <Button onClick={() => fileRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Fayl tanlash</Button>
+          {fileName && (
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              <FileSpreadsheet className="h-4 w-4" /> {fileName}
+            </span>
+          )}
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={createLogins} onChange={(e) => setCreateLogins(e.target.checked)} />
+            Login/parol yaratish
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={createGroups} onChange={(e) => setCreateGroups(e.target.checked)} />
+            Guruh ochish
+          </label>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Guruh oylik to'lovi</span>
+            <Input
+              type="number"
+              className="w-32"
+              value={monthlyFee}
+              onChange={(e) => setMonthlyFee(Number(e.target.value))}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {sheet && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">2. Ustunlarni moslashtirish</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-3">
+            {sheet.headers.map((h, i) => (
+              <div key={i}>
+                <div className="mb-1 truncate text-xs font-medium text-muted-foreground">{h || `Ustun ${i + 1}`}</div>
+                <Select
+                  value={mapping[i] ?? "ignore"}
+                  onValueChange={(v) => setMapping((m) => m.map((x, j) => (j === i ? (v as TeacherField) : x)))}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TEACHER_FIELDS.map((f) => <SelectItem key={f} value={f}>{TEACHER_FIELD_LABELS[f]}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {parsed.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              3. Ko'rib chiqish — {parsed.length} qator · {okRows.length} to'g'ri
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button onClick={doImport} disabled={busy || !okRows.length}>Import qilish</Button>
+              {!okRows.length && (
+                <span className="flex items-center gap-1 text-xs text-destructive">
+                  <AlertTriangle className="h-3.5 w-3.5" /> To'g'ri qator yo'q
+                </span>
+              )}
+            </div>
+            <div className="max-h-[420px] overflow-auto rounded-xl border border-border">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-muted text-xs uppercase">
+                  <tr>
+                    {["#", "O'qituvchi", "Telefon", "Fan", "Guruh", "Tug'ilgan", "Holat"].map((h) => (
+                      <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {parsed.map((r, i) => (
+                    <tr key={i} className={`border-t border-border ${r.errors.length ? "bg-destructive/10" : ""}`}>
+                      <td className="px-3 py-1.5">{i + 1}</td>
+                      <td className="px-3 py-1.5 font-medium">{r.full_name || "—"}</td>
+                      <td className="px-3 py-1.5 font-mono text-xs">{r.phone ?? "—"}</td>
+                      <td className="px-3 py-1.5">{r.subject_name ?? "—"}</td>
+                      <td className="px-3 py-1.5">{r.group_name ?? "—"}</td>
+                      <td className="px-3 py-1.5">{r.birth_date ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-xs">
+                        {r.errors.length ? (
+                          <span className="text-destructive">{r.errors.join("; ")}</span>
+                        ) : r.warnings.length ? (
+                          <span className="text-amber-600">{r.warnings.join("; ")}</span>
+                        ) : (
+                          <span className="text-emerald-600">OK</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {result && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Natija</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {[
+                ["Jami", result.total],
+                ["Qo'shildi", result.inserted],
+                ["Guruh yaratildi", result.groups_created],
+                ["Xato", result.errors],
+              ].map(([label, value]) => (
+                <div key={String(label)} className="rounded-xl border border-border p-3">
+                  <div className="text-xs text-muted-foreground">{label}</div>
+                  <div className="text-xl font-bold">{value}</div>
+                </div>
+              ))}
+            </div>
+
+            {result.credentials.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-semibold">Login ma'lumotlari (bir marta ko'rsatiladi)</div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const text = result.credentials
+                        .map((c) => `${c.full_name}\t${c.username}\t${c.access_code}`)
+                        .join("\n");
+                      void navigator.clipboard.writeText(text);
+                      toast.success("Nusxalandi");
+                    }}
+                  >
+                    <Copy className="mr-1 h-3.5 w-3.5" /> Hammasini nusxalash
+                  </Button>
+                </div>
+                <div className="max-h-64 overflow-auto rounded-xl border border-border">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-muted text-xs uppercase">
+                      <tr>
+                        {["O'qituvchi", "Login", "Parol"].map((h) => (
+                          <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.credentials.map((c) => (
+                        <tr key={c.username} className="border-t border-border">
+                          <td className="px-3 py-1.5">{c.full_name}</td>
+                          <td className="px-3 py-1.5 font-mono">{c.username}</td>
+                          <td className="px-3 py-1.5 font-mono">{c.access_code}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {result.details.length > 0 && (
+              <ul className="max-h-48 space-y-1 overflow-auto text-xs text-muted-foreground">
+                {result.details.map((d, i) => <li key={i}>#{d.row} · {d.level} · {d.message}</li>)}
+              </ul>
+            )}
           </CardContent>
         </Card>
       )}

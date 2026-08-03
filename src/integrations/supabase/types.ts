@@ -1458,6 +1458,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          birth_date: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -1467,6 +1468,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
           full_name?: string | null
           id: string
@@ -1476,6 +1478,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -1802,6 +1805,7 @@ export type Database = {
       students: {
         Row: {
           academic_year: string | null
+          birth_date: string | null
           enrolled_at: string
           first_name: string | null
           full_name: string | null
@@ -1826,6 +1830,7 @@ export type Database = {
         }
         Insert: {
           academic_year?: string | null
+          birth_date?: string | null
           enrolled_at?: string
           first_name?: string | null
           full_name?: string | null
@@ -1850,6 +1855,7 @@ export type Database = {
         }
         Update: {
           academic_year?: string | null
+          birth_date?: string | null
           enrolled_at?: string
           first_name?: string | null
           full_name?: string | null
