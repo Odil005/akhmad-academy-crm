@@ -158,6 +158,10 @@ export function TelegramLinkPanel() {
         </div>
       </div>
 
+      <SelfTelegramLink />
+
+
+
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
