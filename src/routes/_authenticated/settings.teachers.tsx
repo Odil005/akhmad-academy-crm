@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GraduationCap } from "lucide-react";
 import { toast } from "sonner";
+import { TelegramIdButton } from "@/components/TelegramIdButton";
 
 export const Route = createFileRoute("/_authenticated/settings/teachers")({
   component: TeachersPage,
