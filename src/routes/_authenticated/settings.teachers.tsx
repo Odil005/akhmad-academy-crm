@@ -81,6 +81,8 @@ function TeachersPage() {
                   <th className="py-2 pr-3">Telefon</th>
                   <th className="py-2 pr-3">Username</th>
                   <th className="py-2 pr-3">Daraja</th>
+                  <th className="py-2 pr-3">Telegram</th>
+
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -99,7 +101,11 @@ function TeachersPage() {
                         {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
                       </select>
                     </td>
+                    <td className="py-2.5 pr-3">
+                      <TelegramIdButton kind="teacher" id={r.user_id} name={r.full_name ?? "O'qituvchi"} compact />
+                    </td>
                   </tr>
+
                 ))}
               </tbody>
             </table>
