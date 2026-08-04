@@ -3,7 +3,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { createTelegramLink } from "@/lib/telegram-admin.functions";
 import { Send, Copy, Loader2, Check } from "lucide-react";
+import { TelegramIdButton } from "@/components/TelegramIdButton";
 import { toast } from "sonner";
+
 
 type Kind = "student" | "teacher" | "admin" | "director";
 
@@ -16,6 +18,40 @@ const TABS: { kind: Kind; label: string }[] = [
   { kind: "director", label: "Direktor" },
 ];
 
+/** Self-service: the signed-in director/admin links their own Telegram. */
+function SelfTelegramLink() {
+  const [me, setMe] = useState<{ id: string; name: string; kind: Kind } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid || !alive) return;
+      const [{ data: roles }, { data: prof }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", uid),
+        supabase.from("profiles").select("full_name").eq("id", uid).maybeSingle(),
+      ]);
+      if (!alive) return;
+      const list = (roles ?? []).map((r: any) => r.role as string);
+      const kind: Kind = list.includes("director") ? "director" : list.includes("admin") ? "admin" : "teacher";
+      setMe({ id: uid, name: (prof as any)?.full_name || "Men", kind });
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  if (!me) return null;
+  return (
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+      <div className="text-sm">
+        <div className="font-bold">Mening Telegram ID</div>
+        <div className="text-xs text-muted-foreground">{me.name} — hisobotlar shu Telegramga keladi</div>
+      </div>
+      <TelegramIdButton kind={me.kind} id={me.id} name={me.name} compact />
+    </div>
+  );
+}
+
 /** Dashboard panel: generate a one-time Telegram link for anyone in the CRM. */
 export function TelegramLinkPanel() {
   const makeLink = useServerFn(createTelegramLink);
@@ -25,6 +61,7 @@ export function TelegramLinkPanel() {
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [link, setLink] = useState<{ name: string; url: string | null; token: string } | null>(null);
+
 
   useEffect(() => {
     let alive = true;
@@ -120,6 +157,10 @@ export function TelegramLinkPanel() {
           ))}
         </div>
       </div>
+
+      <SelfTelegramLink />
+
+
 
       <input
         value={query}

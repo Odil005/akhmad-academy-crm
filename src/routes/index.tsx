@@ -17,7 +17,7 @@ import {
   Send,
   Instagram,
 } from "lucide-react";
-import logoAsset from "@/assets/akhmad-logo.png.asset.json";
+const logoAsset = { url: "/logo.png" };
 import heroClassroom from "@/assets/hero-classroom.jpg";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
