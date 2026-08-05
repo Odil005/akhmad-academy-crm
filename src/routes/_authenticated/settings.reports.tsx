@@ -99,7 +99,13 @@ async function exportWord(title: string, rows: Row[]) {
     toast.warning("Ma'lumot yo'q");
     return;
   }
+  // Heavy docx/file-saver bundles load only when the user exports.
+  const [
+    { Document, Packer, Paragraph, HeadingLevel, Table, TableRow, TableCell, WidthType, TextRun, AlignmentType },
+    { saveAs },
+  ] = await Promise.all([import("docx"), import("file-saver")]);
   const headers = Object.keys(rows[0]);
+
   const headerRow = new TableRow({
     tableHeader: true,
     children: headers.map(
