@@ -17,8 +17,9 @@ import {
   Send,
   Instagram,
 } from "lucide-react";
-const logoAsset = { url: "/logo.png" };
-import heroClassroom from "@/assets/hero-classroom.jpg";
+const logoAsset = { url: "/logo.png", webp: "/logo-256.webp" };
+import heroClassroom from "@/assets/hero-classroom.webp";
+import heroClassroom640 from "@/assets/hero-classroom-640.webp";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
