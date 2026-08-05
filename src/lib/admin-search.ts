@@ -117,9 +117,14 @@ async function fetchStudentIndex(): Promise<StudentIndexRow[]> {
           "id, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, status_enum, group_id, profile:profiles(full_name, phone, avatar_url)",
         )
         .limit(2000),
-      supabase.from("student_enrollments").select("student_id, group_id, status").limit(5000),
+      supabase.from("student_enrollments").select("student_id, group_id").eq("status", "active").limit(5000),
       supabase.from("groups").select("id, name, subject:subjects(name)").limit(1000),
-      supabase.from("payments").select("student_id, amount, total_amount, status, period_month").limit(10000),
+      supabase
+        .from("payments")
+        .select("student_id, amount, total_amount, status, period_month")
+        .or(`status.eq.pending,and(status.eq.paid,period_month.eq.${monthKey})`)
+        .limit(10000),
+
     ]);
 
   if (sErr) throw sErr;
