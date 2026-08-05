@@ -478,13 +478,13 @@ function Contact() {
               const { error } = await supabase.from("leads").insert({
                 name: form.name.trim(),
                 phone: form.phone.trim(),
-                course: form.course,
+                course: selectedCourse,
                 source: "website",
               });
               setSubmitting(false);
               if (error) { setErrMsg(error.message); return; }
               setSubmitted(true);
-              setForm({ name: "", phone: "", course: courseList[0]?.title ?? "" });
+              setForm({ name: "", phone: "", course: "" });
               setTimeout(() => setSubmitted(false), 5000);
             }}
             className="rounded-2xl border border-border bg-card p-6 md:p-8"
@@ -520,7 +520,7 @@ function Contact() {
                   Qiziqtirgan fan
                 </label>
                 <select
-                  value={form.course}
+                  value={selectedCourse}
                   onChange={(e) => setForm({ ...form, course: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
                 >
