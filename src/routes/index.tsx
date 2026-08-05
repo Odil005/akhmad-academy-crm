@@ -39,17 +39,21 @@ const NAV_LINKS = [
 
 function Monogram({ className = "h-10 w-10" }: { className?: string }) {
   return (
-    <img
-      src={logoAsset.url}
-      alt="Akhmad Academy logo"
-      className={`${className} rounded-full object-cover`}
-      decoding="async"
-      fetchPriority="high"
-      width={48}
-      height={48}
-    />
+    <picture>
+      <source srcSet={logoAsset.webp} type="image/webp" />
+      <img
+        src={logoAsset.url}
+        alt="Akhmad Academy logo"
+        className={`${className} rounded-full object-cover`}
+        decoding="async"
+        fetchPriority="high"
+        width={48}
+        height={48}
+      />
+    </picture>
   );
 }
+
 
 function Header() {
   const [open, setOpen] = useState(false);
