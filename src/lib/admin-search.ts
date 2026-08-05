@@ -78,7 +78,33 @@ export const initialsOf = (name: string) =>
 /* Index loader — one light query set, reused for every keystroke      */
 /* ------------------------------------------------------------------ */
 
-export async function loadStudentIndex(): Promise<StudentIndexRow[]> {
+/** In-memory cache so repeated mounts/keystrokes reuse one fetch. */
+let _cache: { at: number; rows: StudentIndexRow[] } | null = null;
+let _inflight: Promise<StudentIndexRow[]> | null = null;
+const INDEX_TTL_MS = 120_000;
+
+/** Drop the cache after a mutation so the next read is fresh. */
+export function invalidateStudentIndex() {
+  _cache = null;
+  _inflight = null;
+}
+
+export function loadStudentIndex(force = false): Promise<StudentIndexRow[]> {
+  if (!force && _cache && Date.now() - _cache.at < INDEX_TTL_MS) return Promise.resolve(_cache.rows);
+  if (!force && _inflight) return _inflight;
+  _inflight = fetchStudentIndex()
+    .then((rows) => {
+      _cache = { at: Date.now(), rows };
+      return rows;
+    })
+    .finally(() => {
+      _inflight = null;
+    });
+  return _inflight;
+}
+
+async function fetchStudentIndex(): Promise<StudentIndexRow[]> {
+
   const monthStart = new Date();
   monthStart.setDate(1);
   const monthKey = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}-01`;
