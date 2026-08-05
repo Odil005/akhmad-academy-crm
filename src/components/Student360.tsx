@@ -85,7 +85,7 @@ export function Student360({
             "id, group_id, started_at, ended_at, status, monthly_fee, group:groups(id, name, monthly_fee, schedule, subject:subjects(name), teacher:profiles!groups_teacher_id_fkey(full_name))",
           )
           .eq("student_id", row.id),
-        supabase.from("payments").select("*").eq("student_id", row.id).order("period_month", { ascending: false }).limit(50),
+        supabase.from("payments").select("id, amount, total_amount, discount_amount, status, period_month, paid_at, payment_method, fiscal_status").eq("student_id", row.id).order("period_month", { ascending: false }).limit(50),
         supabase.from("attendance").select("id, date, status, note").eq("student_id", row.id).gte("date", from).lte("date", to),
         supabase.from("grades").select("id, score, max_score, kind, graded_at, comment").eq("student_id", row.id).order("graded_at", { ascending: false }).limit(20),
         supabase.from("parent_teacher_messages").select("id, message, sender_role, created_at, status").eq("student_id", row.id).order("created_at", { ascending: false }).limit(20),

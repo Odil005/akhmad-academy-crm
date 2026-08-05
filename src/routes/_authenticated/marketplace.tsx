@@ -23,8 +23,8 @@ function MarketplacePage() {
   useEffect(() => {
     (async () => {
       const [{ data: c }, { data: p }, { data: s }] = await Promise.all([
-        supabase.from("marketplace_categories").select("*").order("sort_order"),
-        supabase.from("marketplace_products").select("*").eq("is_available", true).order("name"),
+        supabase.from("marketplace_categories").select("id, name, slug, icon, sort_order").order("sort_order"),
+        supabase.from("marketplace_products").select("id, category_id, name, description, price, image_url, product_type, stock, is_available").eq("is_available", true).order("name").limit(200),
         supabase.from("students").select("id").eq("profile_id", user.id).maybeSingle(),
       ]);
       setCats((c as any) ?? []);
