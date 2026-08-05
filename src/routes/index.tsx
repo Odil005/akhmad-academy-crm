@@ -225,6 +225,8 @@ function Hero() {
           <div className="relative min-h-[280px] md:min-h-[420px]">
             <img
               src={heroClassroom}
+              srcSet={`${heroClassroom640} 640w, ${heroClassroom} 1280w`}
+              sizes="(max-width: 768px) 100vw, 50vw"
               alt="Akhmad Academy o'quvchilari darsda"
               className="absolute inset-0 h-full w-full object-cover"
               width={1280}
@@ -232,6 +234,7 @@ function Hero() {
               fetchPriority="high"
               decoding="async"
             />
+
             <div className="absolute inset-0 bg-primary/10" />
             <div
               className="absolute inset-y-0 -left-px hidden w-24 bg-background md:block"
