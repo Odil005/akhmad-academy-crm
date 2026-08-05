@@ -36,8 +36,8 @@ function TeacherBalancePage() {
       setTeachers((profs ?? []).map((p: any) => ({ user_id: p.id, full_name: p.full_name })));
     }
     const [{ data: b }, { data: p }] = await Promise.all([
-      supabase.from("teacher_balance").select("*").order("period_month", { ascending: false }),
-      supabase.from("teacher_salary_payments").select("*").order("paid_at", { ascending: false }).limit(30),
+      supabase.from("teacher_balance").select("id, teacher_user_id, period_month, salary, bonus, penalty, kpi_score, percent, revenue_base, percent_earning, note, visible_to_teacher").order("period_month", { ascending: false }).limit(200),
+      supabase.from("teacher_salary_payments").select("id, teacher_user_id, amount, paid_at, note").order("paid_at", { ascending: false }).limit(30),
     ]);
     setRows(b ?? []); setPays(p ?? []);
   };

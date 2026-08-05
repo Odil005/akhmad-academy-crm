@@ -2,8 +2,10 @@ import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouterState } 
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { ChevronDown, LogOut, LayoutDashboard, Users, BookOpen, CreditCard, Menu, X, Settings, ShoppingBag, Smile, Search, Wallet, CalendarDays, ClipboardCheck, DoorOpen, BarChart3, Phone, ScanFace, GraduationCap, Inbox, Upload, MessageSquare, DollarSign } from "lucide-react";
-import { Jarvis } from "@/components/Jarvis";
-const logoAsset = { url: "/logo.png" };
+import { lazy, Suspense } from "react";
+// Jarvis is a heavy assistant panel — keep it out of the initial bundle.
+const Jarvis = lazy(() => import("@/components/Jarvis").then((m) => ({ default: m.Jarvis })));
+const logoAsset = { url: "/logo-256.webp" };
 
 type Role = "director" | "admin" | "teacher" | "student";
 
@@ -101,6 +103,8 @@ function AuthenticatedLayout() {
           className="h-11 w-11 rounded-full object-cover"
           width={44}
           height={44}
+          decoding="async"
+          fetchPriority="high"
         />
         <div className="leading-tight">
           <div className="text-sm font-extrabold tracking-[0.14em] text-sidebar-primary">AKHMAD</div>
@@ -245,7 +249,11 @@ function AuthenticatedLayout() {
         </main>
       </div>
 
-      {isStaff && <Jarvis />}
+      {isStaff && (
+        <Suspense fallback={null}>
+          <Jarvis />
+        </Suspense>
+      )}
     </div>
   );
 }

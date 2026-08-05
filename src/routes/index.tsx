@@ -17,9 +17,11 @@ import {
   Send,
   Instagram,
 } from "lucide-react";
-const logoAsset = { url: "/logo.png" };
-import heroClassroom from "@/assets/hero-classroom.jpg";
-import { useEffect, useState } from "react";
+const logoAsset = { url: "/logo.png", webp: "/logo-256.webp" };
+import heroClassroom from "@/assets/hero-classroom.webp";
+import heroClassroom640 from "@/assets/hero-classroom-640.webp";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
@@ -38,17 +40,21 @@ const NAV_LINKS = [
 
 function Monogram({ className = "h-10 w-10" }: { className?: string }) {
   return (
-    <img
-      src={logoAsset.url}
-      alt="Akhmad Academy logo"
-      className={`${className} rounded-full object-cover`}
-      decoding="async"
-      fetchPriority="high"
-      width={48}
-      height={48}
-    />
+    <picture>
+      <source srcSet={logoAsset.webp} type="image/webp" />
+      <img
+        src={logoAsset.url}
+        alt="Akhmad Academy logo"
+        className={`${className} rounded-full object-cover`}
+        decoding="async"
+        fetchPriority="high"
+        width={48}
+        height={48}
+      />
+    </picture>
   );
 }
+
 
 function Header() {
   const [open, setOpen] = useState(false);
@@ -164,18 +170,37 @@ const DEFAULT_STATS = {
   satisfaction: "98%",
 };
 
+/** Shared, cached landing-page queries — deduplicated across components. */
+function useSetting<T>(key: string, fallback: T) {
+  const { data } = useQuery({
+    queryKey: ["public-setting", key],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("settings").select("value").eq("key", key).maybeSingle();
+      return (data?.value ?? null) as T | null;
+    },
+  });
+  return data ? { ...fallback, ...(data as object) } : fallback;
+}
+
+function useHomepageCourses() {
+  const { data } = useQuery({
+    queryKey: ["public-homepage-courses"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("homepage_courses")
+        .select("id, title, description, level")
+        .eq("is_visible", true)
+        .order("sort_order");
+      return (data ?? []) as HomepageCourse[];
+    },
+  });
+  return data && data.length > 0 ? data : DEFAULT_COURSES;
+}
+
 function useHomepageStats() {
-  const [values, setValues] = useState(DEFAULT_STATS);
-  useEffect(() => {
-    supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "homepage_stats")
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data?.value) setValues({ ...DEFAULT_STATS, ...(data.value as any) });
-      });
-  }, []);
+  const values = useSetting("homepage_stats", DEFAULT_STATS);
   return [
     { icon: Users, value: values.students, label: "O'quvchilar" },
     { icon: BookOpen, value: values.courses, label: "Kurslar" },
@@ -225,6 +250,8 @@ function Hero() {
           <div className="relative min-h-[280px] md:min-h-[420px]">
             <img
               src={heroClassroom}
+              srcSet={`${heroClassroom640} 640w, ${heroClassroom} 1280w`}
+              sizes="(max-width: 768px) 100vw, 50vw"
               alt="Akhmad Academy o'quvchilari darsda"
               className="absolute inset-0 h-full w-full object-cover"
               width={1280}
@@ -232,6 +259,7 @@ function Hero() {
               fetchPriority="high"
               decoding="async"
             />
+
             <div className="absolute inset-0 bg-primary/10" />
             <div
               className="absolute inset-y-0 -left-px hidden w-24 bg-background md:block"
@@ -274,17 +302,7 @@ const DEFAULT_COURSES: HomepageCourse[] = [
 ];
 
 function Courses() {
-  const [courses, setCourses] = useState<HomepageCourse[]>(DEFAULT_COURSES);
-  useEffect(() => {
-    supabase
-      .from("homepage_courses")
-      .select("id, title, description, level")
-      .eq("is_visible", true)
-      .order("sort_order")
-      .then(({ data }) => {
-        if (data && data.length > 0) setCourses(data as HomepageCourse[]);
-      });
-  }, []);
+  const courses = useHomepageCourses();
   return (
     <section id="courses" className="border-t border-border/60 bg-background/70 py-20 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -385,33 +403,16 @@ function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
-  const [courseList, setCourseList] = useState<HomepageCourse[]>(DEFAULT_COURSES);
-  const [form, setForm] = useState({ name: "", phone: "", course: DEFAULT_COURSES[0].title });
-  useEffect(() => {
-    supabase
-      .from("homepage_courses")
-      .select("id, title, description, level")
-      .eq("is_visible", true)
-      .order("sort_order")
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setCourseList(data as HomepageCourse[]);
-          setForm((f) => ({ ...f, course: (data[0] as HomepageCourse).title }));
-        }
-      });
-  }, []);
-  const [info, setInfo] = useState({
+  const courseList = useHomepageCourses();
+  const [form, setForm] = useState({ name: "", phone: "", course: "" });
+  const selectedCourse = form.course || courseList[0].title;
+  const info = useSetting("contact_info", {
     address: "Toshkent shahri, Chilonzor tumani",
     phone: "+998 90 123 45 67",
     email: "info@akhmadacademy.uz",
     telegram: "",
     instagram: "",
   });
-  useEffect(() => {
-    supabase.from("settings").select("value").eq("key", "contact_info").maybeSingle().then(({ data }) => {
-      if (data?.value) setInfo((prev) => ({ ...prev, ...(data.value as any) }));
-    });
-  }, []);
   return (
     <section id="contact" className="border-t border-border/60 bg-background/70 py-20 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -477,13 +478,13 @@ function Contact() {
               const { error } = await supabase.from("leads").insert({
                 name: form.name.trim(),
                 phone: form.phone.trim(),
-                course: form.course,
+                course: selectedCourse,
                 source: "website",
               });
               setSubmitting(false);
               if (error) { setErrMsg(error.message); return; }
               setSubmitted(true);
-              setForm({ name: "", phone: "", course: courseList[0]?.title ?? "" });
+              setForm({ name: "", phone: "", course: "" });
               setTimeout(() => setSubmitted(false), 5000);
             }}
             className="rounded-2xl border border-border bg-card p-6 md:p-8"
@@ -519,7 +520,7 @@ function Contact() {
                   Qiziqtirgan fan
                 </label>
                 <select
-                  value={form.course}
+                  value={selectedCourse}
                   onChange={(e) => setForm({ ...form, course: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
                 >

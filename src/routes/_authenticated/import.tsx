@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import * as XLSX from "xlsx";
+
 import { supabase } from "@/integrations/supabase/client";
 import { importLegacyStudents, listImportBatches, undoImportBatch } from "@/lib/import-legacy.functions";
 import { importTeachers } from "@/lib/import-teachers.functions";
@@ -129,6 +129,7 @@ function ImportPage() {
     setResult(null);
     setFileName(file.name);
     const buf = await file.arrayBuffer();
+    const XLSX = await import("xlsx");
     const wb = XLSX.read(buf, { type: "array", cellDates: true, codepage: 65001 });
     const ws = wb.Sheets[wb.SheetNames[0]!];
     if (!ws) return toast.error("Faylda varaq topilmadi");
@@ -458,6 +459,7 @@ function TeacherImport() {
     setResult(null);
     setFileName(file.name);
     const buf = await file.arrayBuffer();
+    const XLSX = await import("xlsx");
     const wb = XLSX.read(buf, { type: "array", cellDates: true, codepage: 65001 });
     const ws = wb.Sheets[wb.SheetNames[0]!];
     if (!ws) return toast.error("Faylda varaq topilmadi");

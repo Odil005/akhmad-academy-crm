@@ -19,8 +19,8 @@ function MarketplaceSettings() {
 
   const load = async () => {
     const [{ data: c }, { data: p }] = await Promise.all([
-      supabase.from("marketplace_categories").select("*").order("sort_order"),
-      supabase.from("marketplace_products").select("*").order("created_at", { ascending: false }),
+      supabase.from("marketplace_categories").select("id, name, slug, icon, sort_order").order("sort_order"),
+      supabase.from("marketplace_products").select("id, category_id, name, description, price, image_url, product_type, stock, is_available").order("created_at", { ascending: false }).limit(200),
     ]);
     setCats((c as any) ?? []);
     setProds((p as any) ?? []);

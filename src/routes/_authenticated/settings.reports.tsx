@@ -3,9 +3,6 @@ import { FileSpreadsheet, FileText, Download } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
-import { Document, Packer, Paragraph, HeadingLevel, Table, TableRow, TableCell, WidthType, TextRun, AlignmentType } from "docx";
-import { saveAs } from "file-saver";
 
 export const Route = createFileRoute("/_authenticated/settings/reports")({
   component: ReportsSettings,
@@ -84,11 +81,12 @@ async function fetchDataset(kind: string): Promise<{ title: string; rows: Row[] 
   throw new Error("Noma'lum hisobot turi");
 }
 
-function exportExcel(title: string, rows: Row[]) {
+async function exportExcel(title: string, rows: Row[]) {
   if (!rows.length) {
     toast.warning("Ma'lumot yo'q");
     return;
   }
+  const XLSX = await import("xlsx");
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, title.slice(0, 30));
@@ -101,7 +99,13 @@ async function exportWord(title: string, rows: Row[]) {
     toast.warning("Ma'lumot yo'q");
     return;
   }
+  // Heavy docx/file-saver bundles load only when the user exports.
+  const [
+    { Document, Packer, Paragraph, HeadingLevel, Table, TableRow, TableCell, WidthType, TextRun, AlignmentType },
+    { saveAs },
+  ] = await Promise.all([import("docx"), import("file-saver")]);
   const headers = Object.keys(rows[0]);
+
   const headerRow = new TableRow({
     tableHeader: true,
     children: headers.map(

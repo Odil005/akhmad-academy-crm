@@ -32,7 +32,7 @@ function FinancePage() {
   const load = async () => {
     setLoading(true);
     const [a, t, e] = await Promise.all([
-      supabase.from("cash_accounts").select("*").order("created_at"),
+      supabase.from("cash_accounts").select("id, name, type, balance, is_active, note").order("created_at"),
       supabase.from("transactions").select("*, cash_account:cash_accounts(name)").order("occurred_at", { ascending: false }).limit(500),
       supabase.from("expenses").select("*, cash_account:cash_accounts(name)").order("paid_at", { ascending: false }).limit(200),
     ]);

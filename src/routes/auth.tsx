@@ -5,7 +5,7 @@ import { GraduationCap, ArrowLeft, User, Mail } from "lucide-react";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: { next?: unknown }): { next?: string } => ({
     next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
   }),
   head: () => ({

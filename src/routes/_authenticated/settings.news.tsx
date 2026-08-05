@@ -16,8 +16,8 @@ function NewsSettings() {
 
   const load = async () => {
     const [{ data: nd }, { data: bd }] = await Promise.all([
-      supabase.from("news").select("*").order("published_at", { ascending: false }),
-      supabase.from("banners").select("*").order("sort_order"),
+      supabase.from("news").select("id, title, body, image_url, is_published, published_at").order("published_at", { ascending: false }).limit(100),
+      supabase.from("banners").select("id, title, image_url, link_url, position, is_active, sort_order").order("sort_order").limit(100),
     ]);
     setNews(nd ?? []); setBanners(bd ?? []);
   };

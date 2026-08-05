@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2, X, RefreshCw, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { createManagedUser } from "@/lib/user-admin.functions";
@@ -31,52 +31,92 @@ export const Route = createFileRoute("/_authenticated/students")({
   component: StudentsPage,
 });
 
+const PAGE_SIZES = [25, 50, 100];
+const STUDENT_COLUMNS = `
+  id, status_enum, enrolled_at, parent_full_name, parent_phone, parent_telegram_chat_id, parent_notifications_enabled,
+  profile:profiles(full_name, phone),
+  group:groups(id, name)
+`;
+
 function StudentsPage() {
   const { status: statusFilter } = Route.useSearch();
   const [students, setStudents] = useState<Student[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(25);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
 
+  // 400 ms debounce — filtering happens on the server, not in the browser.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  useEffect(() => { setPage(0); }, [statusFilter, pageSize]);
+
+  /** Server-side page load: only the visible rows are fetched. */
   const load = async () => {
     setLoading(true);
-    const [{ data: s }, { data: g }] = await Promise.all([
-      supabase
-        .from("students")
-        .select(`
-          id, status_enum, enrolled_at, parent_full_name, parent_phone, parent_telegram_chat_id, parent_notifications_enabled,
-          profile:profiles(full_name, phone),
-          group:groups(id, name)
-        `)
-        .order("enrolled_at", { ascending: false }),
-      supabase.from("groups").select("id, name").order("name"),
-    ]);
+    const controller = new AbortController();
+    let q = supabase
+      .from("students")
+      .select(STUDENT_COLUMNS, { count: "exact" })
+      .order("enrolled_at", { ascending: false })
+      .range(page * pageSize, page * pageSize + pageSize - 1)
+      .abortSignal(controller.signal);
+    if (statusFilter) q = q.eq("status_enum", statusFilter);
+    if (search) {
+      const like = `%${search}%`;
+      q = q.or(
+        `first_name.ilike.${like},last_name.ilike.${like},full_name.ilike.${like},parent_full_name.ilike.${like},parent_phone.ilike.${like}`,
+      );
+    }
+    const { data: s, count } = await q;
     setStudents((s as never) ?? []);
-    setGroups(g ?? []);
+    setTotal(count ?? 0);
     setLoading(false);
+    return () => controller.abort();
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page, pageSize, statusFilter, search]);
 
-  const filtered = useMemo(
-    () => (statusFilter ? students.filter((s) => s.status_enum === statusFilter) : students),
-    [students, statusFilter]
-  );
+  useEffect(() => {
+    supabase.from("groups").select("id, name").order("name").then(({ data }) => setGroups(data ?? []));
+  }, []);
+
+  const filtered = students;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   const remove = async (id: string) => {
     if (!confirm("O'chirilsinmi?")) return;
     await supabase.from("students").delete().eq("id", id);
-    load();
+    // Faqat o'chirilgan qatorni cache'dan olib tashlaymiz — to'liq qayta yuklash yo'q.
+    setStudents((prev) => prev.filter((s) => s.id !== id));
+    setTotal((t) => Math.max(0, t - 1));
   };
 
   const changeStatus = async (s: Student, newStatus: StudentStatus) => {
-    await supabase.from("students").update({ status_enum: newStatus }).eq("id", s.id);
+    const prevStatus = s.status_enum;
+    // Optimistik: faqat o'zgargan qator yangilanadi.
+    setStudents((prev) => prev.map((r) => (r.id === s.id ? { ...r, status_enum: newStatus } : r)));
+    const { error } = await supabase.from("students").update({ status_enum: newStatus }).eq("id", s.id);
+    if (error) {
+      setStudents((prev) => prev.map((r) => (r.id === s.id ? { ...r, status_enum: prevStatus } : r)));
+      toast.error(error.message);
+      return;
+    }
     await supabase.from("student_status_history").insert({
       student_id: s.id,
-      from_status: s.status_enum ?? undefined,
+      from_status: prevStatus ?? undefined,
       to_status: newStatus,
     });
-    load();
   };
 
   return (
@@ -85,7 +125,7 @@ function StudentsPage() {
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">O'quvchilar</h1>
           <p className="text-sm text-muted-foreground">
-            {statusFilter ? `Filtr: ${STATUS_META[statusFilter as StudentStatus].label}` : "Barcha o'quvchilar"}
+            {statusFilter ? `Filtr: ${STATUS_META[statusFilter as StudentStatus].label}` : "Barcha o'quvchilar"} · {total} ta
           </p>
         </div>
         <button
@@ -96,17 +136,31 @@ function StudentsPage() {
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <a href="/students" className={`rounded-full px-3 py-1.5 text-xs font-semibold ${!statusFilter ? "bg-primary text-primary-foreground" : "border border-border"}`}>Barchasi ({students.length})</a>
-        {STATUS_ORDER.map((k) => {
-          const count = students.filter((s) => s.status_enum === k).length;
-          return (
-            <a key={k} href={`/students?status=${k}`} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${statusFilter === k ? `${STATUS_META[k].bg} text-white` : "border border-border"}`}>
-              {STATUS_META[k].label} ({count})
-            </a>
-          );
-        })}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Ism, ota-ona yoki telefon bo'yicha qidirish..."
+          className="min-w-[240px] flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
+        <select
+          value={pageSize}
+          onChange={(e) => setPageSize(Number(e.target.value))}
+          className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        >
+          {PAGE_SIZES.map((n) => <option key={n} value={n}>{n} / sahifa</option>)}
+        </select>
       </div>
+
+      <div className="flex flex-wrap gap-2">
+        <a href="/students" className={`rounded-full px-3 py-1.5 text-xs font-semibold ${!statusFilter ? "bg-primary text-primary-foreground" : "border border-border"}`}>Barchasi</a>
+        {STATUS_ORDER.map((k) => (
+          <a key={k} href={`/students?status=${k}`} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${statusFilter === k ? `${STATUS_META[k].bg} text-white` : "border border-border"}`}>
+            {STATUS_META[k].label}
+          </a>
+        ))}
+      </div>
+
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <div className="overflow-x-auto">

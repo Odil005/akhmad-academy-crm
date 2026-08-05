@@ -23,8 +23,8 @@ function MarketplacePage() {
   useEffect(() => {
     (async () => {
       const [{ data: c }, { data: p }, { data: s }] = await Promise.all([
-        supabase.from("marketplace_categories").select("*").order("sort_order"),
-        supabase.from("marketplace_products").select("*").eq("is_available", true).order("name"),
+        supabase.from("marketplace_categories").select("id, name, slug, icon, sort_order").order("sort_order"),
+        supabase.from("marketplace_products").select("id, category_id, name, description, price, image_url, product_type, stock, is_available").eq("is_available", true).order("name").limit(200),
         supabase.from("students").select("id").eq("profile_id", user.id).maybeSingle(),
       ]);
       setCats((c as any) ?? []);
@@ -112,7 +112,7 @@ function MarketplacePage() {
           <div key={p.id} className="rounded-2xl border border-border bg-card p-4">
             <div className="aspect-square overflow-hidden rounded-lg bg-secondary/30">
               {p.image_url ? (
-                <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
                 <div className="flex h-full items-center justify-center text-4xl">📦</div>
               )}
