@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { ChevronDown, LogOut, LayoutDashboard, Users, BookOpen, CreditCard, Menu, X, Settings, ShoppingBag, Smile, Search, Wallet, CalendarDays, ClipboardCheck, DoorOpen, BarChart3, Phone, ScanFace, GraduationCap, Inbox, Upload, MessageSquare, DollarSign } from "lucide-react";
 import { Jarvis } from "@/components/Jarvis";
-const logoAsset = { url: "/logo.png" };
+const logoAsset = { url: "/logo-256.webp" };
 
 type Role = "director" | "admin" | "teacher" | "student";
 
@@ -101,6 +101,8 @@ function AuthenticatedLayout() {
           className="h-11 w-11 rounded-full object-cover"
           width={44}
           height={44}
+          decoding="async"
+          fetchPriority="high"
         />
         <div className="leading-tight">
           <div className="text-sm font-extrabold tracking-[0.14em] text-sidebar-primary">AKHMAD</div>
