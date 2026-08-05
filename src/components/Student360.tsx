@@ -144,7 +144,7 @@ export function Student360({
       <aside className="space-y-4 rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-4">
           {student?.profile?.avatar_url ? (
-            <img src={student.profile.avatar_url} alt={row.name} className="h-16 w-16 shrink-0 rounded-full object-cover" />
+            <img src={student.profile.avatar_url} alt={row.name} className="h-16 w-16 shrink-0 rounded-full object-cover" width={64} height={64} loading="lazy" decoding="async" />
           ) : (
             <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
               {initialsOf(row.name)}

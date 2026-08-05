@@ -137,7 +137,7 @@ function FaceIdPage() {
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
-          <img src={enrollment.image_url} alt="Enrollment" className="max-h-40 rounded-lg border border-border" />
+          <img src={enrollment.image_url} alt="Enrollment" className="max-h-40 rounded-lg border border-border" loading="lazy" decoding="async" />
         </div>
       )}
 
@@ -154,7 +154,7 @@ function FaceIdPage() {
                   <div className="text-sm font-semibold">{new Date(c.checked_in_at).toLocaleString("uz-UZ")}</div>
                   <div className="text-xs text-muted-foreground">Usul: {c.method}</div>
                 </div>
-                {c.photo_url && <img src={c.photo_url} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />}
+                {c.photo_url && <img src={c.photo_url} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" width={40} height={40} loading="lazy" decoding="async" />}
               </li>
             ))}
           </ul>

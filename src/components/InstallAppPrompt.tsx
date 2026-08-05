@@ -68,7 +68,7 @@ export function InstallAppPrompt() {
       </button>
 
       <div className="flex items-start gap-3">
-        <img src="/icon-192.png" alt="Akhmad Academy ilovasi" className="h-11 w-11 rounded-xl" />
+        <img src="/logo-256.webp" alt="Akhmad Academy ilovasi" className="h-11 w-11 rounded-xl" width={44} height={44} loading="lazy" decoding="async" />
         <div className="flex-1">
           <p className="text-sm font-semibold text-foreground">Akhmad Academy ilovasi</p>
           {iosHint && !deferred ? (
