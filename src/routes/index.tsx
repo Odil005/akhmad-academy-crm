@@ -20,7 +20,8 @@ import {
 const logoAsset = { url: "/logo.png", webp: "/logo-256.webp" };
 import heroClassroom from "@/assets/hero-classroom.webp";
 import heroClassroom640 from "@/assets/hero-classroom-640.webp";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
@@ -169,18 +170,37 @@ const DEFAULT_STATS = {
   satisfaction: "98%",
 };
 
+/** Shared, cached landing-page queries — deduplicated across components. */
+function useSetting<T>(key: string, fallback: T) {
+  const { data } = useQuery({
+    queryKey: ["public-setting", key],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("settings").select("value").eq("key", key).maybeSingle();
+      return (data?.value ?? null) as T | null;
+    },
+  });
+  return data ? { ...fallback, ...(data as object) } : fallback;
+}
+
+function useHomepageCourses() {
+  const { data } = useQuery({
+    queryKey: ["public-homepage-courses"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("homepage_courses")
+        .select("id, title, description, level")
+        .eq("is_visible", true)
+        .order("sort_order");
+      return (data ?? []) as HomepageCourse[];
+    },
+  });
+  return data && data.length > 0 ? data : DEFAULT_COURSES;
+}
+
 function useHomepageStats() {
-  const [values, setValues] = useState(DEFAULT_STATS);
-  useEffect(() => {
-    supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "homepage_stats")
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data?.value) setValues({ ...DEFAULT_STATS, ...(data.value as any) });
-      });
-  }, []);
+  const values = useSetting("homepage_stats", DEFAULT_STATS);
   return [
     { icon: Users, value: values.students, label: "O'quvchilar" },
     { icon: BookOpen, value: values.courses, label: "Kurslar" },
@@ -282,17 +302,7 @@ const DEFAULT_COURSES: HomepageCourse[] = [
 ];
 
 function Courses() {
-  const [courses, setCourses] = useState<HomepageCourse[]>(DEFAULT_COURSES);
-  useEffect(() => {
-    supabase
-      .from("homepage_courses")
-      .select("id, title, description, level")
-      .eq("is_visible", true)
-      .order("sort_order")
-      .then(({ data }) => {
-        if (data && data.length > 0) setCourses(data as HomepageCourse[]);
-      });
-  }, []);
+  const courses = useHomepageCourses();
   return (
     <section id="courses" className="border-t border-border/60 bg-background/70 py-20 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -393,33 +403,16 @@ function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
-  const [courseList, setCourseList] = useState<HomepageCourse[]>(DEFAULT_COURSES);
-  const [form, setForm] = useState({ name: "", phone: "", course: DEFAULT_COURSES[0].title });
-  useEffect(() => {
-    supabase
-      .from("homepage_courses")
-      .select("id, title, description, level")
-      .eq("is_visible", true)
-      .order("sort_order")
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setCourseList(data as HomepageCourse[]);
-          setForm((f) => ({ ...f, course: (data[0] as HomepageCourse).title }));
-        }
-      });
-  }, []);
-  const [info, setInfo] = useState({
+  const courseList = useHomepageCourses();
+  const [form, setForm] = useState({ name: "", phone: "", course: "" });
+  const selectedCourse = form.course || courseList[0].title;
+  const info = useSetting("contact_info", {
     address: "Toshkent shahri, Chilonzor tumani",
     phone: "+998 90 123 45 67",
     email: "info@akhmadacademy.uz",
     telegram: "",
     instagram: "",
   });
-  useEffect(() => {
-    supabase.from("settings").select("value").eq("key", "contact_info").maybeSingle().then(({ data }) => {
-      if (data?.value) setInfo((prev) => ({ ...prev, ...(data.value as any) }));
-    });
-  }, []);
   return (
     <section id="contact" className="border-t border-border/60 bg-background/70 py-20 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
