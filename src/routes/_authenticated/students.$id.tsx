@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, MessageSquare, Pencil, RefreshCcw, Send, Trash2, UserPlus, Users, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
+import { TelegramIdField } from "@/components/TelegramIdField";
 
 const DAYS_UZ = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
 const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -15,6 +16,11 @@ type StudentRow = {
   parent_full_name: string | null;
   parent_phone: string | null;
   parent_telegram_chat_id: string | null;
+  telegram_chat_id: string | null;
+  telegram_username: string | null;
+  telegram_verified_at: string | null;
+  telegram_last_checked_at: string | null;
+  telegram_last_error: string | null;
   notes: string | null;
   profile: { id: string; full_name: string | null; phone: string | null } | null;
 };
@@ -58,6 +64,7 @@ function StudentProfile() {
     const [{ data: s }, { data: enr }, { data: pays }, { data: gs }] = await Promise.all([
       supabase.from("students").select(`
         id, status_enum, enrolled_at, parent_full_name, parent_phone, parent_telegram_chat_id, notes,
+        telegram_chat_id, telegram_username, telegram_verified_at, telegram_last_checked_at, telegram_last_error,
         profile:profiles(id, full_name, phone)
       `).eq("id", id).maybeSingle(),
       supabase.from("student_enrollments").select(`
@@ -178,6 +185,19 @@ function StudentProfile() {
               <div className="font-semibold">{student.parent_telegram_chat_id ? "Faol" : "Ilova ishlatmaydi"}</div>
             </div>
           </div>
+
+          <TelegramIdField
+            kind="student"
+            subjectId={student.id}
+            title="O'quvchining Telegram ID"
+            initial={{
+              chat_id: student.telegram_chat_id,
+              username: student.telegram_username,
+              verified_at: student.telegram_verified_at,
+              last_checked_at: student.telegram_last_checked_at,
+              last_error: student.telegram_last_error,
+            }}
+          />
 
           <div className="space-y-2 pt-2">
             <button onClick={() => setNoteOpen(true)} className="w-full rounded-lg border border-primary/40 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-primary hover:bg-primary/5">
