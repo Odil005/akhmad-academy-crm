@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { createTelegramLink } from "@/lib/telegram-admin.functions";
 import { Send, Copy, Loader2, Check } from "lucide-react";
 import { TelegramIdButton } from "@/components/TelegramIdButton";
+import { TelegramIdField } from "@/components/TelegramIdField";
 import { toast } from "sonner";
 
 
@@ -61,6 +62,7 @@ export function TelegramLinkPanel() {
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [link, setLink] = useState<{ name: string; url: string | null; token: string } | null>(null);
+  const [manual, setManual] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -189,23 +191,40 @@ export function TelegramLinkPanel() {
         {loading && <div className="h-16 animate-pulse rounded-xl bg-secondary/60" />}
         {!loading && filtered.length === 0 && <p className="py-3 text-muted-foreground">Ro'yxat bo'sh</p>}
         {filtered.map((p) => (
-          <div key={p.id} className="flex items-center justify-between gap-2 py-2.5">
-            <div className="min-w-0">
-              <div className="truncate font-semibold">{p.name}</div>
-              <div className="truncate text-xs text-muted-foreground">{p.sub ?? "telefon yo'q"}</div>
+          <div key={p.id} className="py-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="truncate font-semibold">{p.name}</div>
+                <div className="truncate text-xs text-muted-foreground">{p.sub ?? "telefon yo'q"}</div>
+              </div>
+              {p.linked && (
+                <span className="hidden shrink-0 items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-bold text-green-600 sm:flex">
+                  <Check className="h-3 w-3" /> ulangan
+                </span>
+              )}
+              <button
+                onClick={() => setManual((m) => (m === p.id ? null : p.id))}
+                className="shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs font-bold hover:border-primary"
+              >
+                Qo'lda kiritish
+              </button>
+              <button
+                onClick={() => generate(p)}
+                disabled={busy === p.id}
+                className="shrink-0 rounded-lg border border-primary/50 px-2.5 py-1 text-xs font-bold text-primary hover:bg-primary/10 disabled:opacity-60"
+              >
+                {busy === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Havola"}
+              </button>
             </div>
-            {p.linked && (
-              <span className="hidden shrink-0 items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-bold text-green-600 sm:flex">
-                <Check className="h-3 w-3" /> ulangan
-              </span>
+            {manual === p.id && (
+              <div className="mt-2">
+                <TelegramIdField
+                  kind={kind === "student" ? "student" : "profile"}
+                  subjectId={p.id}
+                  title={`${p.name} — Telegram ID`}
+                />
+              </div>
             )}
-            <button
-              onClick={() => generate(p)}
-              disabled={busy === p.id}
-              className="shrink-0 rounded-lg border border-primary/50 px-2.5 py-1 text-xs font-bold text-primary hover:bg-primary/10 disabled:opacity-60"
-            >
-              {busy === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Telegram ID"}
-            </button>
           </div>
         ))}
       </div>

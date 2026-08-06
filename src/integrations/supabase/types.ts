@@ -1464,6 +1464,11 @@ export type Database = {
           id: string
           phone: string | null
           teacher_level: Database["public"]["Enums"]["teacher_level"] | null
+          telegram_chat_id: string | null
+          telegram_last_checked_at: string | null
+          telegram_last_error: string | null
+          telegram_username: string | null
+          telegram_verified_at: string | null
           updated_at: string
         }
         Insert: {
@@ -1474,6 +1479,11 @@ export type Database = {
           id: string
           phone?: string | null
           teacher_level?: Database["public"]["Enums"]["teacher_level"] | null
+          telegram_chat_id?: string | null
+          telegram_last_checked_at?: string | null
+          telegram_last_error?: string | null
+          telegram_username?: string | null
+          telegram_verified_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -1484,6 +1494,11 @@ export type Database = {
           id?: string
           phone?: string | null
           teacher_level?: Database["public"]["Enums"]["teacher_level"] | null
+          telegram_chat_id?: string | null
+          telegram_last_checked_at?: string | null
+          telegram_last_error?: string | null
+          telegram_username?: string | null
+          telegram_verified_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1827,6 +1842,11 @@ export type Database = {
           start_date: string | null
           status: string
           status_enum: Database["public"]["Enums"]["student_status"]
+          telegram_chat_id: string | null
+          telegram_last_checked_at: string | null
+          telegram_last_error: string | null
+          telegram_username: string | null
+          telegram_verified_at: string | null
         }
         Insert: {
           academic_year?: string | null
@@ -1852,6 +1872,11 @@ export type Database = {
           start_date?: string | null
           status?: string
           status_enum?: Database["public"]["Enums"]["student_status"]
+          telegram_chat_id?: string | null
+          telegram_last_checked_at?: string | null
+          telegram_last_error?: string | null
+          telegram_username?: string | null
+          telegram_verified_at?: string | null
         }
         Update: {
           academic_year?: string | null
@@ -1877,6 +1902,11 @@ export type Database = {
           start_date?: string | null
           status?: string
           status_enum?: Database["public"]["Enums"]["student_status"]
+          telegram_chat_id?: string | null
+          telegram_last_checked_at?: string | null
+          telegram_last_error?: string | null
+          telegram_username?: string | null
+          telegram_verified_at?: string | null
         }
         Relationships: [
           {
@@ -2128,6 +2158,42 @@ export type Database = {
           kpi_visible?: boolean
           menu_items?: Json
           updated_at?: string
+        }
+        Relationships: []
+      }
+      telegram_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          chat_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          subject_id: string
+          subject_kind: string
+          success: boolean
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          chat_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          subject_id: string
+          subject_kind: string
+          success?: boolean
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          chat_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          subject_id?: string
+          subject_kind?: string
+          success?: boolean
         }
         Relationships: []
       }

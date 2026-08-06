@@ -56,6 +56,13 @@ function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [filterMine, setFilterMine] = useState(isTeacher && !isStaff);
+  const [view, setView] = useState<"week" | "day" | "list">("week");
+  const [dayView, setDayView] = useState<number>(((new Date().getDay() + 6) % 7) + 1);
+  const [teacherFilter, setTeacherFilter] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState("");
+  const [groupFilter, setGroupFilter] = useState("");
+  const [roomFilter, setRoomFilter] = useState("");
+  const [teacherQuery, setTeacherQuery] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -110,10 +117,28 @@ function SchedulePage() {
 
   useEffect(() => { load(); }, []);
 
+  const teacherName = useMemo(() => {
+    const m = new Map(teachers.map((t) => [t.user_id, t.name]));
+    return (id: string | null) => (id ? (m.get(id) ?? "—") : "Biriktirilmagan");
+  }, [teachers]);
+
+  const teacherOptions = useMemo(() => {
+    const q = teacherQuery.trim().toLowerCase();
+    return q ? teachers.filter((t) => t.name.toLowerCase().includes(q)) : teachers;
+  }, [teachers, teacherQuery]);
+
   const filtered = useMemo(() => {
-    if (filterMine && isTeacher) return lessons.filter((l) => l.teacher_user_id === user.id);
-    return lessons;
-  }, [lessons, filterMine, isTeacher, user.id]);
+    const q = teacherQuery.trim().toLowerCase();
+    return lessons.filter((l) => {
+      if (filterMine && isTeacher && l.teacher_user_id !== user.id) return false;
+      if (teacherFilter && l.teacher_user_id !== teacherFilter) return false;
+      if (subjectFilter && l.subject_id !== subjectFilter) return false;
+      if (groupFilter && l.group_id !== groupFilter) return false;
+      if (roomFilter && l.room_id !== roomFilter) return false;
+      if (q && !teacherName(l.teacher_user_id).toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [lessons, filterMine, isTeacher, user.id, teacherFilter, subjectFilter, groupFilter, roomFilter, teacherQuery, teacherName]);
 
   const byDay = useMemo(() => {
     const m: Record<number, Lesson[]> = {};
@@ -167,12 +192,86 @@ function SchedulePage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3">
+        <div className="flex rounded-lg border border-border p-0.5">
+          {([["week", "Haftalik"], ["day", "Kunlik"], ["list", "Ro'yxat"]] as const).map(([v, label]) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold ${view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {view === "day" && (
+          <select value={dayView} onChange={(e) => setDayView(Number(e.target.value))} className="rounded-lg border border-border bg-background px-3 py-2 text-xs">
+            {DAYS_FULL.map((d, i) => <option key={i} value={i + 1}>{d}</option>)}
+          </select>
+        )}
+        <input
+          value={teacherQuery}
+          onChange={(e) => setTeacherQuery(e.target.value)}
+          placeholder="O'qituvchi ism-familiyasi..."
+          className="rounded-lg border border-border bg-background px-3 py-2 text-xs"
+        />
+        <select value={teacherFilter} onChange={(e) => setTeacherFilter(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-xs">
+          <option value="">Barcha o'qituvchilar</option>
+          {teacherOptions.map((t) => <option key={t.user_id} value={t.user_id}>{t.name}</option>)}
+        </select>
+        <select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-xs">
+          <option value="">Barcha fanlar</option>
+          {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+        <select value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-xs">
+          <option value="">Barcha guruhlar</option>
+          {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+        </select>
+        <select value={roomFilter} onChange={(e) => setRoomFilter(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-xs">
+          <option value="">Barcha xonalar</option>
+          {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+        <span className="ml-auto text-xs text-muted-foreground">{filtered.length} dars</span>
+      </div>
+
       {loading ? (
         <p className="text-sm text-muted-foreground">Yuklanmoqda...</p>
+      ) : view === "list" ? (
+        <div className="overflow-auto rounded-2xl border border-border bg-card">
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-xs uppercase">
+              <tr>
+                {["Kun", "Vaqt", "O'qituvchi", "Fan", "Guruh", "Xona", "Holat", ""].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={8} className="px-3 py-6 text-center text-xs text-muted-foreground">Dars topilmadi</td></tr>
+              ) : filtered.map((l) => (
+                <tr key={l.id} className="border-t border-border">
+                  <td className="px-3 py-1.5">{DAYS_FULL[l.day_of_week - 1]}</td>
+                  <td className="px-3 py-1.5 font-mono text-xs text-primary">{l.start_time.slice(0,5)}–{l.end_time.slice(0,5)}</td>
+                  <td className="px-3 py-1.5 font-medium">{teacherName(l.teacher_user_id)}</td>
+                  <td className="px-3 py-1.5">{l.subject?.name ?? "—"}</td>
+                  <td className="px-3 py-1.5">{l.group?.name ?? "—"}</td>
+                  <td className="px-3 py-1.5">{l.room?.name ?? "—"}</td>
+                  <td className="px-3 py-1.5"><span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">Faol</span></td>
+                  <td className="px-3 py-1.5 text-right">
+                    {isStaff && (
+                      <button onClick={() => remove(l.id)} className="text-destructive hover:opacity-70"><Trash2 className="h-3.5 w-3.5" /></button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-7">
-          {DAYS_FULL.map((label, i) => {
-            const d = i + 1;
+        <div className={`grid grid-cols-1 gap-3 ${view === "week" ? "md:grid-cols-2 xl:grid-cols-7" : ""}`}>
+          {(view === "day" ? [DAYS_FULL[dayView - 1]!] : DAYS_FULL).map((label, idx) => {
+            const d = view === "day" ? dayView : idx + 1;
             const items = byDay[d] ?? [];
             return (
               <div key={d} className="rounded-2xl border border-border bg-card p-4">
@@ -194,6 +293,7 @@ function SchedulePage() {
                             {l.start_time.slice(0,5)}–{l.end_time.slice(0,5)}
                           </div>
                           <div className="mt-1 truncate text-sm font-semibold">{l.group?.name ?? "—"}</div>
+                          <div className="truncate text-xs font-medium">{teacherName(l.teacher_user_id)}</div>
                           <div className="text-xs text-muted-foreground">
                             {l.subject?.name ?? "—"}{l.room?.name ? ` · ${l.room.name}` : ""}
                           </div>
