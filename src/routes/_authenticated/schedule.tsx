@@ -699,3 +699,24 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 // Silence unused warning
 void DAYS;
+
+function AttBar({ rate }: { rate: number | null }) {
+  if (rate === null) {
+    return <div className="mt-2 text-[10px] text-muted-foreground">Davomat ma'lumoti yo'q</div>;
+  }
+  const tone =
+    rate >= 85 ? "bg-emerald-500" : rate >= 65 ? "bg-amber-500" : "bg-red-500";
+  const text =
+    rate >= 85 ? "text-emerald-600" : rate >= 65 ? "text-amber-600" : "text-red-600";
+  return (
+    <div className="mt-2">
+      <div className="mb-0.5 flex items-center justify-between text-[10px] font-semibold">
+        <span className="text-muted-foreground">Davomat (30 kun)</span>
+        <span className={text}>{rate}%</span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div className={`h-full rounded-full ${tone}`} style={{ width: `${rate}%` }} />
+      </div>
+    </div>
+  );
+}
