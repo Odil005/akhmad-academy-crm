@@ -176,6 +176,43 @@ function SchedulePage() {
     );
   }, [students, studentGroupFilter, studentQuery]);
 
+  const rateOf = (lessonId: string): number | null => {
+    const a = attByLesson.get(lessonId);
+    if (!a || a.total === 0) return null;
+    return Math.round((a.ok / a.total) * 100);
+  };
+
+  const teacherStats = useMemo(() => {
+    const m = new Map<string, { lessons: number; students: number; total: number; ok: number }>();
+    for (const l of filtered) {
+      const key = l.teacher_user_id ?? "none";
+      const cur = m.get(key) ?? { lessons: 0, students: 0, total: 0, ok: 0 };
+      cur.lessons += 1;
+      cur.students += countByGroup.get(l.group_id) ?? 0;
+      const a = attByLesson.get(l.id);
+      if (a) { cur.total += a.total; cur.ok += a.ok; }
+      m.set(key, cur);
+    }
+    return Array.from(m.entries())
+      .map(([id, v]) => ({
+        id,
+        name: id === "none" ? "Biriktirilmagan" : teacherName(id),
+        ...v,
+        rate: v.total ? Math.round((v.ok / v.total) * 100) : null,
+      }))
+      .sort((a, b) => b.lessons - a.lessons);
+  }, [filtered, countByGroup, attByLesson, teacherName]);
+
+  const overallRate = useMemo(() => {
+    let total = 0, ok = 0;
+    for (const l of filtered) {
+      const a = attByLesson.get(l.id);
+      if (a) { total += a.total; ok += a.ok; }
+    }
+    return total ? Math.round((ok / total) * 100) : null;
+  }, [filtered, attByLesson]);
+
+
   const remove = async (id: string) => {
     if (!confirm("Dars o'chirilsinmi?")) return;
     await supabase.from("lessons").delete().eq("id", id);
