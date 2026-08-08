@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, X, CalendarDays, Users } from "lucide-react";
+import { Plus, Trash2, X, CalendarDays, Users, GraduationCap, Clock, Activity } from "lucide-react";
 import { BirthdayReminders } from "@/components/BirthdayReminders";
+
 
 
 type Lesson = {
