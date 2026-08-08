@@ -64,10 +64,12 @@ function SchedulePage() {
   const [groupFilter, setGroupFilter] = useState("");
   const [roomFilter, setRoomFilter] = useState("");
   const [teacherQuery, setTeacherQuery] = useState("");
+  const [attByLesson, setAttByLesson] = useState<Map<string, { total: number; ok: number }>>(new Map());
 
   const load = async () => {
     setLoading(true);
-    const [{ data: ls }, { data: gs }, { data: ss }, { data: rs }, { data: tr }, { data: tc }] = await Promise.all([
+    const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+    const [{ data: ls }, { data: gs }, { data: ss }, { data: rs }, { data: tr }, { data: tc }, { data: att }] = await Promise.all([
       supabase
         .from("lessons")
         .select("id, group_id, subject_id, room_id, teacher_user_id, day_of_week, start_time, end_time, notes, group:groups(name), subject:subjects(name), room:rooms(name)")
@@ -79,11 +81,20 @@ function SchedulePage() {
       supabase.from("rooms").select("id, name").eq("is_active", true).order("name"),
       supabase.from("user_roles").select("user_id").eq("role", "teacher"),
       supabase.from("teacher_credentials").select("teacher_user_id, username"),
+      supabase.from("attendance").select("lesson_id, status").gte("date", since).limit(5000),
     ]);
     setLessons((ls as never) ?? []);
     setGroups(gs ?? []);
     setSubjects(ss ?? []);
     setRooms(rs ?? []);
+    const am = new Map<string, { total: number; ok: number }>();
+    for (const a of (att as { lesson_id: string; status: string }[]) ?? []) {
+      const cur = am.get(a.lesson_id) ?? { total: 0, ok: 0 };
+      cur.total += 1;
+      if (a.status === "present" || a.status === "late") cur.ok += 1;
+      am.set(a.lesson_id, cur);
+    }
+    setAttByLesson(am);
     // Union: teachers can come from user_roles (staff view) or from teacher_credentials (fallback)
     const ids = new Set<string>();
     (tr ?? []).forEach((r: any) => r.user_id && ids.add(r.user_id));
@@ -100,7 +111,8 @@ function SchedulePage() {
     const { data: st } = await supabase
       .from("students")
       .select("id, full_name, first_name, last_name, group_id, lesson_time, schedule_raw, parent_phone, birth_date, group:groups(name)")
-      .order("full_name");
+      .order("full_name")
+      .limit(1000);
     setStudents(
       ((st as any[]) ?? []).map((r) => ({
         id: r.id,
@@ -117,6 +129,7 @@ function SchedulePage() {
   };
 
   useEffect(() => { load(); }, []);
+
 
   const teacherName = useMemo(() => {
     const m = new Map(teachers.map((t) => [t.user_id, t.name]));
