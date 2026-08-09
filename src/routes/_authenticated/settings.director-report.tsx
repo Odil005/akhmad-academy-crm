@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Send } from "lucide-react";
+import { Plus, Trash2, Send, MessageCircle, Loader2 } from "lucide-react";
+import { sendDirectorReportTest } from "@/lib/director-report.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/director-report")({
   component: DirectorReportSettings,
 });
+
 
 type Recipient = {
   id: string;
@@ -19,7 +21,9 @@ function DirectorReportSettings() {
   const [name, setName] = useState("");
   const [chatId, setChatId] = useState("");
   const [testing, setTesting] = useState(false);
+  const [testingId, setTestingId] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+
 
   const load = async () => {
     const { data } = await supabase.from("director_report_recipients").select("*").order("created_at");
@@ -54,6 +58,20 @@ function DirectorReportSettings() {
     await supabase.from("director_report_recipients").delete().eq("id", r.id);
     load();
   };
+
+  const testOne = async (r: Recipient) => {
+    setTestingId(r.id);
+    setMsg(null);
+    try {
+      const res = await sendDirectorReportTest({ data: { recipientId: r.id } });
+      setMsg(res.ok ? `✅ ${r.full_name}: sinov xabari yuborildi` : `⚠️ ${r.full_name}: ${res.error}`);
+    } catch (e) {
+      setMsg((e as Error).message || "Yuborilmadi");
+    } finally {
+      setTestingId(null);
+    }
+  };
+
 
   const runNow = async () => {
     setTesting(true);
@@ -118,12 +136,21 @@ function DirectorReportSettings() {
                   Faol
                 </label>
                 <button
+                  onClick={() => testOne(r)}
+                  disabled={testingId === r.id}
+                  title="Sinov xabarini yuborish"
+                  className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-2 text-xs font-semibold hover:border-primary/50 disabled:opacity-50"
+                >
+                  {testingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                </button>
+                <button
                   onClick={() => remove(r)}
                   className="rounded-lg border border-destructive/40 p-2 text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
+
             </div>
           ))}
         </div>
