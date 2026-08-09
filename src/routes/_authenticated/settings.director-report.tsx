@@ -21,7 +21,9 @@ function DirectorReportSettings() {
   const [name, setName] = useState("");
   const [chatId, setChatId] = useState("");
   const [testing, setTesting] = useState(false);
+  const [testingId, setTestingId] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+
 
   const load = async () => {
     const { data } = await supabase.from("director_report_recipients").select("*").order("created_at");
