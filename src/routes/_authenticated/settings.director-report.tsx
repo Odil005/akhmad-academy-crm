@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Send } from "lucide-react";
+import { Plus, Trash2, Send, MessageCircle, Loader2 } from "lucide-react";
+import { sendDirectorReportTest } from "@/lib/director-report.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/director-report")({
   component: DirectorReportSettings,
 });
+
 
 type Recipient = {
   id: string;
