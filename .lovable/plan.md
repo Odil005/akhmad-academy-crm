@@ -1,68 +1,44 @@
+# Nega ba'zi vazifalar bajarilmadi
 
-# Tizimdagi kamchiliklar (tekshiruv natijasi)
-
-Kodni va bazani tekshirdim. Funksional modullar yozilgan, lekin **tizim real ishga tushirilmagan** — asosiy kamchiliklar ma'lumot va sozlama darajasida.
-
-## 1. Baza deyarli bo'sh (eng katta muammo)
-Haqiqiy holat (bazadan o'qildi):
+Bazani hozir tekshirdim. Kod tomoni yozilgan, lekin ayrim modullar **tashqi tasdiq yoki sozlama ma'lumoti** yetishmagani uchun ishlamayapti:
 
 ```text
-subjects   0     students  0     lessons     0
-groups     0     payments  0     attendance  0
-cash_accounts 0  teacher/student credentials 0
-user_roles 2 (1 director + 1 admin) — o'qituvchi yo'q
+students 261    groups 8      subjects 9     teachers 14
+lessons 1       payments 0    cash_accounts 0
+director_report_recipients (aktiv) 0
+sip_config 0    fiskal (enabled) 0
+ota-ona telegram ulangan o'quvchi 0
 ```
 
-Natijada: Guruhlar, Dars jadvali, Davomat, Baholar, To'lovlar, Hisobotlar, Jarvis KPI — hammasi bo'sh ko'rinadi. Bu "xatolik" emas, ma'lumot yo'qligi.
+## Sabablari (3 turga bo'linadi)
 
-## 2. Kassa (to'lov) ishlamaydi
-- `cash_accounts` = 0 → to'lov qabul qilinganda pul qaysi kassaga tushishi yo'q.
-- `cash_register_settings`: `enabled = false`, `provider_name = mock`, `cashbox_id` yo'q → fiskal chek **haqiqiy chiqmaydi**, faqat mock.
+1. **Menda ruxsat yo'q (tashqi panel):** Cloudflare zona sozlamalari, Load Balancer/failover, ikkinchi origin server. Bularni faqat Cloudflare panelidan qilinadi — kod bilan yopilmaydi.
+2. **Uchinchi tomon ma'lumoti berilmagan:** fiskal provayder (cashbox_id, TIN), SIP trunk (provayder, sip_uri, login). Shu sababli to'lov "mock" va `click-to-call` `not_configured` qaytaradi.
+3. **Tizim ichida sozlama kiritilmagan:** kassa hisobi (0), direktor hisoboti oluvchisi (0), dars jadvali deyarli bo'sh (1 dars), ota-ona Telegram ulanmagan. Cron ishlaydi, lekin xabar boradigan manzil yo'q.
 
-## 3. Direktor kunlik hisoboti hech kimga bormaydi
-- Cron ishlayapti (`daily_director_report`, 20:00 Toshkent) ✅
-- Lekin `director_report_recipients` = 0 → Telegram chat_id yo'q, xabar jo'natilmaydi.
+## Men hozir yopa oladigan qism (tasdiqdan keyin)
 
-## 4. Ota-ona Telegram oqimi bo'sh
-- `parent_notifications` = 0, o'quvchi yo'q → bot bog'lanadigan bola yo'q.
-- Har bir o'quvchida `parent_telegram_chat_id` to'ldirilishi kerak (bot orqali onboarding).
+**A. Kassa va to'lov oqimini ishga tushirish**
+- 3 ta kassa hisobi yaratish (Naqd / Karta / Bank).
+- To'lov oynasida kassa yo'q bo'lsa ogohlantirish + shu yerdan yaratish.
+- Fiskal o'chirilgan bo'lsa chekda "Fiskalsiz (test)" belgisi aniq ko'rinishi.
 
-## 5. IP telefoniya (SIP) faqat "joy" holatida
-- `sip_config` = 0 → `click-to-call` `not_configured` qaytaradi. Provayder ma'lumoti kiritilmagan.
+**B. Direktor kunlik hisoboti**
+- Sozlamalarda direktor Telegram chat_id ni ulash va "Sinov xabarini yuborish" tugmasi.
+- Aktiv oluvchi bo'lmasa Dashboardda ogohlantirish.
 
-## 6. Rollar to'liq emas
-- Faqat director va admin bor. `teacher` va `student` roli hech kimda yo'q → O'qituvchi paneli, Teacher balans, Face-ID, O'quvchi kabineti sinovdan o'tmagan.
+**C. Dars jadvalini to'ldirish**
+- 8 guruh uchun jadval kiritish oynasi (guruh + fan + o'qituvchi + kun + vaqt), tez qo'shish uchun jadval ko'rinishida.
 
----
+**D. Ota-ona Telegram onboardingi**
+- O'quvchi kartasida "Ota-ona uchun havola" tugmasi (bir martalik token), ulangach avtomatik xabarlar boshlanadi.
 
-# Tavsiya qilinadigan reja (ishga tushirish paketi)
+**E. Setup checklist**
+- `/settings/setup` da bajarilmagan qadamlar ro'yxati + foiz ko'rsatkich.
 
-**Bosqich 1 — Boshlang'ich sozlash sehrgari (Setup Wizard)**
-`/settings` ichida yangi "Tizimni ishga tushirish" sahifasi: bajarilmagan qadamlarni checklist qilib ko'rsatadi va har birini shu yerdan hal qiladi:
-1. Kassa hisoblari (Naqd / Karta / Bank) yaratish
-2. Fanlar qo'shish
-3. O'qituvchilarni login bilan yaratish
-4. Guruhlar + dars jadvali
-5. O'quvchilarni qo'shish / Excel import
-6. Direktor Telegram chat_id ni ulash
-7. Virtual kassa (fiskal) yoqish
-8. SIP trunk (ixtiyoriy)
+## Tasdiq kutadigan (men qila olmaydigan)
+- Cloudflare: SSL Full Strict, Brotli, cache rules, LB pool + health probe (endpointlar tayyor: `/api/public/health/live`, `/ready`).
+- Fiskal provayder va SIP trunk ma'lumotlari — siz bersangiz, o'sha kuni ulaymiz.
 
-Dashboardda esa qadamlar tugamaguncha "Tizim X% sozlangan" banneri chiqadi.
-
-**Bosqich 2 — Bo'sh holat (empty state) sifatini oshirish**
-Har bir bo'sh sahifada "Ma'lumot yo'q" o'rniga aniq harakat tugmasi: "Birinchi guruhni yarating", "Kassa hisobi qo'shing" va h.k.
-
-**Bosqich 3 — To'lov modulini yopish**
-- Kassa hisobi bo'lmasa to'lov oynasi ogohlantiradi va shu yerdan yaratishga ruxsat beradi.
-- Fiskal `enabled=false` bo'lsa chekda "Fiskalsiz (mock)" belgisi aniq ko'rinadi.
-
-**Bosqich 4 — Direktor va ota-ona kanalini tekshirish**
-- Sozlamalarda "Sinov xabarini yuborish" tugmasi (direktor hisoboti va ota-ona bildirishnomasi uchun).
-
-## Texnik izohlar
-- Yangi jadval kerak emas; barcha kamchiliklar mavjud sxema ichida yopiladi.
-- Setup checklist holati mavjud jadvallardagi `count` orqali hisoblanadi (qo'shimcha state saqlanmaydi).
-- Cron va webhook'lar allaqachon to'g'ri, faqat qabul qiluvchi ma'lumot yetishmaydi.
-
-Qaysi bosqichdan boshlaymiz — hammasini bittada qilaymi, yoki avval Setup Wizard + kassa qismini?
+## Texnik izoh
+Yangi jadval kerak emas; barchasi mavjud sxema (`cash_accounts`, `director_report_recipients`, `lessons`, `telegram_link_tokens`, `cash_register_settings`) ichida yopiladi.
