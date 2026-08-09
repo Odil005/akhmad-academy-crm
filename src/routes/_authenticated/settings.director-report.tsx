@@ -59,6 +59,20 @@ function DirectorReportSettings() {
     load();
   };
 
+  const testOne = async (r: Recipient) => {
+    setTestingId(r.id);
+    setMsg(null);
+    try {
+      const res = await sendDirectorReportTest({ data: { recipientId: r.id } });
+      setMsg(res.ok ? `✅ ${r.full_name}: sinov xabari yuborildi` : `⚠️ ${r.full_name}: ${res.error}`);
+    } catch (e) {
+      setMsg((e as Error).message || "Yuborilmadi");
+    } finally {
+      setTestingId(null);
+    }
+  };
+
+
   const runNow = async () => {
     setTesting(true);
     setMsg(null);
