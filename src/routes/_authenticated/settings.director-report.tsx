@@ -136,12 +136,21 @@ function DirectorReportSettings() {
                   Faol
                 </label>
                 <button
+                  onClick={() => testOne(r)}
+                  disabled={testingId === r.id}
+                  title="Sinov xabarini yuborish"
+                  className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-2 text-xs font-semibold hover:border-primary/50 disabled:opacity-50"
+                >
+                  {testingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                </button>
+                <button
                   onClick={() => remove(r)}
                   className="rounded-lg border border-destructive/40 p-2 text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
+
             </div>
           ))}
         </div>
