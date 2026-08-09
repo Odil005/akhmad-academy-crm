@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { createManagedUser, resetAccessCode, deleteManagedUser } from "@/lib/user-admin.functions";
+import { createManagedUser, resetAccessCode, deleteManagedUser, listDirectorLogins } from "@/lib/user-admin.functions";
 import { generateUsername, generateAccessCode } from "@/lib/credentials";
 import { Copy, RefreshCw, UserPlus, KeyRound, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -11,12 +11,13 @@ export const Route = createFileRoute("/_authenticated/settings/credentials")({
   component: CredentialsPage,
 });
 
-type Role = "student" | "teacher" | "admin";
+type Role = "student" | "teacher" | "admin" | "director";
 
 function CredentialsPage() {
   const create = useServerFn(createManagedUser);
   const reset = useServerFn(resetAccessCode);
   const remove = useServerFn(deleteManagedUser);
+  const listDirectors = useServerFn(listDirectorLogins);
 
   const [form, setForm] = useState({
     first_name: "",
@@ -61,6 +62,13 @@ function CredentialsPage() {
           id: r.id, username: r.username, access_code: r.access_code,
           user_id: r.teacher_user_id, label: nameMap.get(r.teacher_user_id) ?? "—",
         })));
+      } else if (tab === "director") {
+        try {
+          const rows = await listDirectors({ data: undefined as never });
+          setList(rows.map((r) => ({ ...r, access_code: "***" })));
+        } catch {
+          setList([]);
+        }
       } else {
         const { data } = await supabase
           .from("admin_credentials")
@@ -180,7 +188,8 @@ function CredentialsPage() {
             <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5">
               <option value="student">Student</option>
               <option value="teacher">Teacher</option>
-              <option value="admin">Admin (director only)</option>
+              <option value="admin">Admin (faqat direktor)</option>
+              <option value="director">Director</option>
             </select>
           </label>
           {form.role === "student" && (
@@ -218,7 +227,7 @@ function CredentialsPage() {
           <h2 className="text-lg font-bold">Mavjud loginlar</h2>
         </div>
         <div className="mb-3 flex gap-2">
-          {(["student", "teacher", "admin"] as Role[]).map((r) => (
+          {(["student", "teacher", "admin", "director"] as Role[]).map((r) => (
             <button key={r} onClick={() => setTab(r)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${tab === r ? "bg-primary text-primary-foreground" : "border border-border"}`}>
               {r}
             </button>

@@ -7,7 +7,7 @@ const CreateUserSchema = z.object({
   access_code: z.string().min(4).max(64),
   full_name: z.string().min(1),
   phone: z.string().optional().nullable(),
-  role: z.enum(["student", "teacher", "admin"]),
+  role: z.enum(["student", "teacher", "admin", "director"]),
   // student-only linkage
   student_id: z.string().uuid().optional().nullable(),
   group_id: z.string().uuid().optional().nullable(),
@@ -44,18 +44,20 @@ export const createManagedUser = createServerFn({ method: "POST" })
     if (data.role === "admin" && !isDirector) {
       return { ok: false, error: "Admin yaratish faqat direktor uchun ruxsat etilgan." };
     }
+    // Director loginlarini administrator ham yaratishi mumkin.
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const email = `${username}@edunest.local`;
 
-    const [studentCredential, teacherCredential, adminCredential] = await Promise.all([
+    const [studentCredential, teacherCredential, adminCredential, directorCredential] = await Promise.all([
       supabaseAdmin.from("student_credentials").select("id").eq("username", username).maybeSingle(),
       supabaseAdmin.from("teacher_credentials").select("id").eq("username", username).maybeSingle(),
       supabaseAdmin.from("admin_credentials").select("id").eq("username", username).maybeSingle(),
+      supabaseAdmin.from("director_credentials").select("id").eq("email", `${username}@edunest.local`).maybeSingle(),
     ]);
 
-    if (studentCredential.data || teacherCredential.data || adminCredential.data) {
+    if (studentCredential.data || teacherCredential.data || adminCredential.data || directorCredential.data) {
       return { ok: false, error: duplicateMessage };
     }
 
@@ -138,6 +140,13 @@ export const createManagedUser = createServerFn({ method: "POST" })
         created_by: userId,
       });
       if (credentialErr) return { ok: false, error: credentialErr.message };
+    } else if (data.role === "director") {
+      const { error: credentialErr } = await supabaseAdmin.from("director_credentials").insert({
+        director_user_id: newUserId,
+        email,
+        access_code: "***",
+      });
+      if (credentialErr) return { ok: false, error: credentialErr.message };
     }
 
     // Return access_code ONCE for the caller to display; it is not persisted in plaintext.
@@ -151,7 +160,7 @@ export const resetAccessCode = createServerFn({ method: "POST" })
     z.object({
       user_id: z.string().uuid(),
       new_code: z.string().min(4).max(64),
-      role: z.enum(["student", "teacher", "admin"]),
+      role: z.enum(["student", "teacher", "admin", "director"]),
     }).parse(data)
   )
   .handler(async ({ data, context }) => {
@@ -180,6 +189,11 @@ export const resetAccessCode = createServerFn({ method: "POST" })
         .from("teacher_credentials")
         .update({ access_code: "***", updated_at })
         .eq("teacher_user_id", data.user_id);
+    } else if (data.role === "director") {
+      await supabaseAdmin
+        .from("director_credentials")
+        .update({ access_code: "***", updated_at })
+        .eq("director_user_id", data.user_id);
     } else {
       await supabaseAdmin
         .from("admin_credentials")
@@ -197,7 +211,7 @@ export const deleteManagedUser = createServerFn({ method: "POST" })
   .inputValidator((data) =>
     z.object({
       user_id: z.string().uuid(),
-      role: z.enum(["student", "teacher", "admin"]),
+      role: z.enum(["student", "teacher", "admin", "director"]),
     }).parse(data)
   )
   .handler(async ({ data, context }) => {
@@ -240,4 +254,39 @@ export const deleteManagedUser = createServerFn({ method: "POST" })
     if (error) return { ok: false, error: error.message };
 
     return { ok: true };
+  });
+
+/**
+ * Director loginlari ro'yxati. `director_credentials` faqat egasi uchun o'qiladigan
+ * jadval, shuning uchun ro'yxat server tomonda (direktor/admin tekshirgandan keyin) olinadi.
+ */
+export const listDirectorLogins = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: rolesData } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    const callerRoles = (rolesData ?? []).map((r) => r.role);
+    if (!callerRoles.includes("director") && !callerRoles.includes("admin")) {
+      throw new Error("Forbidden");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("director_credentials")
+      .select("id, email, director_user_id")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const ids = (data ?? []).map((r) => r.director_user_id).filter(Boolean);
+    const { data: profs } = ids.length
+      ? await supabaseAdmin.from("profiles").select("id, full_name").in("id", ids)
+      : { data: [] as Array<{ id: string; full_name: string | null }> };
+    const nameMap = new Map((profs ?? []).map((p) => [p.id, p.full_name]));
+
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      username: r.email.replace(/@edunest\.local$/, ""),
+      user_id: r.director_user_id,
+      label: nameMap.get(r.director_user_id) ?? "Director",
+    }));
   });
