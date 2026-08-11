@@ -106,9 +106,10 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         const askContact = (chat: number, extra = "") =>
           reply(
             chat,
-            `Assalomu alaykum! Akhmad Academy botiga xush kelibsiz.\n\n${extra}Bog'lanish uchun pastdagi "📱 Telefon raqamni yuborish" tugmasini bosing. Biz uni farzandingiz ma'lumotlariga solishtiramiz va sizni avtomatik ulaymiz.`.trim(),
+            `Assalomu alaykum! Akhmad Academy botiga xush kelibsiz.\n\n${extra}Farzandingizga ulanish uchun 2 yo'l bor:\n\n1️⃣ Pastdagi "📱 Telefon raqamni yuborish" tugmasini bosing — sizni avtomatik ulaymiz.\n2️⃣ Yoki bitta xabarda farzandingizning ism, familiyasi va telefon raqamingizni yozing.\nNamuna: Ali Valiyev +998901234567`.trim(),
             contactPrompt,
           );
+
 
         const linkedStudents = async (chatId: number) => {
           const { data } = await supabaseAdmin
@@ -142,6 +143,66 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             mainMenu,
           );
         };
+
+        type Cand = {
+          id: string;
+          first_name: string | null;
+          last_name: string | null;
+          full_name: string | null;
+          parent_phone: string | null;
+          parent_phones: string[] | null;
+          parent_telegram_chat_id: string | null;
+        };
+
+        const candidatePool = async (): Promise<Cand[]> => {
+          const { data } = await supabaseAdmin
+            .from("students")
+            .select("id, first_name, last_name, full_name, parent_phone, parent_phones, parent_telegram_chat_id");
+          return (data ?? []) as Cand[];
+        };
+
+        const phonesOf = (s: Cand) =>
+          [s.parent_phone, ...(s.parent_phones ?? [])].map((p) => normalizePhone(p)).filter(Boolean);
+
+        /**
+         * Free-text onboarding: "Ali Valiyev +998901234567" (any order).
+         * Matches name tokens against student names and the phone against
+         * parent_phone / parent_phones. Returns matched students.
+         */
+        const matchFromText = async (raw: string, knownPhone = ""): Promise<Cand[]> => {
+          const digits = raw.replace(/\D/g, "");
+          const phone = digits.length >= 7 ? digits.slice(-9) : knownPhone;
+          const tokens = raw
+            .replace(/[+\d]/g, " ")
+            .toLowerCase()
+            .split(/\s+/)
+            .map((t) => t.replace(/[^a-zа-яʻʼ'`-]/gi, ""))
+            .filter((t) => t.length >= 3);
+
+          const pool = await candidatePool();
+          const scored = pool
+            .map((s) => {
+              const names = [s.first_name, s.last_name, s.full_name]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase()
+                .split(/\s+/)
+                .filter(Boolean);
+              let nameHits = 0;
+              for (const t of tokens) {
+                if (names.some((n) => n === t || n.startsWith(t) || t.startsWith(n))) nameHits += 1;
+              }
+              const phoneHit = phone ? phonesOf(s).includes(phone) : false;
+              return { s, score: nameHits * 2 + (phoneHit ? 3 : 0), nameHits, phoneHit };
+            })
+            .filter((x) => (x.phoneHit && x.nameHits >= 1) || x.nameHits >= 2 || (x.phoneHit && !tokens.length))
+            .sort((a, b) => b.score - a.score);
+
+          if (!scored.length) return [];
+          const best = scored[0].score;
+          return scored.filter((x) => x.score === best).map((x) => x.s);
+        };
+
 
         // ---------- callback_query (inline buttons) ----------
         if (update.callback_query) {
@@ -200,11 +261,9 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             await reply(chatId, "Telefon raqam noto'g'ri. Qayta urinib ko'ring.", contactPrompt);
             return new Response("ok");
           }
-          const { data: matches } = await supabaseAdmin
-            .from("students")
-            .select("id, first_name, last_name, parent_phone, parent_telegram_chat_id")
-            .not("parent_phone", "is", null);
-          const found = (matches ?? []).filter((s) => normalizePhone(s.parent_phone) === phone);
+          const pool = await candidatePool();
+          const found = pool.filter((s) => phonesOf(s).includes(phone));
+
           if (found.length) {
             await linkAndGreet(chatId, found);
             return new Response("ok");
@@ -229,32 +288,15 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           // Name-based linking after phone mismatch
           if (action === "link") {
             const phone = parts[1] ?? "";
-            const tokens = text.split(/\s+/).filter(Boolean).map((t) => t.toLowerCase());
-            if (tokens.length < 1) {
-              await reply(chatId, "Iltimos, ism va familiyani yozing.");
+            const found = await matchFromText(text, phone);
+            if (!found.length) {
+              await reply(chatId, "❌ Bunday farzand topilmadi. Iltimos, o'quv markazi ma'muriyatiga murojaat qiling — ular sizni ro'yxatga qo'shishadi.");
               return new Response("ok");
             }
-            const { data: candidates } = await supabaseAdmin
-              .from("students")
-              .select("id, first_name, last_name, parent_phone, parent_telegram_chat_id")
-              .not("parent_phone", "is", null);
-            const scored = (candidates ?? []).map((s) => {
-              const fn = (s.first_name ?? "").toLowerCase();
-              const ln = (s.last_name ?? "").toLowerCase();
-              const ph = normalizePhone(s.parent_phone);
-              let score = 0;
-              if (tokens.some((t) => fn && (fn === t || fn.startsWith(t) || t.startsWith(fn)))) score += 2;
-              if (tokens.some((t) => ln && (ln === t || ln.startsWith(t) || t.startsWith(ln)))) score += 2;
-              if (phone && ph === phone) score += 3;
-              return { s, score };
-            }).filter((x) => x.score >= 2).sort((a, b) => b.score - a.score);
-            if (!scored.length) {
-              await reply(chatId, "❌ Bunday farzand topilmadi. Iltimos, o'quv markazi ma'muriyatiga murojaat qiling — ular sizni ro'yxatga qo'shishadi.", mainMenu);
-              return new Response("ok");
-            }
-            await linkAndGreet(chatId, scored.map((x) => x.s));
+            await linkAndGreet(chatId, found);
             return new Response("ok");
           }
+
 
           // Teacher message / meeting
           if (action === "tch" || action === "meet") {
@@ -401,9 +443,23 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         // Menu handlers — require linked account
         const students = await linkedStudents(chatId);
         if (!students.length) {
+          // Automatic onboarding from free text: name + surname (+ phone)
+          if (text && !text.startsWith("/")) {
+            const found = await matchFromText(text);
+            if (found.length) {
+              await linkAndGreet(chatId, found);
+              return new Response("ok");
+            }
+            await askContact(
+              chatId,
+              "❌ Bu ma'lumot bo'yicha farzand topilmadi. Ism, familiya va telefon raqamni tekshirib qayta yuboring.\n\n",
+            );
+            return new Response("ok");
+          }
           await askContact(chatId);
           return new Response("ok");
         }
+
 
         const pickStudent = async (action: string, prompt: string) => {
           if (students.length === 1) return handleAction(action, students[0], chatId);
@@ -430,8 +486,18 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         if (text === MENU_STATS) return pickStudent("stats", "Qaysi farzand uchun?");
         if (text === MENU_AI) return pickStudent("ai_prompt", "Qaysi farzand haqida so'ramoqchisiz?");
 
+        // Any other free text — answer with the AI assistant directly.
+        if (text && !text.startsWith("/")) {
+          if (students.length > 1) {
+            return pickStudent("ai_prompt", "Qaysi farzand haqida so'ramoqchisiz?");
+          }
+          await handleAI(chatId, students[0], text);
+          return new Response("ok");
+        }
+
         await reply(chatId, "Menyudan tanlang:", mainMenu);
         return new Response("ok");
+
 
         // ---------- actions ----------
         async function handleAction(
