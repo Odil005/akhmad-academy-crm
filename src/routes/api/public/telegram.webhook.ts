@@ -505,8 +505,18 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         if (text === MENU_STATS) return pickStudent("stats", "Qaysi farzand uchun?");
         if (text === MENU_AI) return pickStudent("ai_prompt", "Qaysi farzand haqida so'ramoqchisiz?");
 
+        // Any other free text — answer with the AI assistant directly.
+        if (text && !text.startsWith("/")) {
+          if (students.length > 1) {
+            return pickStudent("ai_prompt", "Qaysi farzand haqida so'ramoqchisiz?");
+          }
+          await handleAI(chatId, students[0], text);
+          return new Response("ok");
+        }
+
         await reply(chatId, "Menyudan tanlang:", mainMenu);
         return new Response("ok");
+
 
         // ---------- actions ----------
         async function handleAction(
