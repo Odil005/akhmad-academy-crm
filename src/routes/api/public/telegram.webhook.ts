@@ -462,9 +462,23 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         // Menu handlers — require linked account
         const students = await linkedStudents(chatId);
         if (!students.length) {
+          // Automatic onboarding from free text: name + surname (+ phone)
+          if (text && !text.startsWith("/")) {
+            const found = await matchFromText(text);
+            if (found.length) {
+              await linkAndGreet(chatId, found);
+              return new Response("ok");
+            }
+            await askContact(
+              chatId,
+              "❌ Bu ma'lumot bo'yicha farzand topilmadi. Ism, familiya va telefon raqamni tekshirib qayta yuboring.\n\n",
+            );
+            return new Response("ok");
+          }
           await askContact(chatId);
           return new Response("ok");
         }
+
 
         const pickStudent = async (action: string, prompt: string) => {
           if (students.length === 1) return handleAction(action, students[0], chatId);
