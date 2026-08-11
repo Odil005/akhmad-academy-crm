@@ -261,11 +261,9 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             await reply(chatId, "Telefon raqam noto'g'ri. Qayta urinib ko'ring.", contactPrompt);
             return new Response("ok");
           }
-          const { data: matches } = await supabaseAdmin
-            .from("students")
-            .select("id, first_name, last_name, parent_phone, parent_telegram_chat_id")
-            .not("parent_phone", "is", null);
-          const found = (matches ?? []).filter((s) => normalizePhone(s.parent_phone) === phone);
+          const pool = await candidatePool();
+          const found = pool.filter((s) => phonesOf(s).includes(phone));
+
           if (found.length) {
             await linkAndGreet(chatId, found);
             return new Response("ok");
