@@ -71,7 +71,7 @@ function SearchPage() {
       const { data: studs } = await supabase
         .from("students")
         .select(`
-          id, status_enum, first_name, last_name, parent_phone, parent_full_name, parent_telegram_chat_id,
+          id, status_enum, full_name, first_name, last_name, parent_phone, parent_full_name, parent_telegram_chat_id,
           profile:profiles(full_name, phone),
           group:groups(name, teacher:profiles!groups_teacher_id_fkey(full_name), subject:subjects(name))
         `)
@@ -132,7 +132,7 @@ function SearchPage() {
           <div className="grid gap-3">
             {students.map((r) => {
               const meta = STATUS_META[(r.status_enum ?? "active") as keyof typeof STATUS_META] ?? { label: r.status_enum, bg: "bg-muted" };
-              const name = r.profile?.full_name || `${r.first_name ?? ""} ${r.last_name ?? ""}`.trim() || "—";
+              const name = r.full_name?.trim() || `${r.last_name ?? ""} ${r.first_name ?? ""}`.trim() || r.profile?.full_name || "—";
               return (
                 <Link key={r.id} to="/students/$id" params={{ id: r.id }} className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/50">
                   <div className="flex flex-wrap items-center justify-between gap-3">

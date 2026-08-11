@@ -14,6 +14,9 @@ type Student = {
   id: string;
   status_enum: StudentStatus | null;
   enrolled_at: string;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   parent_full_name: string | null;
   parent_phone: string | null;
   parent_telegram_chat_id: string | null;
@@ -31,9 +34,21 @@ export const Route = createFileRoute("/_authenticated/students")({
   component: StudentsPage,
 });
 
+/** O'quvchi ismi: o'z maydonlari birinchi, profil faqat zaxira. */
+const displayName = (s: {
+  full_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  profile?: { full_name?: string | null } | null;
+}) =>
+  s.full_name?.trim() ||
+  [s.last_name, s.first_name].filter(Boolean).join(" ").trim() ||
+  s.profile?.full_name?.trim() ||
+  "Ismsiz o'quvchi";
+
 const PAGE_SIZES = [25, 50, 100];
 const STUDENT_COLUMNS = `
-  id, status_enum, enrolled_at, parent_full_name, parent_phone, parent_telegram_chat_id, parent_notifications_enabled,
+  id, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, parent_notifications_enabled,
   profile:profiles(full_name, phone),
   group:groups(id, name)
 `;
@@ -185,11 +200,11 @@ function StudentsPage() {
                   <tr key={s.id}>
                     <td className="px-4 py-3 font-medium">
                       <Link to="/students/$id" params={{ id: s.id }} className="text-primary hover:underline">
-                        {s.profile?.full_name || "—"}
+                        {displayName(s)}
                       </Link>
                     </td>
 
-                    <td className="px-4 py-3 text-muted-foreground">{s.profile?.phone || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{s.profile?.phone || s.parent_phone || "—"}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {s.parent_full_name || "—"}<br />
                       <span className="text-xs">{s.parent_phone || ""}</span>
