@@ -13,6 +13,9 @@ type StudentRow = {
   id: string;
   status_enum: StudentStatus | null;
   enrolled_at: string;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   parent_full_name: string | null;
   parent_phone: string | null;
   parent_telegram_chat_id: string | null;
@@ -63,7 +66,7 @@ function StudentProfile() {
     setLoading(true);
     const [{ data: s }, { data: enr }, { data: pays }, { data: gs }] = await Promise.all([
       supabase.from("students").select(`
-        id, status_enum, enrolled_at, parent_full_name, parent_phone, parent_telegram_chat_id, notes,
+        id, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes,
         telegram_chat_id, telegram_username, telegram_verified_at, telegram_last_checked_at, telegram_last_error,
         profile:profiles(id, full_name, phone)
       `).eq("id", id).maybeSingle(),
@@ -114,7 +117,12 @@ function StudentProfile() {
 
   const status = (student.status_enum ?? "active") as StudentStatus;
   const meta = STATUS_META[status];
-  const initials = (student.profile?.full_name || "??").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const studentName =
+    student.full_name?.trim() ||
+    [student.last_name, student.first_name].filter(Boolean).join(" ").trim() ||
+    student.profile?.full_name?.trim() ||
+    "Ismsiz o'quvchi";
+  const initials = (studentName || "??").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   const changeStatus = async (v: StudentStatus) => {
     await supabase.from("students").update({ status_enum: v }).eq("id", id);
@@ -167,7 +175,7 @@ function StudentProfile() {
           <div className="flex items-start gap-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-2xl font-extrabold text-primary">{initials}</div>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-2xl font-extrabold tracking-tight">{student.profile?.full_name || "—"}</h1>
+              <h1 className="truncate text-2xl font-extrabold tracking-tight">{studentName}</h1>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-destructive/40 px-2.5 py-0.5 text-xs font-semibold text-destructive">Baho: 0.00</span>
                 <span className="text-xs text-muted-foreground">ID: {student.id.slice(0, 8)}</span>
