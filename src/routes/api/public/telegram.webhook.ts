@@ -106,9 +106,10 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         const askContact = (chat: number, extra = "") =>
           reply(
             chat,
-            `Assalomu alaykum! Akhmad Academy botiga xush kelibsiz.\n\n${extra}Bog'lanish uchun pastdagi "📱 Telefon raqamni yuborish" tugmasini bosing. Biz uni farzandingiz ma'lumotlariga solishtiramiz va sizni avtomatik ulaymiz.`.trim(),
+            `Assalomu alaykum! Akhmad Academy botiga xush kelibsiz.\n\n${extra}Farzandingizga ulanish uchun 2 yo'l bor:\n\n1️⃣ Pastdagi "📱 Telefon raqamni yuborish" tugmasini bosing — sizni avtomatik ulaymiz.\n2️⃣ Yoki bitta xabarda farzandingizning ism, familiyasi va telefon raqamingizni yozing.\nNamuna: Ali Valiyev +998901234567`.trim(),
             contactPrompt,
           );
+
 
         const linkedStudents = async (chatId: number) => {
           const { data } = await supabaseAdmin
