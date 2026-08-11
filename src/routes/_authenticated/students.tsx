@@ -48,7 +48,7 @@ const displayName = (s: {
 
 const PAGE_SIZES = [25, 50, 100];
 const STUDENT_COLUMNS = `
-  id, status_enum, enrolled_at, full_name, first_name, last_name, parent_phones, parent_full_name, parent_phone, parent_telegram_chat_id, parent_notifications_enabled,
+  id, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, parent_notifications_enabled,
   profile:profiles(full_name, phone),
   group:groups(id, name)
 `;
