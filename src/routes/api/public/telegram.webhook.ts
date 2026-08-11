@@ -144,6 +144,66 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           );
         };
 
+        type Cand = {
+          id: string;
+          first_name: string | null;
+          last_name: string | null;
+          full_name: string | null;
+          parent_phone: string | null;
+          parent_phones: string[] | null;
+          parent_telegram_chat_id: string | null;
+        };
+
+        const candidatePool = async (): Promise<Cand[]> => {
+          const { data } = await supabaseAdmin
+            .from("students")
+            .select("id, first_name, last_name, full_name, parent_phone, parent_phones, parent_telegram_chat_id");
+          return (data ?? []) as Cand[];
+        };
+
+        const phonesOf = (s: Cand) =>
+          [s.parent_phone, ...(s.parent_phones ?? [])].map((p) => normalizePhone(p)).filter(Boolean);
+
+        /**
+         * Free-text onboarding: "Ali Valiyev +998901234567" (any order).
+         * Matches name tokens against student names and the phone against
+         * parent_phone / parent_phones. Returns matched students.
+         */
+        const matchFromText = async (raw: string, knownPhone = ""): Promise<Cand[]> => {
+          const digits = raw.replace(/\D/g, "");
+          const phone = digits.length >= 7 ? digits.slice(-9) : knownPhone;
+          const tokens = raw
+            .replace(/[+\d]/g, " ")
+            .toLowerCase()
+            .split(/\s+/)
+            .map((t) => t.replace(/[^a-zа-яʻʼ'`-]/gi, ""))
+            .filter((t) => t.length >= 3);
+
+          const pool = await candidatePool();
+          const scored = pool
+            .map((s) => {
+              const names = [s.first_name, s.last_name, s.full_name]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase()
+                .split(/\s+/)
+                .filter(Boolean);
+              let nameHits = 0;
+              for (const t of tokens) {
+                if (names.some((n) => n === t || n.startsWith(t) || t.startsWith(n))) nameHits += 1;
+              }
+              const phoneHit = phone ? phonesOf(s).includes(phone) : false;
+              return { s, score: nameHits * 2 + (phoneHit ? 3 : 0), nameHits, phoneHit };
+            })
+            .filter((x) => (x.phoneHit && x.nameHits >= 1) || x.nameHits >= 2 || (x.phoneHit && !tokens.length))
+            .sort((a, b) => b.score - a.score);
+
+          if (!scored.length) return [];
+          const best = scored[0].score;
+          return scored.filter((x) => x.score === best).map((x) => x.s);
+        };
+
+
         // ---------- callback_query (inline buttons) ----------
         if (update.callback_query) {
           const cq = update.callback_query;
