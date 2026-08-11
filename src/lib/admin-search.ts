@@ -39,6 +39,7 @@ export const shortId = (id: string) => `AA-${id.replace(/-/g, "").slice(0, 6).to
 
 export type StudentIndexRow = {
   id: string;
+  full_name: string | null;
   first_name: string | null;
   last_name: string | null;
   parent_full_name: string | null;
@@ -58,10 +59,12 @@ export type StudentIndexRow = {
 };
 
 export const fullName = (r: {
+  full_name?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   profile?: { full_name?: string | null } | null;
 }) =>
+  r.full_name?.trim() ||
   r.profile?.full_name?.trim() ||
   [r.last_name, r.first_name].filter(Boolean).join(" ").trim() ||
   "Ismsiz o'quvchi";
@@ -114,7 +117,7 @@ async function fetchStudentIndex(): Promise<StudentIndexRow[]> {
       supabase
         .from("students")
         .select(
-          "id, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, status_enum, group_id, profile:profiles(full_name, phone, avatar_url)",
+          "id, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, status_enum, group_id, profile:profiles(full_name, phone, avatar_url)",
         )
         .limit(2000),
       supabase.from("student_enrollments").select("student_id, group_id").eq("status", "active").limit(5000),
