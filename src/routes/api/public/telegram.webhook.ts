@@ -288,32 +288,15 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           // Name-based linking after phone mismatch
           if (action === "link") {
             const phone = parts[1] ?? "";
-            const tokens = text.split(/\s+/).filter(Boolean).map((t) => t.toLowerCase());
-            if (tokens.length < 1) {
-              await reply(chatId, "Iltimos, ism va familiyani yozing.");
+            const found = await matchFromText(text, phone);
+            if (!found.length) {
+              await reply(chatId, "❌ Bunday farzand topilmadi. Iltimos, o'quv markazi ma'muriyatiga murojaat qiling — ular sizni ro'yxatga qo'shishadi.");
               return new Response("ok");
             }
-            const { data: candidates } = await supabaseAdmin
-              .from("students")
-              .select("id, first_name, last_name, parent_phone, parent_telegram_chat_id")
-              .not("parent_phone", "is", null);
-            const scored = (candidates ?? []).map((s) => {
-              const fn = (s.first_name ?? "").toLowerCase();
-              const ln = (s.last_name ?? "").toLowerCase();
-              const ph = normalizePhone(s.parent_phone);
-              let score = 0;
-              if (tokens.some((t) => fn && (fn === t || fn.startsWith(t) || t.startsWith(fn)))) score += 2;
-              if (tokens.some((t) => ln && (ln === t || ln.startsWith(t) || t.startsWith(ln)))) score += 2;
-              if (phone && ph === phone) score += 3;
-              return { s, score };
-            }).filter((x) => x.score >= 2).sort((a, b) => b.score - a.score);
-            if (!scored.length) {
-              await reply(chatId, "❌ Bunday farzand topilmadi. Iltimos, o'quv markazi ma'muriyatiga murojaat qiling — ular sizni ro'yxatga qo'shishadi.", mainMenu);
-              return new Response("ok");
-            }
-            await linkAndGreet(chatId, scored.map((x) => x.s));
+            await linkAndGreet(chatId, found);
             return new Response("ok");
           }
+
 
           // Teacher message / meeting
           if (action === "tch" || action === "meet") {
