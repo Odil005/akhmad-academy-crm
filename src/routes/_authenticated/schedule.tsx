@@ -365,10 +365,29 @@ function SchedulePage() {
             </tbody>
           </table>
         </div>
+      ) : view === "week" ? (
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <WeekGrid
+            byDay={byDay}
+            teacherName={teacherName}
+            rateOf={rateOf}
+            isStaff={isStaff}
+            onRemove={remove}
+            subjects={subjects}
+          />
+          <SchedulePanel
+            byDay={byDay}
+            teacherName={teacherName}
+            groups={groups}
+            countByGroup={countByGroup}
+            subjects={subjects}
+            lessons={filtered}
+          />
+        </div>
       ) : (
-        <div className={`grid grid-cols-1 gap-3 ${view === "week" ? "md:grid-cols-2 xl:grid-cols-7" : ""}`}>
-          {(view === "day" ? [DAYS_FULL[dayView - 1]!] : DAYS_FULL).map((label, idx) => {
-            const d = view === "day" ? dayView : idx + 1;
+        <div className="grid grid-cols-1 gap-3">
+          {[DAYS_FULL[dayView - 1]!].map((label) => {
+            const d = dayView;
             const items = byDay[d] ?? [];
             const isToday = d === ((new Date().getDay() + 6) % 7) + 1;
             return (
@@ -424,6 +443,7 @@ function SchedulePage() {
           })}
         </div>
       )}
+
 
 
       <BirthdayReminders days={3} />
