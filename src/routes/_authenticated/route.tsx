@@ -46,6 +46,11 @@ function AuthenticatedLayout() {
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const isStaff = roles.includes("director") || roles.includes("admin");
+  const isAdmin = roles.includes("admin");
+  const isDirector = roles.includes("director");
+  const isTeacher = roles.includes("teacher");
+  const canSeeGroups = isStaff || isTeacher;
 
   useEffect(() => {
     supabase
@@ -70,12 +75,6 @@ function AuthenticatedLayout() {
     const timer = window.setTimeout(warmRoutes, 250);
     return () => window.clearTimeout(timer);
   }, [isStaff, router]);
-
-  const isStaff = roles.includes("director") || roles.includes("admin");
-  const isAdmin = roles.includes("admin");
-  const isDirector = roles.includes("director");
-  const isTeacher = roles.includes("teacher");
-  const canSeeGroups = isStaff || isTeacher;
 
   const nav: NavItem[] = [
     { to: "/teacher-panel", label: "O'qituvchi paneli", icon: Users, show: isTeacher },
