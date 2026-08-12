@@ -77,15 +77,14 @@ function StudentsPage() {
   useEffect(() => { setPage(0); }, [statusFilter, pageSize]);
 
   /** Server-side page load: only the visible rows are fetched. */
-  const load = async () => {
+  const load = async (signal?: AbortSignal) => {
     setLoading(true);
-    const controller = new AbortController();
     let q = supabase
       .from("students")
       .select(STUDENT_COLUMNS, { count: "exact" })
       .order("enrolled_at", { ascending: false })
       .range(page * pageSize, page * pageSize + pageSize - 1)
-      .abortSignal(controller.signal);
+      .abortSignal(signal ?? new AbortController().signal);
     if (statusFilter) q = q.eq("status_enum", statusFilter);
     if (search) {
       const like = `%${search}%`;
@@ -93,14 +92,22 @@ function StudentsPage() {
         `first_name.ilike.${like},last_name.ilike.${like},full_name.ilike.${like},parent_full_name.ilike.${like},parent_phone.ilike.${like}`,
       );
     }
-    const { data: s, count } = await q;
+    const { data: s, count, error } = await q;
+    if (signal?.aborted) return;
+    if (error) {
+      setLoading(false);
+      return;
+    }
     setStudents((s as never) ?? []);
     setTotal(count ?? 0);
     setLoading(false);
-    return () => controller.abort();
   };
 
-  useEffect(() => { load(); }, [page, pageSize, statusFilter, search]);
+  useEffect(() => {
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  }, [page, pageSize, statusFilter, search]);
 
   useEffect(() => {
     supabase.from("groups").select("id, name").order("name").then(({ data }) => setGroups(data ?? []));

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { ChevronDown, LogOut, LayoutDashboard, Users, BookOpen, CreditCard, Menu, X, Settings, ShoppingBag, Smile, Search, Wallet, CalendarDays, ClipboardCheck, DoorOpen, BarChart3, Phone, ScanFace, GraduationCap, Inbox, Upload, MessageSquare, DollarSign } from "lucide-react";
@@ -9,9 +9,20 @@ const logoAsset = { url: "/logo-256.webp" };
 
 type Role = "director" | "admin" | "teacher" | "student";
 
+type AuthSnapshot = {
+  user: Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"];
+  roles: Role[];
+  expiresAt: number;
+};
+
+let authSnapshot: AuthSnapshot | null = null;
+
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
+    if (authSnapshot?.user && authSnapshot.expiresAt > Date.now()) {
+      return { user: authSnapshot.user, roles: authSnapshot.roles };
+    }
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) throw redirect({ to: "/auth" });
     const { data: roleRows } = await supabase
@@ -19,6 +30,7 @@ export const Route = createFileRoute("/_authenticated")({
       .select("role")
       .eq("user_id", data.user.id);
     const roles = (roleRows ?? []).map((r) => r.role as Role);
+    authSnapshot = { user: data.user, roles, expiresAt: Date.now() + 5 * 60_000 };
     return { user: data.user, roles };
   },
   component: AuthenticatedLayout,
@@ -29,10 +41,16 @@ type NavItem = { to: string; label: string; icon: React.ComponentType<{ classNam
 function AuthenticatedLayout() {
   const { user, roles } = Route.useRouteContext();
   const navigate = useNavigate();
+  const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const isStaff = roles.includes("director") || roles.includes("admin");
+  const isAdmin = roles.includes("admin");
+  const isDirector = roles.includes("director");
+  const isTeacher = roles.includes("teacher");
+  const canSeeGroups = isStaff || isTeacher;
 
   useEffect(() => {
     supabase
@@ -47,11 +65,16 @@ function AuthenticatedLayout() {
     setOpen(false);
   }, [pathname]);
 
-  const isStaff = roles.includes("director") || roles.includes("admin");
-  const isAdmin = roles.includes("admin");
-  const isDirector = roles.includes("director");
-  const isTeacher = roles.includes("teacher");
-  const canSeeGroups = isStaff || isTeacher;
+  useEffect(() => {
+    if (!isStaff) return;
+    const warmRoutes = () => {
+      void router.preloadRoute({ to: "/students" });
+      void router.preloadRoute({ to: "/schedule" });
+      void router.preloadRoute({ to: "/finance" });
+    };
+    const timer = window.setTimeout(warmRoutes, 250);
+    return () => window.clearTimeout(timer);
+  }, [isStaff, router]);
 
   const nav: NavItem[] = [
     { to: "/teacher-panel", label: "O'qituvchi paneli", icon: Users, show: isTeacher },
@@ -86,6 +109,7 @@ function AuthenticatedLayout() {
   const moreNav = adminSimplified ? visibleNav.filter((n) => !ADMIN_PRIMARY.includes(n.to)) : [];
 
   const signOut = async () => {
+    authSnapshot = null;
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
