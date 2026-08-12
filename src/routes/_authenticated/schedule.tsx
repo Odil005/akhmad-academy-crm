@@ -112,7 +112,7 @@ function SchedulePage() {
       .from("students")
       .select("id, full_name, first_name, last_name, group_id, lesson_time, schedule_raw, parent_phone, birth_date, group:groups(name)")
       .order("full_name")
-      .limit(1000);
+      .limit(300);
     setStudents(
       ((st as any[]) ?? []).map((r) => ({
         id: r.id,
@@ -175,6 +175,9 @@ function SchedulePage() {
         (!q || s.name.toLowerCase().includes(q) || (s.parent_phone ?? "").includes(q)),
     );
   }, [students, studentGroupFilter, studentQuery]);
+
+  // Keep this secondary table light so it cannot block route navigation.
+  const renderedStudents = useMemo(() => visibleStudents.slice(0, 100), [visibleStudents]);
 
   const rateOf = (lessonId: string): number | null => {
     const a = attByLesson.get(lessonId);
@@ -459,7 +462,7 @@ function SchedulePage() {
             <tbody>
               {visibleStudents.length === 0 ? (
                 <tr><td colSpan={6} className="px-3 py-6 text-center text-xs text-muted-foreground">O'quvchi topilmadi</td></tr>
-              ) : visibleStudents.map((s, i) => (
+              ) : renderedStudents.map((s, i) => (
                 <tr key={s.id} className="border-t border-border">
                   <td className="px-3 py-1.5 text-xs text-muted-foreground">{i + 1}</td>
                   <td className="px-3 py-1.5 font-medium">
@@ -474,6 +477,11 @@ function SchedulePage() {
             </tbody>
           </table>
         </div>
+        {visibleStudents.length > renderedStudents.length && (
+          <div className="border-t border-border px-3 py-2 text-center text-xs text-muted-foreground">
+            Birinchi {renderedStudents.length} ta ko‘rsatildi. To‘liq ro‘yxat O‘quvchilar bo‘limida.
+          </div>
+        )}
       </div>
 
       {open && (
