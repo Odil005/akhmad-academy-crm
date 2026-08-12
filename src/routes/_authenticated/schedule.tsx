@@ -748,3 +748,274 @@ function AttBar({ rate }: { rate: number | null }) {
     </div>
   );
 }
+
+/* ---------------- Weekly time-grid calendar ---------------- */
+
+const GRID_DAYS = [1, 2, 3, 4, 5, 6];
+const HOUR_H = 62;
+
+function toMin(t: string) {
+  const [h, m] = t.slice(0, 5).split(":");
+  return Number(h) * 60 + Number(m);
+}
+
+function subjectTone(subjects: Ref[], subjectId: string | null) {
+  const i = subjectId ? Math.max(0, subjects.findIndex((s) => s.id === subjectId)) : 0;
+  return `var(--chart-${(i % 5) + 1})`;
+}
+
+function weekDates() {
+  const now = new Date();
+  const mondayOffset = (now.getDay() + 6) % 7;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - mondayOffset);
+  return GRID_DAYS.map((_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+}
+
+const MONTHS_UZ = ["yan", "fev", "mar", "apr", "may", "iyun", "iyul", "avg", "sen", "okt", "noy", "dek"];
+
+function WeekGrid({
+  byDay, teacherName, rateOf, isStaff, onRemove, subjects,
+}: {
+  byDay: Record<number, Lesson[]>;
+  teacherName: (id: string | null) => string;
+  rateOf: (id: string) => number | null;
+  isStaff: boolean;
+  onRemove: (id: string) => void;
+  subjects: Ref[];
+}) {
+  const all = GRID_DAYS.flatMap((d) => byDay[d] ?? []);
+  const startHour = all.length ? Math.max(6, Math.min(...all.map((l) => Math.floor(toMin(l.start_time) / 60)))) : 8;
+  const endHour = all.length ? Math.min(23, Math.max(...all.map((l) => Math.ceil(toMin(l.end_time) / 60))) + 1) : 21;
+  const hours = Array.from({ length: Math.max(1, endHour - startHour) }, (_, i) => startHour + i);
+  const dates = weekDates();
+  const todayIdx = (new Date().getDay() + 6) % 7;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="grid grid-cols-[64px_repeat(6,minmax(0,1fr))] border-b border-border">
+        <div />
+        {GRID_DAYS.map((d, i) => (
+          <div
+            key={d}
+            className={`border-l border-border px-2 py-3 text-center ${i === todayIdx ? "bg-primary/5" : ""}`}
+          >
+            <div className="text-xs font-bold sm:text-sm">{DAYS_FULL[d - 1]}</div>
+            <div className={`text-[11px] font-semibold ${i === todayIdx ? "text-primary" : "text-muted-foreground"}`}>
+              {dates[i]!.getDate()} {MONTHS_UZ[dates[i]!.getMonth()]}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="relative grid min-w-[720px] grid-cols-[64px_repeat(6,minmax(0,1fr))]">
+          {/* time axis */}
+          <div className="relative">
+            {hours.map((h) => (
+              <div key={h} className="relative" style={{ height: HOUR_H }}>
+                <span className="absolute -top-2 right-2 text-[11px] font-medium text-muted-foreground">
+                  {String(h).padStart(2, "0")}:00
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {GRID_DAYS.map((d, i) => {
+            const items = (byDay[d] ?? []).slice().sort((a, b) => a.start_time.localeCompare(b.start_time));
+            return (
+              <div
+                key={d}
+                className={`relative border-l border-border ${i === todayIdx ? "bg-primary/[0.03]" : ""}`}
+                style={{ height: hours.length * HOUR_H }}
+              >
+                {hours.map((h) => (
+                  <div key={h} className="border-b border-border/50" style={{ height: HOUR_H }} />
+                ))}
+                {items.map((l) => {
+                  const top = ((toMin(l.start_time) - startHour * 60) / 60) * HOUR_H;
+                  const height = Math.max(46, ((toMin(l.end_time) - toMin(l.start_time)) / 60) * HOUR_H - 4);
+                  const tone = subjectTone(subjects, l.subject_id);
+                  const rate = rateOf(l.id);
+                  return (
+                    <div
+                      key={l.id}
+                      className="group absolute left-1 right-1 overflow-hidden rounded-lg border p-2 text-[11px] shadow-sm transition hover:z-10 hover:shadow-md"
+                      style={{
+                        top,
+                        height,
+                        borderColor: `color-mix(in oklab, ${tone} 45%, transparent)`,
+                        background: `color-mix(in oklab, ${tone} 10%, var(--card))`,
+                      }}
+                    >
+                      <div className="flex items-start gap-1">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-bold" style={{ color: tone }}>
+                            {l.subject?.name ?? "Fan"}{l.group?.name ? ` — ${l.group.name}` : ""}
+                          </div>
+                          <div className="truncate text-muted-foreground">{teacherName(l.teacher_user_id)}</div>
+                          {l.room?.name && (
+                            <div className="truncate text-muted-foreground">◎ {l.room.name}</div>
+                          )}
+                          <div className="truncate font-mono text-muted-foreground">
+                            {l.start_time.slice(0, 5)} – {l.end_time.slice(0, 5)}
+                          </div>
+                          {rate !== null && (
+                            <div className="mt-1 flex items-center gap-1">
+                              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                <span
+                                  className={`block h-full rounded-full ${rate >= 85 ? "bg-emerald-500" : rate >= 65 ? "bg-amber-500" : "bg-red-500"}`}
+                                  style={{ width: `${rate}%` }}
+                                />
+                              </span>
+                              <span className="font-semibold text-muted-foreground">{rate}%</span>
+                            </div>
+                          )}
+                          {rate === null && (
+                            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600">
+                              Davomat kutilmoqda
+                            </div>
+                          )}
+                        </div>
+                        {isStaff && (
+                          <button
+                            onClick={() => onRemove(l.id)}
+                            className="text-destructive opacity-0 transition-opacity group-hover:opacity-70"
+                            title="O'chirish"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SchedulePanel({
+  byDay, teacherName, groups, countByGroup, subjects, lessons,
+}: {
+  byDay: Record<number, Lesson[]>;
+  teacherName: (id: string | null) => string;
+  groups: Ref[];
+  countByGroup: Map<string, number>;
+  subjects: Ref[];
+  lessons: Lesson[];
+}) {
+  const today = ((new Date().getDay() + 6) % 7) + 1;
+  const items = (byDay[today] ?? []).slice().sort((a, b) => a.start_time.localeCompare(b.start_time));
+  const now = new Date();
+
+  const bySubject = useMemo(() => {
+    const m = new Map<string, Set<string>>();
+    for (const l of lessons) {
+      const key = l.subject_id ?? "none";
+      if (!m.has(key)) m.set(key, new Set());
+      m.get(key)!.add(l.group_id);
+    }
+    return Array.from(m.entries())
+      .map(([id, set]) => ({
+        id,
+        name: subjects.find((s) => s.id === id)?.name ?? "Fan tanlanmagan",
+        tone: subjectTone(subjects, id === "none" ? null : id),
+        count: set.size,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [lessons, subjects]);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-border bg-card">
+        <div className="flex items-start justify-between gap-2 border-b border-border p-4">
+          <div>
+            <div className="text-sm font-bold">Bugungi darslar</div>
+            <div className="text-xs text-muted-foreground">
+              {now.getDate()} {MONTHS_UZ[now.getMonth()]}, {DAYS_FULL[today - 1]!.toLowerCase()}
+            </div>
+          </div>
+          <CalendarDays className="h-4 w-4 text-primary" />
+        </div>
+        <ul className="divide-y divide-border">
+          {items.length === 0 ? (
+            <li className="p-4 text-xs text-muted-foreground">Bugun dars yo'q</li>
+          ) : items.map((l) => (
+            <li key={l.id} className="flex items-start gap-2 p-4">
+              <span
+                className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                style={{ background: subjectTone(subjects, l.subject_id) }}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">
+                  {l.subject?.name ?? "Fan"}{l.group?.name ? ` — ${l.group.name}` : ""}
+                </div>
+                <div className="font-mono text-xs text-muted-foreground">
+                  {l.start_time.slice(0, 5)} – {l.end_time.slice(0, 5)}
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-xs text-muted-foreground">{teacherName(l.teacher_user_id)}</span>
+                  {l.room?.name && (
+                    <span className="shrink-0 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-medium">
+                      {l.room.name}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card">
+        <div className="flex items-center justify-between border-b border-border p-4">
+          <div className="text-sm font-bold">Guruhlar jami</div>
+          <div className="text-2xl font-extrabold text-primary">{groups.length}</div>
+        </div>
+        <ul className="divide-y divide-border">
+          {bySubject.length === 0 ? (
+            <li className="p-4 text-xs text-muted-foreground">Ma'lumot yo'q</li>
+          ) : bySubject.map((s) => (
+            <li key={s.id} className="flex items-center gap-2 px-4 py-2.5">
+              <span
+                className="h-6 w-6 shrink-0 rounded-md"
+                style={{ background: `color-mix(in oklab, ${s.tone} 25%, transparent)`, border: `1px solid color-mix(in oklab, ${s.tone} 50%, transparent)` }}
+              />
+              <span className="min-w-0 flex-1 truncate text-sm">{s.name}</span>
+              <span className="text-sm font-bold">{s.count}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="border-t border-border p-3">
+          <Link
+            to="/groups"
+            className="flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary"
+          >
+            Batafsil ko'rish →
+          </Link>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="mb-2 text-sm font-bold">O'quvchilar (guruh bo'yicha)</div>
+        <ul className="max-h-56 space-y-1 overflow-auto text-xs">
+          {groups.map((g) => (
+            <li key={g.id} className="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-muted/50">
+              <span className="truncate">{g.name}</span>
+              <span className="font-semibold text-primary">{countByGroup.get(g.id) ?? 0}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
