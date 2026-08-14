@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Bot, Mic, MicOff, Send, X, Loader2, Volume2, VolumeX } from "lucide-react";
+import { Bot, Mic, MicOff, RotateCcw, Send, X, Loader2, Volume2, VolumeX } from "lucide-react";
 import { jarvisChat, jarvisTranscribe, jarvisSpeak } from "@/lib/jarvis.functions";
 
 type RouteIntent = { to: string; label: string; keywords: string[] };
@@ -81,6 +81,13 @@ function detectRoute(text: string): RouteIntent | null {
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+const CHAT_STORAGE_KEY = "unicrm:jarvis:conversation";
+const WELCOME_MESSAGE: Msg = {
+  role: "assistant",
+  content:
+    "Assalomu alaykum! Men Jarvisman. Siz bilan oddiy suhbatlashaman, savollaringizni tushuntiraman va ruxsatingiz doirasida CRM ishlarini ham bajaraman. Bugun nimadan boshlaymiz?",
+};
+
 export function Jarvis() {
   const chat = useServerFn(jarvisChat);
   const transcribe = useServerFn(jarvisTranscribe);
@@ -88,13 +95,8 @@ export function Jarvis() {
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
-  const [msgs, setMsgs] = useState<Msg[]>([
-    {
-      role: "assistant",
-      content:
-        "Assalomu alaykum, men Jarvis — CRM yordamchingiz. O'quvchi, xabarlar, to'lov, davomat yoki tizim holatini so'rang. Aniq buyruq bersangiz ruxsat doirasida amalni ham bajaraman.",
-    },
-  ]);
+  const [msgs, setMsgs] = useState<Msg[]>([WELCOME_MESSAGE]);
+  const [historyReady, setHistoryReady] = useState(false);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -103,6 +105,35 @@ export function Jarvis() {
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(CHAT_STORAGE_KEY);
+      const parsed = stored ? (JSON.parse(stored) as unknown) : null;
+      if (
+        Array.isArray(parsed) &&
+        parsed.length > 0 &&
+        parsed.every(
+          (message) =>
+            typeof message === "object" &&
+            message !== null &&
+            ["user", "assistant"].includes(String((message as Msg).role)) &&
+            typeof (message as Msg).content === "string",
+        )
+      ) {
+        setMsgs((parsed as Msg[]).slice(-40));
+      }
+    } catch {
+      sessionStorage.removeItem(CHAT_STORAGE_KEY);
+    } finally {
+      setHistoryReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!historyReady) return;
+    sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(msgs.slice(-40)));
+  }, [historyReady, msgs]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -209,6 +240,12 @@ export function Jarvis() {
     setRecording(false);
   };
 
+  const clearConversation = () => {
+    audioRef.current?.pause();
+    sessionStorage.removeItem(CHAT_STORAGE_KEY);
+    setMsgs([WELCOME_MESSAGE]);
+  };
+
   return (
     <>
       {!open && (
@@ -232,9 +269,17 @@ export function Jarvis() {
             <div className="min-w-0 flex-1">
               <div className="text-sm font-bold">Jarvis</div>
               <div className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
-                Online · AI boshqaruv yordamchisi
+                Tayyor · AI boshqaruv yordamchisi
               </div>
             </div>
+            <button
+              onClick={clearConversation}
+              disabled={busy}
+              className="rounded-lg border border-border p-1.5 hover:bg-muted disabled:opacity-50"
+              title="Yangi suhbat"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
             <button
               onClick={() => setVoiceOn((v) => !v)}
               className="rounded-lg border border-border p-1.5 hover:bg-muted"
@@ -273,8 +318,8 @@ export function Jarvis() {
             ))}
             {busy && (
               <div className="flex justify-start">
-                <div className="rounded-2xl bg-muted px-3 py-2 text-sm">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                <div className="flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Jarvis o'ylayapti...
                 </div>
               </div>
             )}

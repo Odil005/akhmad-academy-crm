@@ -9,7 +9,7 @@ O'quvchilar, o'qituvchilar, guruhlar, davomat, to'lovlar, moliya va hisobotlarni
 - Guruhlar, dars jadvali va davomat
 - To'lovlar, qarzdorlik va moliya hisoboti
 - Ota-onalarga xabarlar va Telegram integratsiyasi
-- Jarvis AI: tizim tahlili, ota-ona xabarlari va xavfsiz navbat ta'miri
+- Jarvis AI: tabiiy suhbat, suhbat xotirasi, tizim tahlili, ota-ona xabarlari va xavfsiz navbat ta'miri
 - Excel import/eksport
 - Vercel deploy uchun tayyor konfiguratsiya
 - Tezkor jadval, rollar va video darslar uchun bazadagi himoya
