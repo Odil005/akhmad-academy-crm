@@ -34,6 +34,15 @@ Telegram bot uchun undan keyin `supabase/migrations/20260814100000_telegram_bot_
 
 Jarvis va dars faolligi bo'yicha ota-ona xabarlari uchun oxirida `supabase/migrations/20260814110000_jarvis_parent_automation.sql` faylini ishga tushiring. Vercel Environment Variables bo'limida `LOVABLE_API_KEY` bo'lmasa Jarvisning AI savol-javob, ovoz va tool amallari ishlamaydi.
 
+Jarvis orqali GitHub'da yangi funksiya vazifasi va avtomatik pull request yaratish uchun eng oxirida `supabase/migrations/20260814190000_jarvis_github_requests.sql` migratsiyasini ishga tushiring. Vercel Environment Variables ichida quyidagilarni kiriting:
+
+- `GITHUB_JARVIS_TOKEN` — faqat shu repository uchun fine-grained token; Metadata read hamda Actions, Contents, Issues va Pull requests read/write;
+- `GITHUB_JARVIS_REPOSITORY=Odil005/akhmad-academy-crm`;
+- `GITHUB_JARVIS_BASE_BRANCH=main`;
+- `GITHUB_JARVIS_AUTO_CODE=true` — pull requestni GitHub Copilot coding agent tayyorlashi uchun.
+
+Bu imkoniyat faqat `admin` roliga ochiq. Jarvis issue/branch/pull request yaratadi, lekin `main` branchga avtomatik merge qilmaydi. GitHub Copilot coding agent uchun GitHub akkauntida pullik Copilot rejasi va repositoryda agent yoqilgan bo'lishi kerak.
+
 ## Deploydan keyingi majburiy tekshiruv
 
 1. `/auth` orqali administrator hisobiga kiring.

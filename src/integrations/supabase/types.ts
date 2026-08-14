@@ -824,6 +824,48 @@ export type Database = {
           },
         ];
       };
+      jarvis_github_requests: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          error: string | null;
+          github_external_id: string | null;
+          github_issue_number: number | null;
+          github_url: string | null;
+          id: string;
+          repository: string;
+          request_text: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          actor_user_id: string;
+          created_at?: string;
+          error?: string | null;
+          github_external_id?: string | null;
+          github_issue_number?: number | null;
+          github_url?: string | null;
+          id?: string;
+          repository: string;
+          request_text: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          actor_user_id?: string;
+          created_at?: string;
+          error?: string | null;
+          github_external_id?: string | null;
+          github_issue_number?: number | null;
+          github_url?: string | null;
+          id?: string;
+          repository?: string;
+          request_text?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       leads: {
         Row: {
           course: string | null;

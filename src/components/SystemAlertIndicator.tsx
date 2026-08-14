@@ -178,7 +178,7 @@ export function SystemAlertIndicator() {
           </div>
 
           <footer className="border-t border-border px-4 py-2.5 text-center text-[10px] text-muted-foreground">
-            Har 2 daqiqada avtomatik tekshiriladi
+            Har 2 daqiqada tekshiriladi · xavfsiz navbatlarni Jarvis avtomatik tiklaydi
           </footer>
         </section>
       )}

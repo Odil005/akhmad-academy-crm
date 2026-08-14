@@ -1,5 +1,10 @@
+import { isGitHubChangeCommand } from "./github";
+
 export type JarvisRole = "director" | "admin" | "teacher" | "student";
-export type DirectJarvisIntent = "unread_messages" | "system_health" | "repair_queues";
+export type DirectJarvisIntent =
+  "unread_messages" | "system_health" | "repair_queues" | "github_change_request";
+
+const ADMIN_ONLY_TOOLS = new Set(["create_github_change_request"]);
 
 const MANAGER_TOOLS = new Set([
   "search_students",
@@ -23,6 +28,7 @@ const MUTATING_TOOLS = new Set([
   "assign_teacher_to_group",
   "send_parent_message",
   "repair_system_queues",
+  "create_github_change_request",
 ]);
 
 export function isJarvisMutatingTool(tool: string): boolean {
@@ -32,6 +38,7 @@ export function isJarvisMutatingTool(tool: string): boolean {
 export function canUseJarvisTool(roles: JarvisRole[], tool: string): boolean {
   const isManager = roles.includes("director") || roles.includes("admin");
   const isTeacher = roles.includes("teacher");
+  if (ADMIN_ONLY_TOOLS.has(tool)) return roles.includes("admin");
   if (MANAGER_TOOLS.has(tool)) return isManager;
   if (tool === "send_parent_message") return isManager || isTeacher;
   return isManager || isTeacher;
@@ -44,6 +51,9 @@ export function isExplicitJarvisAction(text: string, tool: string): boolean {
   }
   if (tool === "repair_system_queues") {
     return /(tuzat|tikla|qayta urin|qayta yubor|repair|fix)/i.test(normalized);
+  }
+  if (tool === "create_github_change_request") {
+    return isGitHubChangeCommand(normalized);
   }
   return /(yarat|qo['‘’`]?sh|biriktir|tayinla|saqla)/i.test(normalized);
 }
@@ -61,6 +71,7 @@ export function getDirectJarvisIntent(text: string): DirectJarvisIntent | null {
   if (/(xabar|telegram).*(bormi|kelgan|keldi|tekshir)/i.test(normalized)) {
     return "unread_messages";
   }
+  if (isGitHubChangeCommand(normalized)) return "github_change_request";
   return null;
 }
 

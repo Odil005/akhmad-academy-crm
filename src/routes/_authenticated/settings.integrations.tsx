@@ -10,9 +10,11 @@ import {
   Link as LinkIcon,
   ShieldCheck,
   TriangleAlert,
+  Github,
 } from "lucide-react";
 import { sendParentTelegram } from "@/lib/notifications.functions";
 import { setTelegramWebhook, getTelegramBotInfo } from "@/lib/telegram-admin.functions";
+import { getGitHubAutomationStatus } from "@/lib/github-automation.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/integrations")({
   component: IntegrationsSettings,
@@ -115,8 +117,92 @@ function IntegrationsSettings() {
       </div>
 
       <TelegramWebhookCard />
+      <GitHubAutomationCard />
       <CronReminderCard />
       <TelegramTestCard />
+    </div>
+  );
+}
+
+function GitHubAutomationCard() {
+  type Status = Awaited<ReturnType<typeof getGitHubAutomationStatus>>;
+  const fetchStatus = useServerFn(getGitHubAutomationStatus);
+  const [status, setStatus] = useState<Status | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      setStatus(await fetchStatus());
+    } catch (error) {
+      setStatus({
+        allowed: true,
+        configured: false,
+        connected: false,
+        repository: "",
+        baseBranch: "main",
+        autoCode: false,
+        error: error instanceof Error ? error.message : "GitHub tekshiruvida xato",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void refresh();
+    // Server function identity is stable for this mounted card.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (status && !status.allowed) return null;
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="mb-3 flex items-center gap-2">
+        <Github className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-bold">Jarvis × GitHub</h3>
+        <span className="rounded bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase">
+          faqat admin
+        </span>
+      </div>
+
+      <div className="rounded-lg border border-border bg-background p-3 text-xs">
+        {loading || status === null ? (
+          <div className="text-muted-foreground">Ulanish tekshirilmoqda...</div>
+        ) : status.connected ? (
+          <div className="flex items-center gap-1.5 text-emerald-600">
+            <ShieldCheck className="h-4 w-4" /> GitHub ulangan — {status.repository}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-amber-600">
+            <TriangleAlert className="h-4 w-4" /> {status.error || "GitHub ulanmagan"}
+          </div>
+        )}
+        {status?.configured && (
+          <div className="mt-2 text-muted-foreground">
+            Asosiy branch: <b>{status.baseBranch}</b> · avtomatik kodlash:{" "}
+            <b>{status.autoCode ? "yoqilgan" : "o'chirilgan"}</b>
+          </div>
+        )}
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">
+        Vercel Environment Variables ichiga <code>GITHUB_JARVIS_TOKEN</code> kiriting. Token faqat
+        tanlangan repository uchun Actions, Contents, Issues va Pull requests yozish huquqiga ega
+        bo'lsin. So'ng Jarvisga masalan: <b>“Dashboardga yangi grafik qo'sh”</b> deb yozing. Jarvis
+        GitHub vazifasini yaratadi, kod alohida branch va pull requestda tayyorlanadi; main
+        avtomatik birlashtirilmaydi.
+      </p>
+
+      <button
+        type="button"
+        onClick={() => void refresh()}
+        disabled={loading}
+        className="mt-3 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+      >
+        {loading ? "Tekshirilmoqda..." : "Ulanishni tekshirish"}
+      </button>
     </div>
   );
 }

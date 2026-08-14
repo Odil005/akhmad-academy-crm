@@ -11,6 +11,8 @@ describe("Jarvis action safety", () => {
   it("manager can repair queues but teacher cannot", () => {
     expect(canUseJarvisTool(["admin"], "repair_system_queues")).toBe(true);
     expect(canUseJarvisTool(["teacher"], "repair_system_queues")).toBe(false);
+    expect(canUseJarvisTool(["admin"], "create_github_change_request")).toBe(true);
+    expect(canUseJarvisTool(["director"], "create_github_change_request")).toBe(false);
   });
 
   it("teacher can send only the parent-message tool", () => {
@@ -35,6 +37,9 @@ describe("Jarvis action safety", () => {
     expect(getDirectJarvisIntent("Xabar bormi?")).toBe("unread_messages");
     expect(getDirectJarvisIntent("Tizimni tekshir")).toBe("system_health");
     expect(getDirectJarvisIntent("Tizim navbatlarini tuzat")).toBe("repair_queues");
+    expect(getDirectJarvisIntent("GitHubga yangi hisobot filtri qo'sh")).toBe(
+      "github_change_request",
+    );
     expect(getDirectJarvisIntent("Bugun qanday ishlaymiz?")).toBeNull();
   });
 
