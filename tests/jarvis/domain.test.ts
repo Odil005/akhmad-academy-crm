@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   canUseJarvisTool,
   getDirectJarvisIntent,
+  getLocalJarvisReply,
   isExplicitJarvisAction,
   isJarvisMutatingTool,
 } from "../../src/features/jarvis/domain";
@@ -35,5 +36,11 @@ describe("Jarvis action safety", () => {
     expect(getDirectJarvisIntent("Tizimni tekshir")).toBe("system_health");
     expect(getDirectJarvisIntent("Tizim navbatlarini tuzat")).toBe("repair_queues");
     expect(getDirectJarvisIntent("Bugun qanday ishlaymiz?")).toBeNull();
+  });
+
+  it("answers basic conversation before an AI provider is configured", () => {
+    expect(getLocalJarvisReply("Salom Jarvis")).toContain("Assalomu alaykum");
+    expect(getLocalJarvisReply("Rahmat")).toContain("Arzimaydi");
+    expect(getLocalJarvisReply("Bugungi qarzdorlarni tahlil qil")).toBeNull();
   });
 });

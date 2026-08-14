@@ -63,3 +63,17 @@ export function getDirectJarvisIntent(text: string): DirectJarvisIntent | null {
   }
   return null;
 }
+
+export function getLocalJarvisReply(text: string): string | null {
+  const normalized = text.toLocaleLowerCase("uz-UZ").replaceAll("’", "'").trim();
+  if (/^(salom|assalomu alaykum|assalom|hello|hi)(\s+jarvis)?[!.?]*$/i.test(normalized)) {
+    return "Assalomu alaykum! Yaxshimisiz? Men tayyorman — savolingizni yozing yoki CRM bo'yicha vazifa bering.";
+  }
+  if (/^(rahmat|katta rahmat|tashakkur)[!.?]*$/i.test(normalized)) {
+    return "Arzimaydi! Yana nima yordam kerak?";
+  }
+  if (/(sen kimsan|isming nima|o'zing kimsan|nima qila olasan)/i.test(normalized)) {
+    return "Men Jarvisman — UNICRM ichidagi AI yordamchi. Savollarga javob beraman, tizim holatini tekshiraman, ma'lumotlarni topaman va ruxsat berilgan CRM ishlarini bajaraman.";
+  }
+  return null;
+}

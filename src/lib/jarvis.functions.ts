@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   canUseJarvisTool,
   getDirectJarvisIntent,
+  getLocalJarvisReply,
   isExplicitJarvisAction,
   isJarvisMutatingTool,
   type JarvisRole,
@@ -873,12 +874,15 @@ export const jarvisChat = createServerFn({ method: "POST" })
       };
     }
 
+    const localReply = getLocalJarvisReply(lastUser);
+    if (localReply) return { reply: localReply };
+
     const key = process.env.LOVABLE_API_KEY;
     if (!key) {
-      throw new Response(
-        "Jarvisning erkin AI savol-javobi uchun Vercel'da LOVABLE_API_KEY ni kiriting",
-        { status: 503 },
-      );
+      return {
+        reply:
+          "Bu savolga erkin AI javobi uchun LOVABLE_API_KEY hali ulanmagan. Hozircha “Xabar bormi?”, “Tizimni tekshir” yoki bo'limni ochish buyruqlaridan foydalanishingiz mumkin.",
+      };
     }
 
     const ctx = await getContextCached(context.supabase, context.userId, roles);

@@ -183,7 +183,7 @@ export function Jarvis() {
       const r = await chat({
         data: { messages: next.map((m) => ({ role: m.role, content: m.content })) },
       });
-      const reply = r.reply || "...";
+      const reply = r.reply || "Jarvis bo'sh javob qaytardi. AI sozlamalarini tekshirish kerak.";
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
       if (r.navigate) {
         try {
