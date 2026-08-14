@@ -13,6 +13,8 @@ describe("Jarvis action safety", () => {
     expect(canUseJarvisTool(["teacher"], "repair_system_queues")).toBe(false);
     expect(canUseJarvisTool(["admin"], "create_github_change_request")).toBe(true);
     expect(canUseJarvisTool(["director"], "create_github_change_request")).toBe(false);
+    expect(canUseJarvisTool(["admin"], "update_system_setting")).toBe(true);
+    expect(canUseJarvisTool(["director"], "update_system_setting")).toBe(false);
   });
 
   it("teacher can send only the parent-message tool", () => {
@@ -26,6 +28,15 @@ describe("Jarvis action safety", () => {
       isExplicitJarvisAction("Alining ota-onasi haqida nima deysan?", "send_parent_message"),
     ).toBe(false);
     expect(isExplicitJarvisAction("Tizim xatolarini tuzat", "repair_system_queues")).toBe(true);
+    expect(
+      isExplicitJarvisAction(
+        "Bosh sahifa o'quvchilar raqamini 1500+ ga o'zgartir",
+        "update_system_setting",
+      ),
+    ).toBe(true);
+    expect(
+      isExplicitJarvisAction("Bosh sahifa raqamini qanday o'zgartiraman?", "update_system_setting"),
+    ).toBe(false);
   });
 
   it("classifies read and write tools", () => {

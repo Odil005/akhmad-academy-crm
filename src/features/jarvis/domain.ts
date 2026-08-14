@@ -4,7 +4,11 @@ export type JarvisRole = "director" | "admin" | "teacher" | "student";
 export type DirectJarvisIntent =
   "unread_messages" | "system_health" | "repair_queues" | "github_change_request";
 
-const ADMIN_ONLY_TOOLS = new Set(["create_github_change_request"]);
+const ADMIN_ONLY_TOOLS = new Set([
+  "create_github_change_request",
+  "list_system_settings",
+  "update_system_setting",
+]);
 
 const MANAGER_TOOLS = new Set([
   "search_students",
@@ -29,6 +33,7 @@ const MUTATING_TOOLS = new Set([
   "send_parent_message",
   "repair_system_queues",
   "create_github_change_request",
+  "update_system_setting",
 ]);
 
 export function isJarvisMutatingTool(tool: string): boolean {
@@ -46,6 +51,13 @@ export function canUseJarvisTool(roles: JarvisRole[], tool: string): boolean {
 
 export function isExplicitJarvisAction(text: string, tool: string): boolean {
   const normalized = text.toLocaleLowerCase("uz-UZ");
+  if (
+    /(qanday|qanaqa|mumkinmi|kerakmi|qilsam bo['‘’`]?ladimi|nima deysan|tushuntir|ko['‘’`]?rsatib ber)/i.test(
+      normalized,
+    )
+  ) {
+    return false;
+  }
   if (tool === "send_parent_message") {
     return /(yubor|jo['‘’`]?nat|xabar ber|ogohlantir)/i.test(normalized);
   }
@@ -54,6 +66,9 @@ export function isExplicitJarvisAction(text: string, tool: string): boolean {
   }
   if (tool === "create_github_change_request") {
     return isGitHubChangeCommand(normalized);
+  }
+  if (tool === "update_system_setting") {
+    return /(sozla|o['‘’`]?zgartir|yangila|saqla|belgila|almashtir)/i.test(normalized);
   }
   return /(yarat|qo['‘’`]?sh|biriktir|tayinla|saqla)/i.test(normalized);
 }

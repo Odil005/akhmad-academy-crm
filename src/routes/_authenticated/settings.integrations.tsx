@@ -11,10 +11,12 @@ import {
   ShieldCheck,
   TriangleAlert,
   Github,
+  BrainCircuit,
 } from "lucide-react";
 import { sendParentTelegram } from "@/lib/notifications.functions";
 import { setTelegramWebhook, getTelegramBotInfo } from "@/lib/telegram-admin.functions";
 import { getGitHubAutomationStatus } from "@/lib/github-automation.functions";
+import { getJarvisAIStatus, testJarvisAIConnection } from "@/lib/jarvis-ai.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/integrations")({
   component: IntegrationsSettings,
@@ -117,9 +119,102 @@ function IntegrationsSettings() {
       </div>
 
       <TelegramWebhookCard />
+      <JarvisAIStatusCard />
       <GitHubAutomationCard />
       <CronReminderCard />
       <TelegramTestCard />
+    </div>
+  );
+}
+
+function JarvisAIStatusCard() {
+  type Status = Awaited<ReturnType<typeof getJarvisAIStatus>>;
+  const fetchStatus = useServerFn(getJarvisAIStatus);
+  const testConnection = useServerFn(testJarvisAIConnection);
+  const [status, setStatus] = useState<Status | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [connection, setConnection] = useState<{
+    ok: boolean;
+    error?: string;
+    provider?: string;
+    model?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    fetchStatus()
+      .then(setStatus)
+      .catch(() => setStatus({ allowed: true, configured: false, provider: null, model: null }));
+  }, [fetchStatus]);
+
+  if (status && !status.allowed) return null;
+
+  const test = async () => {
+    setChecking(true);
+    try {
+      const result = await testConnection();
+      setConnection(result);
+      if (result.ok) toast.success("Jarvis AI ulanishi ishlayapti");
+      else toast.error(result.error || "Jarvis AI ulanmagan");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "AI tekshiruvida xato";
+      setConnection({ ok: false, error: message });
+      toast.error(message);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="mb-3 flex items-center gap-2">
+        <BrainCircuit className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-bold">Jarvis AI</h3>
+        <span className="rounded bg-secondary px-1.5 py-0.5 text-[9px] font-bold uppercase">
+          faqat admin
+        </span>
+      </div>
+
+      <div className="rounded-lg border border-border bg-background p-3 text-xs">
+        {status === null ? (
+          <div className="text-muted-foreground">AI holati tekshirilmoqda...</div>
+        ) : status.configured ? (
+          <div>
+            <div className="flex items-center gap-1.5 text-emerald-600">
+              <ShieldCheck className="h-4 w-4" /> AI kaliti serverda sozlangan
+            </div>
+            <div className="mt-2 text-muted-foreground">
+              Provayder: <b>{status.provider}</b> · model: <b>{status.model}</b>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-amber-600">
+            <TriangleAlert className="h-4 w-4" /> OPENAI_API_KEY hali sozlanmagan
+          </div>
+        )}
+        {connection && (
+          <div className={`mt-2 ${connection.ok ? "text-emerald-600" : "text-destructive"}`}>
+            {connection.ok
+              ? `Real AI testi muvaffaqiyatli: ${connection.provider} · ${connection.model}`
+              : connection.error}
+          </div>
+        )}
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">
+        Vercel Environment Variables ichiga <code>OPENAI_API_KEY</code> kiriting va loyihani qayta
+        deploy qiling. Kalit brauzerga yoki ma'lumotlar bazasiga chiqmaydi. Jarvis erkin suhbat,
+        ovoz, CRM ma'lumotlari va admin aniq buyurgan xavfsiz sozlamalarni boshqaradi; maxfiy
+        kalitlar, rollar, loginlar, to'lov yozuvlari va o'chirish amallari himoyalangan.
+      </p>
+
+      <button
+        type="button"
+        onClick={() => void test()}
+        disabled={checking || status === null}
+        className="mt-3 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+      >
+        {checking ? "Real AI tekshirilmoqda..." : "Real AI ulanishini tekshirish"}
+      </button>
     </div>
   );
 }

@@ -11,11 +11,14 @@ import {
 } from "@/features/jarvis/domain";
 import { normalizeJarvisSpeech } from "@/features/jarvis/speech";
 import { sanitizeGitHubChangeRequest } from "@/features/jarvis/github";
+import {
+  JARVIS_SAFE_SETTINGS,
+  isJarvisSafeSettingKey,
+  sanitizeJarvisSettingValues,
+} from "@/features/jarvis/settings";
 import { sendTelegramText } from "@/lib/telegram.server";
 
 type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
-
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 
 function recentConversation(messages: ChatMsg[]): ChatMsg[] {
   const selected: ChatMsg[] = [];
@@ -329,6 +332,49 @@ const TOOLS = [
           request: { type: "string", description: "Kerakli o'zgarishning to'liq tavsifi" },
         },
         required: ["request"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_system_settings",
+      description:
+        "Faqat administrator uchun: Jarvis o'zgartira oladigan xavfsiz, maxfiy bo'lmagan tizim sozlamalarini ko'rish.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_system_setting",
+      description:
+        "Faqat administrator aniq buyruq berganda ruxsat etilgan tizim sozlamasini yangilash. API kalitlari, rollar, loginlar, to'lovlar va boshqa maxfiy qiymatlarni o'zgartirmaydi.",
+      parameters: {
+        type: "object",
+        properties: {
+          key: {
+            type: "string",
+            enum: ["contact_info", "homepage_stats", "sms_templates"],
+          },
+          values: {
+            type: "object",
+            properties: {
+              address: { type: "string" },
+              phone: { type: "string" },
+              email: { type: "string" },
+              telegram: { type: "string" },
+              instagram: { type: "string" },
+              students: { type: "string" },
+              courses: { type: "string" },
+              teachers: { type: "string" },
+              satisfaction: { type: "string" },
+              payment_reminder: { type: "string" },
+            },
+            additionalProperties: false,
+          },
+        },
+        required: ["key", "values"],
       },
     },
   },
@@ -811,6 +857,82 @@ async function runTool(
       const repaired = await runSafeJarvisMaintenance();
       return { result: { ok: true, ...repaired }, navigate: "/settings/integrations" };
     }
+    case "list_system_settings": {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const keys = Object.keys(JARVIS_SAFE_SETTINGS);
+      const { data, error } = await supabaseAdmin
+        .from("settings")
+        .select("key, value, updated_at")
+        .in("key", keys);
+      if (error) return { result: { error: error.message } };
+      const byKey = new Map((data ?? []).map((row) => [row.key, row]));
+      return {
+        result: keys.map((key) => {
+          const definition = JARVIS_SAFE_SETTINGS[key as keyof typeof JARVIS_SAFE_SETTINGS];
+          const row = byKey.get(key);
+          const raw = row?.value;
+          const value = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+          const safeValue = Object.fromEntries(
+            definition.fields.map((field) => [
+              field,
+              typeof (value as Record<string, unknown>)[field] === "string"
+                ? (value as Record<string, string>)[field]
+                : "",
+            ]),
+          );
+          return {
+            key,
+            label: definition.label,
+            allowed_fields: definition.fields,
+            value: safeValue,
+            updated_at: row?.updated_at ?? null,
+          };
+        }),
+        navigate: "/settings",
+      };
+    }
+    case "update_system_setting": {
+      const key = String(args?.key ?? "").trim();
+      if (!isJarvisSafeSettingKey(key)) {
+        return {
+          result: {
+            error:
+              "Bu sozlama Jarvis uchun ruxsat etilmagan. Maxfiy kalitlar, rollar, login va moliyaviy yozuvlar qo'lda boshqariladi.",
+          },
+        };
+      }
+      const values = sanitizeJarvisSettingValues(key, args?.values);
+      if (!values) return { result: { error: "Yangilanadigan ruxsatli maydon topilmadi" } };
+
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const existing = await supabaseAdmin
+        .from("settings")
+        .select("value")
+        .eq("key", key)
+        .maybeSingle();
+      if (existing.error) return { result: { error: existing.error.message } };
+      const previous =
+        existing.data?.value &&
+        typeof existing.data.value === "object" &&
+        !Array.isArray(existing.data.value)
+          ? (existing.data.value as Record<string, unknown>)
+          : {};
+      const definition = JARVIS_SAFE_SETTINGS[key];
+      const saved = await supabaseAdmin.from("settings").upsert({
+        key,
+        scope: definition.scope,
+        is_public: key === "contact_info" || key === "homepage_stats",
+        value: { ...previous, ...values } as any,
+        updated_at: new Date().toISOString(),
+        updated_by: actor.userId,
+      });
+      return {
+        result: saved.error
+          ? { error: saved.error.message }
+          : { ok: true, setting: key, changed: values },
+        navigate: saved.error ? undefined : "/settings",
+      };
+    }
     case "create_github_change_request": {
       try {
         const { createGitHubChangeRequest } = await import("@/lib/github-automation.server");
@@ -932,11 +1054,14 @@ export const jarvisChat = createServerFn({ method: "POST" })
     const localReply = getLocalJarvisReply(lastUser);
     if (localReply) return { reply: localReply };
 
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) {
+    const { jarvisSafetyIdentifier, resolveJarvisAIProvider } =
+      await import("@/lib/jarvis-ai.server");
+    const provider = resolveJarvisAIProvider();
+    if (!provider) {
       return {
         reply:
-          "Men hozir test rejimida ishlayapman. Tizim buyruqlari faol: “Xabar bormi?”, “Tizimni tekshir” yoki kerakli bo'limni ochishni so'rang. Erkin suhbat xizmati ishga tushirilgach boshqa savollarga ham batafsil javob beraman.",
+          "Jarvisning AI kaliti hali serverga ulanmagan. Administrator Sozlamalar → Telegram / SMS bo'limida Jarvis AI holatini ko'rishi mumkin. Vercel Environment Variables ichiga OPENAI_API_KEY qo'shilgach erkin suhbat, ovoz va CRM vositalari to'liq ishlaydi. Hozircha “Xabar bormi?” va “Tizimni tekshir” kabi mahalliy buyruqlar ishlaydi.",
+        navigate: roles.includes("admin") ? "/settings/integrations" : undefined,
       };
     }
 
@@ -953,70 +1078,147 @@ Ota-onaga xabarni faqat foydalanuvchi aniq "yubor" deganda yubor. Yaratish, biri
 
 GitHub kod vazifasini faqat admin roli va foydalanuvchining aniq yangi funksiya/tuzatish buyrug'ida create_github_change_request orqali yarat. GitHub tokenini hech qachon so'rama yoki javobda ko'rsatma. Kod main branchga bevosita yozilmaydi: alohida pull request inson tekshiruvi uchun ochilishi shart.
 
+Tizim sozlamalarini faqat admin aniq so'raganda list_system_settings va update_system_setting orqali boshqar. Faqat tool ruxsat bergan maydonlarni o'zgartir. Maxfiy kalit, rol, login, to'lov yoki o'chirish so'ralganda bajarma va xavfsiz sababini qisqa tushuntir.
+
 FOYDALANUVCHI ROLLARI: ${roles.join(", ")}
 
 HOLAT: ${JSON.stringify(ctx)}`,
     };
 
     // Preserve conversational continuity while keeping latency and token use bounded.
-    const convo: any[] = [system, ...recentConversation(data.messages)];
+    const recent = recentConversation(data.messages);
     let navigate: string | undefined;
 
-    for (let step = 0; step < 4; step++) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 15_000);
-      let res: Response;
-      try {
-        res = await fetch(`${GATEWAY}/chat/completions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-          body: JSON.stringify({
-            model: "google/gemini-3.6-flash",
-            messages: convo,
-            tools: TOOLS,
-            max_tokens: 900,
-            temperature: 0.55,
-          }),
-          signal: controller.signal,
-        });
-      } finally {
-        clearTimeout(timer);
-      }
+    if (provider.chatApi === "responses") {
+      const responseTools = TOOLS.map((tool) => ({
+        type: "function",
+        name: tool.function.name,
+        description: tool.function.description,
+        parameters: tool.function.parameters,
+        strict: false,
+      }));
+      const responseInput: any[] = recent.map((message) => ({
+        role: message.role,
+        content: message.content,
+      }));
+      const safetyIdentifier = await jarvisSafetyIdentifier(context.userId);
 
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Response(`AI xatolik: ${res.status} ${txt}`, { status: 500 });
-      }
-      const json = await res.json();
-      const msg = json?.choices?.[0]?.message;
-      const calls = msg?.tool_calls ?? [];
-
-      if (!calls.length) {
-        return { reply: msg?.content ?? "", navigate };
-      }
-
-      convo.push(msg);
-      for (const call of calls) {
-        let args: any = {};
+      for (let step = 0; step < 4; step++) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 25_000);
+        let res: Response;
         try {
-          args = JSON.parse(call.function?.arguments || "{}");
-        } catch {
-          /* ignore */
+          res = await fetch(`${provider.apiBaseUrl}/responses`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${provider.apiKey}`,
+            },
+            body: JSON.stringify({
+              model: provider.chatModel,
+              instructions: system.content,
+              input: responseInput,
+              tools: responseTools,
+              max_output_tokens: 1600,
+              reasoning: { effort: "low" },
+              text: { verbosity: "medium" },
+              safety_identifier: safetyIdentifier,
+              store: false,
+            }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timer);
         }
-        const out = await runTool(context.supabase, call.function?.name, args, {
-          userId: context.userId,
-          roles,
-          lastUserMessage: lastUser,
-        });
-        if (out.navigate) navigate = out.navigate;
-        convo.push({
-          role: "tool",
-          tool_call_id: call.id,
-          content: JSON.stringify(out.result).slice(0, 4000),
-        });
+        if (!res.ok) {
+          const detail = (await res.text()).slice(0, 800);
+          throw new Response(`AI xatolik: ${res.status} ${detail}`, { status: 502 });
+        }
+        const json = await res.json();
+        const output = Array.isArray(json?.output) ? json.output : [];
+        const calls = output.filter((item: any) => item?.type === "function_call");
+        if (!calls.length) {
+          const text =
+            typeof json?.output_text === "string"
+              ? json.output_text
+              : output
+                  .flatMap((item: any) => (Array.isArray(item?.content) ? item.content : []))
+                  .filter((item: any) => item?.type === "output_text")
+                  .map((item: any) => item.text)
+                  .join("\n");
+          return { reply: text || "Javob olinmadi. Iltimos, savolni qayta yozing.", navigate };
+        }
+
+        responseInput.push(...output);
+        for (const call of calls) {
+          let args: any = {};
+          try {
+            args = JSON.parse(call.arguments || "{}");
+          } catch {
+            /* malformed model argument is handled as an empty payload */
+          }
+          const out = await runTool(context.supabase, call.name, args, actor);
+          if (out.navigate) navigate = out.navigate;
+          responseInput.push({
+            type: "function_call_output",
+            call_id: call.call_id,
+            output: JSON.stringify(out.result).slice(0, 4000),
+          });
+        }
+        ctxCache.delete(context.userId);
       }
-      // Data changed — invalidate cached snapshot.
-      ctxCache.delete(context.userId);
+    } else {
+      const convo: any[] = [system, ...recent];
+      for (let step = 0; step < 4; step++) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 20_000);
+        let res: Response;
+        try {
+          res = await fetch(`${provider.apiBaseUrl}/chat/completions`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${provider.apiKey}`,
+            },
+            body: JSON.stringify({
+              model: provider.chatModel,
+              messages: convo,
+              tools: TOOLS,
+              max_tokens: 900,
+              temperature: 0.55,
+            }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timer);
+        }
+        if (!res.ok) {
+          const detail = (await res.text()).slice(0, 800);
+          throw new Response(`AI xatolik: ${res.status} ${detail}`, { status: 502 });
+        }
+        const json = await res.json();
+        const msg = json?.choices?.[0]?.message;
+        const calls = msg?.tool_calls ?? [];
+        if (!calls.length) return { reply: msg?.content ?? "", navigate };
+
+        convo.push(msg);
+        for (const call of calls) {
+          let args: any = {};
+          try {
+            args = JSON.parse(call.function?.arguments || "{}");
+          } catch {
+            /* malformed model argument is handled as an empty payload */
+          }
+          const out = await runTool(context.supabase, call.function?.name, args, actor);
+          if (out.navigate) navigate = out.navigate;
+          convo.push({
+            role: "tool",
+            tool_call_id: call.id,
+            content: JSON.stringify(out.result).slice(0, 4000),
+          });
+        }
+        ctxCache.delete(context.userId);
+      }
     }
 
     return { reply: "Bajarildi.", navigate };
@@ -1026,8 +1228,11 @@ export const jarvisTranscribe = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => d as { audio_base64: string; mime: string })
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Response("LOVABLE_API_KEY yo'q", { status: 500 });
+    const { resolveJarvisAIProvider } = await import("@/lib/jarvis-ai.server");
+    const provider = resolveJarvisAIProvider();
+    if (!provider) {
+      throw new Response("OPENAI_API_KEY yoki LOVABLE_API_KEY sozlanmagan", { status: 503 });
+    }
 
     const bin = Uint8Array.from(atob(data.audio_base64), (c) => c.charCodeAt(0));
     const ext = data.mime.includes("wav")
@@ -1039,12 +1244,12 @@ export const jarvisTranscribe = createServerFn({ method: "POST" })
           : "webm";
     const blob = new Blob([bin], { type: data.mime });
     const form = new FormData();
-    form.append("model", "openai/gpt-4o-mini-transcribe");
+    form.append("model", provider.transcriptionModel);
     form.append("file", blob, `rec.${ext}`);
 
-    const res = await fetch(`${GATEWAY}/audio/transcriptions`, {
+    const res = await fetch(`${provider.apiBaseUrl}/audio/transcriptions`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${key}` },
+      headers: { Authorization: `Bearer ${provider.apiKey}` },
       body: form,
     });
     if (!res.ok) throw new Response(`STT xato: ${res.status} ${await res.text()}`, { status: 500 });
@@ -1056,16 +1261,22 @@ export const jarvisSpeak = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => d as { text: string })
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Response("LOVABLE_API_KEY yo'q", { status: 500 });
+    const { resolveJarvisAIProvider } = await import("@/lib/jarvis-ai.server");
+    const provider = resolveJarvisAIProvider();
+    if (!provider) {
+      throw new Response("OPENAI_API_KEY yoki LOVABLE_API_KEY sozlanmagan", { status: 503 });
+    }
 
     const text = normalizeJarvisSpeech(data.text);
     if (!text) throw new Response("Ovozga aylantiriladigan matn yo'q", { status: 400 });
-    const res = await fetch(`${GATEWAY}/audio/speech`, {
+    const res = await fetch(`${provider.apiBaseUrl}/audio/speech`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${provider.apiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini-tts",
+        model: provider.speechModel,
         input: text,
         voice: "cedar",
         instructions:
