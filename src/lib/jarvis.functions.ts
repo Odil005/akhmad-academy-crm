@@ -172,12 +172,115 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "list_lessons",
+      description: "Dars jadvali: kun (1=Dushanba..7), guruh nomi yoki o'qituvchi ismi bo'yicha filtrlash mumkin.",
+      parameters: {
+        type: "object",
+        properties: { day_of_week: { type: "number" }, group_name: { type: "string" }, teacher_name: { type: "string" } },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_lesson",
+      description: "Jadvalga yangi dars qo'shish. day_of_week 1=Dushanba..7=Yakshanba, vaqt 'HH:MM'.",
+      parameters: {
+        type: "object",
+        properties: {
+          group_name: { type: "string" },
+          day_of_week: { type: "number" },
+          start_time: { type: "string" },
+          end_time: { type: "string" },
+          teacher_name: { type: "string" },
+          room_name: { type: "string" },
+        },
+        required: ["group_name", "day_of_week", "start_time", "end_time"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "group_students",
+      description: "Guruhdagi o'quvchilar ro'yxati (guruh nomi bo'yicha).",
+      parameters: { type: "object", properties: { group_name: { type: "string" } }, required: ["group_name"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_debtors",
+      description: "To'lovi qolgan (qarzdor) o'quvchilar ro'yxati va summasi.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "finance_summary",
+      description: "Moliya xulosasi: berilgan oy (YYYY-MM) yoki joriy oy uchun daromad, xarajat, foyda.",
+      parameters: { type: "object", properties: { month: { type: "string" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "attendance_summary",
+      description: "Davomat xulosasi: oxirgi N kun (default 30) bo'yicha foiz va yo'q kelganlar soni.",
+      parameters: { type: "object", properties: { days: { type: "number" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "record_payment",
+      description: "O'quvchi uchun to'lov yozish (naqd/karta). amount so'mda.",
+      parameters: {
+        type: "object",
+        properties: { student_name: { type: "string" }, amount: { type: "number" }, method: { type: "string" } },
+        required: ["student_name", "amount"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_student",
+      description: "O'quvchi ma'lumotini o'zgartirish (dars vaqti, ota-ona telefoni, tug'ilgan sana, holat).",
+      parameters: {
+        type: "object",
+        properties: {
+          student_name: { type: "string" },
+          lesson_time: { type: "string" },
+          parent_phone: { type: "string" },
+          birth_date: { type: "string" },
+          status: { type: "string" },
+        },
+        required: ["student_name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "open_page",
-      description: "CRM'da kerakli bo'limni ochish. path: /dashboard,/students,/groups,/schedule,/attendance,/grades,/rooms,/payments,/finance,/leads,/messages,/reports,/import,/settings",
+      description: "CRM'da kerakli bo'limni ochish. path: /dashboard,/students,/groups,/schedule,/attendance,/grades,/rooms,/payments,/finance,/leads,/messages,/reports,/import,/settings,/teacher-panel,/teacher-balance,/calls,/marketplace,/behavior",
       parameters: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
     },
   },
 ] as const;
+
+async function findStudent(supabase: any, name: string) {
+  const q = String(name ?? "").trim();
+  const { data } = await supabase
+    .from("students")
+    .select("id, first_name, last_name, full_name, group_id")
+    .or(`full_name.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%`)
+    .limit(1)
+    .maybeSingle();
+  return data ?? null;
+}
 
 async function runTool(supabase: any, name: string, args: any): Promise<{ result: any; navigate?: string }> {
   switch (name) {
@@ -185,11 +288,124 @@ async function runTool(supabase: any, name: string, args: any): Promise<{ result
       const q = String(args?.query ?? "").trim();
       const { data } = await supabase
         .from("students")
-        .select("id, first_name, last_name, phone, parent_phone, balance")
-        .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`)
+        .select("id, first_name, last_name, full_name, parent_phone, lesson_time, status, group:groups(name)")
+        .or(`full_name.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%,parent_phone.ilike.%${q}%`)
         .limit(10);
       return { result: data ?? [] };
     }
+    case "list_lessons": {
+      let req = supabase
+        .from("lessons")
+        .select("day_of_week, start_time, end_time, group:groups(name), subject:subjects(name), room:rooms(name), teacher_user_id")
+        .eq("is_active", true)
+        .order("day_of_week")
+        .order("start_time")
+        .limit(200);
+      if (args?.day_of_week) req = req.eq("day_of_week", Number(args.day_of_week));
+      const { data } = await req;
+      return { result: data ?? [] };
+    }
+    case "create_lesson": {
+      const { data: gr } = await supabase.from("groups").select("id, subject_id").ilike("name", `%${args.group_name}%`).limit(1).maybeSingle();
+      if (!gr) return { result: { error: `Guruh topilmadi: ${args.group_name}` } };
+      let teacher_user_id: string | null = null;
+      if (args?.teacher_name) {
+        const { data: p } = await supabase.from("profiles").select("id").ilike("full_name", `%${args.teacher_name}%`).limit(1).maybeSingle();
+        teacher_user_id = p?.id ?? null;
+      }
+      let room_id: string | null = null;
+      if (args?.room_name) {
+        const { data: r } = await supabase.from("rooms").select("id").ilike("name", `%${args.room_name}%`).limit(1).maybeSingle();
+        room_id = r?.id ?? null;
+      }
+      const { error } = await supabase.from("lessons").insert({
+        group_id: gr.id,
+        subject_id: gr.subject_id ?? null,
+        room_id,
+        teacher_user_id,
+        day_of_week: Number(args.day_of_week),
+        start_time: args.start_time,
+        end_time: args.end_time,
+        is_active: true,
+      });
+      return { result: error ? { error: error.message } : { ok: true }, navigate: error ? undefined : "/schedule" };
+    }
+    case "group_students": {
+      const { data: gr } = await supabase.from("groups").select("id, name").ilike("name", `%${args.group_name}%`).limit(1).maybeSingle();
+      if (!gr) return { result: { error: `Guruh topilmadi: ${args.group_name}` } };
+      const { data } = await supabase
+        .from("students")
+        .select("id, full_name, first_name, last_name, parent_phone, lesson_time")
+        .eq("group_id", gr.id)
+        .limit(200);
+      return { result: { group: gr.name, count: (data ?? []).length, students: data ?? [] } };
+    }
+    case "list_debtors": {
+      const { data } = await supabase
+        .from("payments")
+        .select("amount, period_month, status, student:students(full_name, first_name, last_name, parent_phone)")
+        .neq("status", "paid")
+        .order("period_month")
+        .limit(50);
+      const rows = (data ?? []).map((p: any) => ({
+        name: p.student?.full_name || `${p.student?.last_name ?? ""} ${p.student?.first_name ?? ""}`.trim(),
+        phone: p.student?.parent_phone ?? null,
+        debt: Number(p.amount ?? 0),
+        period: p.period_month,
+      }));
+      return { result: { count: rows.length, total: rows.reduce((s: number, r: any) => s + r.debt, 0), rows } };
+    }
+    case "finance_summary": {
+      const m = String(args?.month ?? "").match(/^\d{4}-\d{2}$/) ? `${args.month}-01` : (() => { const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10); })();
+      const end = new Date(m); end.setMonth(end.getMonth() + 1);
+      const endISO = end.toISOString().slice(0, 10);
+      const [{ data: pay }, { data: exp }] = await Promise.all([
+        supabase.from("payments").select("amount").eq("status", "paid").gte("paid_at", m).lt("paid_at", endISO).limit(5000),
+        supabase.from("expenses").select("amount, category").gte("paid_at", m).lt("paid_at", endISO).limit(5000),
+      ]);
+      const income = (pay ?? []).reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
+      const expense = (exp ?? []).reduce((s: number, e: any) => s + Number(e.amount ?? 0), 0);
+      return { result: { month: m.slice(0, 7), income, expense, profit: income - expense } };
+    }
+    case "attendance_summary": {
+      const days = Math.min(Math.max(Number(args?.days ?? 30), 1), 180);
+      const since = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
+      const { data } = await supabase.from("attendance").select("status").gte("date", since).limit(10000);
+      const rows = data ?? [];
+      const ok = rows.filter((r: any) => r.status === "present" || r.status === "late").length;
+      const absent = rows.filter((r: any) => r.status === "absent").length;
+      return { result: { days, marks: rows.length, rate_percent: rows.length ? Math.round((ok / rows.length) * 100) : null, absent } };
+    }
+    case "record_payment": {
+      const st = await findStudent(supabase, args.student_name);
+      if (!st) return { result: { error: `O'quvchi topilmadi: ${args.student_name}` } };
+      const period = (() => { const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10); })();
+      const amount = Number(args.amount ?? 0);
+      const { error } = await supabase.from("payments").insert({
+        student_id: st.id,
+        amount,
+        subtotal: amount,
+        total_amount: amount,
+        period_month: period,
+        status: "paid",
+        paid_at: new Date().toISOString(),
+        payment_method: args.method === "card" ? "card" : "cash",
+      });
+      return { result: error ? { error: error.message } : { ok: true, amount }, navigate: error ? undefined : "/payments" };
+    }
+    case "update_student": {
+      const st = await findStudent(supabase, args.student_name);
+      if (!st) return { result: { error: `O'quvchi topilmadi: ${args.student_name}` } };
+      const patch: Record<string, unknown> = {};
+      if (args.lesson_time) patch.lesson_time = args.lesson_time;
+      if (args.parent_phone) patch.parent_phone = args.parent_phone;
+      if (args.birth_date) patch.birth_date = args.birth_date;
+      if (args.status) patch.status = args.status;
+      if (!Object.keys(patch).length) return { result: { error: "O'zgartirish uchun maydon berilmadi" } };
+      const { error } = await supabase.from("students").update(patch).eq("id", st.id);
+      return { result: error ? { error: error.message } : { ok: true, updated: patch }, navigate: error ? undefined : "/students" };
+    }
+
     case "list_groups": {
       const { data } = await supabase
         .from("groups")
