@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Trash2, X, RefreshCw, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { createManagedUser } from "@/lib/user-admin.functions";
@@ -27,7 +27,9 @@ type Student = {
 
 type Group = { id: string; name: string };
 
-const SearchSchema = z.object({ status: z.enum(["trial", "active", "frozen", "archived", "left"]).optional() });
+const SearchSchema = z.object({
+  status: z.enum(["trial", "active", "frozen", "archived", "left"]).optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/students")({
   validateSearch: SearchSchema,
@@ -74,17 +76,20 @@ function StudentsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  useEffect(() => { setPage(0); }, [statusFilter, pageSize]);
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter, pageSize]);
 
   /** Server-side page load: only the visible rows are fetched. */
-  const load = async (signal?: AbortSignal) => {
+  const load = useCallback(async () => {
     setLoading(true);
+    const controller = new AbortController();
     let q = supabase
       .from("students")
       .select(STUDENT_COLUMNS, { count: "exact" })
       .order("enrolled_at", { ascending: false })
       .range(page * pageSize, page * pageSize + pageSize - 1)
-      .abortSignal(signal ?? new AbortController().signal);
+      .abortSignal(controller.signal);
     if (statusFilter) q = q.eq("status_enum", statusFilter);
     if (search) {
       const like = `%${search}%`;
@@ -92,25 +97,23 @@ function StudentsPage() {
         `first_name.ilike.${like},last_name.ilike.${like},full_name.ilike.${like},parent_full_name.ilike.${like},parent_phone.ilike.${like}`,
       );
     }
-    const { data: s, count, error } = await q;
-    if (signal?.aborted) return;
-    if (error) {
-      setLoading(false);
-      return;
-    }
+    const { data: s, count } = await q;
     setStudents((s as never) ?? []);
     setTotal(count ?? 0);
     setLoading(false);
-  };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void load(controller.signal);
     return () => controller.abort();
-  }, [page, pageSize, statusFilter, search]);
+  }, [page, pageSize, search, statusFilter]);
 
   useEffect(() => {
-    supabase.from("groups").select("id, name").order("name").then(({ data }) => setGroups(data ?? []));
+    void load();
+  }, [load]);
+
+  useEffect(() => {
+    supabase
+      .from("groups")
+      .select("id, name")
+      .order("name")
+      .then(({ data }) => setGroups(data ?? []));
   }, []);
 
   const filtered = students;
@@ -128,9 +131,14 @@ function StudentsPage() {
     const prevStatus = s.status_enum;
     // Optimistik: faqat o'zgargan qator yangilanadi.
     setStudents((prev) => prev.map((r) => (r.id === s.id ? { ...r, status_enum: newStatus } : r)));
-    const { error } = await supabase.from("students").update({ status_enum: newStatus }).eq("id", s.id);
+    const { error } = await supabase
+      .from("students")
+      .update({ status_enum: newStatus })
+      .eq("id", s.id);
     if (error) {
-      setStudents((prev) => prev.map((r) => (r.id === s.id ? { ...r, status_enum: prevStatus } : r)));
+      setStudents((prev) =>
+        prev.map((r) => (r.id === s.id ? { ...r, status_enum: prevStatus } : r)),
+      );
       toast.error(error.message);
       return;
     }
@@ -147,7 +155,10 @@ function StudentsPage() {
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">O'quvchilar</h1>
           <p className="text-sm text-muted-foreground">
-            {statusFilter ? `Filtr: ${STATUS_META[statusFilter as StudentStatus].label}` : "Barcha o'quvchilar"} · {total} ta
+            {statusFilter
+              ? `Filtr: ${STATUS_META[statusFilter as StudentStatus].label}`
+              : "Barcha o'quvchilar"}{" "}
+            · {total} ta
           </p>
         </div>
         <button
@@ -170,19 +181,33 @@ function StudentsPage() {
           onChange={(e) => setPageSize(Number(e.target.value))}
           className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
         >
-          {PAGE_SIZES.map((n) => <option key={n} value={n}>{n} / sahifa</option>)}
+          {PAGE_SIZES.map((n) => (
+            <option key={n} value={n}>
+              {n} / sahifa
+            </option>
+          ))}
         </select>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <a href="/students" className={`rounded-full px-3 py-1.5 text-xs font-semibold ${!statusFilter ? "bg-primary text-primary-foreground" : "border border-border"}`}>Barchasi</a>
+        <Link
+          to="/students"
+          search={{}}
+          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${!statusFilter ? "bg-primary text-primary-foreground" : "border border-border"}`}
+        >
+          Barchasi
+        </Link>
         {STATUS_ORDER.map((k) => (
-          <a key={k} href={`/students?status=${k}`} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${statusFilter === k ? `${STATUS_META[k].bg} text-white` : "border border-border"}`}>
+          <Link
+            key={k}
+            to="/students"
+            search={{ status: k }}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${statusFilter === k ? `${STATUS_META[k].bg} text-white` : "border border-border"}`}
+          >
             {STATUS_META[k].label}
-          </a>
+          </Link>
         ))}
       </div>
-
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <div className="overflow-x-auto">
@@ -198,36 +223,64 @@ function StudentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {loading && <tr><td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">Yuklanmoqda...</td></tr>}
-              {!loading && filtered.length === 0 && <tr><td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">Yozuv yo'q</td></tr>}
+              {loading && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                    Yuklanmoqda...
+                  </td>
+                </tr>
+              )}
+              {!loading && filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                    Yozuv yo'q
+                  </td>
+                </tr>
+              )}
               {filtered.map((s) => {
                 const status = (s.status_enum ?? "active") as StudentStatus;
                 const meta = STATUS_META[status];
                 return (
                   <tr key={s.id}>
                     <td className="px-4 py-3 font-medium">
-                      <Link to="/students/$id" params={{ id: s.id }} className="text-primary hover:underline">
+                      <Link
+                        to="/students/$id"
+                        params={{ id: s.id }}
+                        className="text-primary hover:underline"
+                      >
                         {displayName(s)}
                       </Link>
                     </td>
 
-                    <td className="px-4 py-3 text-muted-foreground">{s.profile?.phone || s.parent_phone || "—"}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {s.parent_full_name || "—"}<br />
+                      {s.profile?.phone || s.parent_phone || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {s.parent_full_name || "—"}
+                      <br />
                       <span className="text-xs">{s.parent_phone || ""}</span>
                     </td>
-                    <td className="px-4 py-3">{s.group?.name || <span className="text-muted-foreground">—</span>}</td>
+                    <td className="px-4 py-3">
+                      {s.group?.name || <span className="text-muted-foreground">—</span>}
+                    </td>
                     <td className="px-4 py-3">
                       <select
                         value={status}
                         onChange={(e) => changeStatus(s, e.target.value as StudentStatus)}
                         className={`rounded-full border-transparent px-2 py-1 text-xs font-semibold ${meta.tint}`}
                       >
-                        {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
+                        {STATUS_ORDER.map((k) => (
+                          <option key={k} value={k}>
+                            {STATUS_META[k].label}
+                          </option>
+                        ))}
                       </select>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => remove(s.id)} className="text-destructive hover:opacity-70">
+                      <button
+                        onClick={() => remove(s.id)}
+                        className="text-destructive hover:opacity-70"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </td>
@@ -239,21 +292,44 @@ function StudentsPage() {
         </div>
       </div>
 
-      {open && <NewStudentModal groups={groups} onClose={() => setOpen(false)} onDone={() => { setOpen(false); load(); }} />}
+      {open && (
+        <NewStudentModal
+          groups={groups}
+          onClose={() => setOpen(false)}
+          onDone={() => {
+            setOpen(false);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }
 
 type NewRole = "student" | "teacher";
 
-function NewStudentModal({ groups, onClose, onDone }: { groups: Group[]; onClose: () => void; onDone: () => void }) {
+function NewStudentModal({
+  groups,
+  onClose,
+  onDone,
+}: {
+  groups: Group[];
+  onClose: () => void;
+  onDone: () => void;
+}) {
   const create = useServerFn(createManagedUser);
   const [role, setRole] = useState<NewRole>("student");
   const [form, setForm] = useState({
-    first_name: "", last_name: "", phone: "", group_id: groups[0]?.id ?? "",
-    parent_full_name: "", parent_phone: "", parent_telegram_chat_id: "",
+    first_name: "",
+    last_name: "",
+    phone: "",
+    group_id: groups[0]?.id ?? "",
+    parent_full_name: "",
+    parent_phone: "",
+    parent_telegram_chat_id: "",
     status_enum: "trial" as StudentStatus,
-    username: "", access_code: "",
+    username: "",
+    access_code: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -272,7 +348,11 @@ function NewStudentModal({ groups, onClose, onDone }: { groups: Group[]; onClose
     setLoading(true);
     setError(null);
     const full_name = `${form.first_name} ${form.last_name}`.trim();
-    const username = (form.username || generateUsername(form.first_name, form.last_name, form.phone)).trim().toLowerCase();
+    const username = (
+      form.username || generateUsername(form.first_name, form.last_name, form.phone)
+    )
+      .trim()
+      .toLowerCase();
     const access_code = form.access_code || generateAccessCode(8);
     try {
       const res = await create({
@@ -289,11 +369,15 @@ function NewStudentModal({ groups, onClose, onDone }: { groups: Group[]; onClose
           parent_telegram_chat_id: role === "student" ? form.parent_telegram_chat_id || null : null,
         },
       });
-      if (!res.ok) { setError(res.error ?? "Saqlanmadi"); setLoading(false); return; }
+      if (!res.ok) {
+        setError(res.error ?? "Saqlanmadi");
+        setLoading(false);
+        return;
+      }
       setCreated({ username, access_code: res.access_code ?? access_code });
       toast.success(role === "student" ? "O'quvchi yaratildi" : "O'qituvchi yaratildi");
-    } catch (err: any) {
-      setError(err?.message ?? "Xatolik");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Xatolik");
     } finally {
       setLoading(false);
     }
@@ -303,8 +387,12 @@ function NewStudentModal({ groups, onClose, onDone }: { groups: Group[]; onClose
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">{role === "student" ? "Yangi o'quvchi" : "Yangi o'qituvchi"}</h2>
-          <button onClick={onClose}><X className="h-5 w-5" /></button>
+          <h2 className="text-lg font-bold">
+            {role === "student" ? "Yangi o'quvchi" : "Yangi o'qituvchi"}
+          </h2>
+          <button onClick={onClose}>
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {created ? (
@@ -314,7 +402,10 @@ function NewStudentModal({ groups, onClose, onDone }: { groups: Group[]; onClose
             </p>
             <CopyRow label="Foydalanuvchi nomi" value={created.username} />
             <CopyRow label="Kirish kodi" value={created.access_code} />
-            <button onClick={onDone} className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
+            <button
+              onClick={onDone}
+              className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+            >
               Yopish
             </button>
           </div>
@@ -334,34 +425,83 @@ function NewStudentModal({ groups, onClose, onDone }: { groups: Group[]; onClose
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Ism" value={form.first_name} onChange={(v) => setForm({ ...form, first_name: v })} required />
-              <Field label="Familiya" value={form.last_name} onChange={(v) => setForm({ ...form, last_name: v })} />
+              <Field
+                label="Ism"
+                value={form.first_name}
+                onChange={(v) => setForm({ ...form, first_name: v })}
+                required
+              />
+              <Field
+                label="Familiya"
+                value={form.last_name}
+                onChange={(v) => setForm({ ...form, last_name: v })}
+              />
             </div>
-            <Field label="Telefon" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
+            <Field
+              label="Telefon"
+              value={form.phone}
+              onChange={(v) => setForm({ ...form, phone: v })}
+            />
 
             {role === "student" && (
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block text-sm">
-                    <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Guruh</div>
-                    <select value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5">
+                    <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                      Guruh
+                    </div>
+                    <select
+                      value={form.group_id}
+                      onChange={(e) => setForm({ ...form, group_id: e.target.value })}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
+                    >
                       <option value="">—</option>
-                      {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+                      {groups.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.name}
+                        </option>
+                      ))}
                     </select>
                   </label>
                   <label className="block text-sm">
-                    <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Status</div>
-                    <select value={form.status_enum} onChange={(e) => setForm({ ...form, status_enum: e.target.value as StudentStatus })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5">
-                      {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
+                    <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                      Status
+                    </div>
+                    <select
+                      value={form.status_enum}
+                      onChange={(e) =>
+                        setForm({ ...form, status_enum: e.target.value as StudentStatus })
+                      }
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
+                    >
+                      {STATUS_ORDER.map((k) => (
+                        <option key={k} value={k}>
+                          {STATUS_META[k].label}
+                        </option>
+                      ))}
                     </select>
                   </label>
                 </div>
                 <div className="rounded-lg border border-border bg-background/50 p-3">
-                  <div className="mb-2 text-xs font-bold uppercase text-muted-foreground">Ota-ona ma'lumotlari</div>
+                  <div className="mb-2 text-xs font-bold uppercase text-muted-foreground">
+                    Ota-ona ma'lumotlari
+                  </div>
                   <div className="space-y-2">
-                    <Field label="F.I.O" value={form.parent_full_name} onChange={(v) => setForm({ ...form, parent_full_name: v })} />
-                    <Field label="Telefon" value={form.parent_phone} onChange={(v) => setForm({ ...form, parent_phone: v })} />
-                    <Field label="Telegram chat ID" value={form.parent_telegram_chat_id} onChange={(v) => setForm({ ...form, parent_telegram_chat_id: v })} />
+                    <Field
+                      label="F.I.O"
+                      value={form.parent_full_name}
+                      onChange={(v) => setForm({ ...form, parent_full_name: v })}
+                    />
+                    <Field
+                      label="Telefon"
+                      value={form.parent_phone}
+                      onChange={(v) => setForm({ ...form, parent_phone: v })}
+                    />
+                    <Field
+                      label="Telegram chat ID"
+                      value={form.parent_telegram_chat_id}
+                      onChange={(v) => setForm({ ...form, parent_telegram_chat_id: v })}
+                    />
                   </div>
                 </div>
               </>
@@ -369,20 +509,43 @@ function NewStudentModal({ groups, onClose, onDone }: { groups: Group[]; onClose
 
             <div className="rounded-lg border border-border bg-background/50 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <div className="text-xs font-bold uppercase text-muted-foreground">Login generator</div>
-                <button type="button" onClick={regenerate} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold hover:border-primary">
+                <div className="text-xs font-bold uppercase text-muted-foreground">
+                  Login generator
+                </div>
+                <button
+                  type="button"
+                  onClick={regenerate}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold hover:border-primary"
+                >
                   <RefreshCw className="h-3.5 w-3.5" /> Avto-generatsiya
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Username" value={form.username} onChange={(v) => setForm({ ...form, username: v })} />
-                <Field label="Kirish kodi" value={form.access_code} onChange={(v) => setForm({ ...form, access_code: v })} />
+                <Field
+                  label="Username"
+                  value={form.username}
+                  onChange={(v) => setForm({ ...form, username: v })}
+                />
+                <Field
+                  label="Kirish kodi"
+                  value={form.access_code}
+                  onChange={(v) => setForm({ ...form, access_code: v })}
+                />
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">Bo'sh qoldirsangiz avtomatik yaratiladi.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Bo'sh qoldirsangiz avtomatik yaratiladi.
+              </p>
             </div>
 
-            {error && <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">{error}</p>}
-            <button disabled={loading} className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60">
+            {error && (
+              <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+                {error}
+              </p>
+            )}
+            <button
+              disabled={loading}
+              className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+            >
               {loading ? "..." : "Saqlash"}
             </button>
           </form>
@@ -400,7 +563,10 @@ function CopyRow({ label, value }: { label: string; value: string }) {
         <span className="flex-1 truncate font-mono text-sm">{value}</span>
         <button
           type="button"
-          onClick={() => { navigator.clipboard.writeText(value); toast.success("Nusxa olindi"); }}
+          onClick={() => {
+            navigator.clipboard.writeText(value);
+            toast.success("Nusxa olindi");
+          }}
           className="rounded-md border border-border p-1.5 hover:border-primary"
         >
           <Copy className="h-3.5 w-3.5" />
@@ -410,11 +576,26 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Field({ label, value, onChange, required }: { label: string; value: string; onChange: (v: string) => void; required?: boolean }) {
+function Field({
+  label,
+  value,
+  onChange,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+}) {
   return (
     <label className="block text-sm">
       <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{label}</div>
-      <input required={required} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" />
+      <input
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
+      />
     </label>
   );
 }

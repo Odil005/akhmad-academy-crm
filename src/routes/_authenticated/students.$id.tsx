@@ -177,7 +177,6 @@ function StudentProfile() {
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-2xl font-extrabold tracking-tight">{studentName}</h1>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-destructive/40 px-2.5 py-0.5 text-xs font-semibold text-destructive">Baho: 0.00</span>
                 <span className="text-xs text-muted-foreground">ID: {student.id.slice(0, 8)}</span>
               </div>
             </div>
@@ -306,7 +305,6 @@ function StudentProfile() {
                 <div className="space-y-3 p-5">
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="text-lg font-extrabold uppercase leading-tight tracking-wide">{e.group?.subject?.name || e.group?.name || "—"}</h3>
-                    <span className="shrink-0 rounded-full border border-destructive/40 px-2.5 py-0.5 text-xs font-semibold text-destructive">Baho: 0.00</span>
                   </div>
 
                   <div className="text-xs">

@@ -1,8 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, X, BookOpen, Users, UserCog, ChevronDown, ChevronUp, UserPlus } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  X,
+  BookOpen,
+  Users,
+  UserCog,
+  ChevronDown,
+  ChevronUp,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
+import { TelegramIdButton } from "@/components/TelegramIdButton";
 
 type Teacher = { id: string; full_name: string | null; teacher_level: string | null };
 type Subject = { id: string; name: string };
@@ -15,7 +26,12 @@ type Group = {
   teacher_id: string | null;
   subject: { id: string; name: string } | null;
 };
-type StudentLite = { id: string; first_name: string; last_name: string | null; parent_phone: string | null };
+type StudentLite = {
+  id: string;
+  first_name: string;
+  last_name: string | null;
+  parent_phone: string | null;
+};
 type Enrollment = {
   id: string;
   student_id: string;
@@ -30,6 +46,7 @@ export const Route = createFileRoute("/_authenticated/groups")({
 function GroupsPage() {
   const { roles } = Route.useRouteContext();
   const isStaff = roles.includes("director") || roles.includes("admin");
+  const isTeacher = roles.includes("teacher");
   const [groups, setGroups] = useState<Group[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -43,13 +60,18 @@ function GroupsPage() {
     const [{ data: g }, { data: s }, { data: tr }] = await Promise.all([
       supabase
         .from("groups")
-        .select("id, name, monthly_fee, schedule, subject_id, teacher_id, subject:subjects(id, name)")
+        .select(
+          "id, name, monthly_fee, schedule, subject_id, teacher_id, subject:subjects(id, name)",
+        )
         .order("name"),
       supabase.from("subjects").select("id, name").order("name"),
       supabase.from("user_roles").select("user_id").eq("role", "teacher"),
     ]);
     setGroups((g as never) ?? []);
     setSubjects(s ?? []);
+    // The group cards are ready after the first parallel request. Teacher names
+    // can arrive a moment later without holding the whole page on "Loading".
+    setLoading(false);
     const teacherIds = [...new Set(((tr ?? []) as { user_id: string }[]).map((r) => r.user_id))];
     let teacherList: Teacher[] = [];
     if (teacherIds.length > 0) {
@@ -62,7 +84,6 @@ function GroupsPage() {
     setTeachers(
       [...teacherList].sort((a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? "")),
     );
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -70,7 +91,12 @@ function GroupsPage() {
   }, [load]);
 
   const remove = async (id: string) => {
-    if (!confirm("Guruh o'chirilsinmi? Guruhga biriktirilgan darslar/o'quvchilar avval bo'shatilishi kerak.")) return;
+    if (
+      !confirm(
+        "Guruh o'chirilsinmi? Guruhga biriktirilgan darslar/o'quvchilar avval bo'shatilishi kerak.",
+      )
+    )
+      return;
     const { error } = await supabase.from("groups").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Guruh o'chirildi");
@@ -107,6 +133,7 @@ function GroupsPage() {
               key={g.id}
               group={g}
               isStaff={isStaff}
+              isTeacher={isTeacher}
               isOpen={expanded === g.id}
               onToggle={() => setExpanded(expanded === g.id ? null : g.id)}
               onEdit={() => setEditing(g)}
@@ -147,6 +174,7 @@ function GroupsPage() {
 function GroupCard({
   group,
   isStaff,
+  isTeacher,
   isOpen,
   onToggle,
   onEdit,
@@ -155,6 +183,7 @@ function GroupCard({
 }: {
   group: Group;
   isStaff: boolean;
+  isTeacher: boolean;
   isOpen: boolean;
   onToggle: () => void;
   onEdit: () => void;
@@ -187,7 +216,7 @@ function GroupCard({
       <h3 className="mt-4 text-lg font-bold">{group.name}</h3>
       {(() => {
         const teacherName = group.teacher_id
-          ? teachers.find((t) => t.id === group.teacher_id)?.full_name ?? null
+          ? (teachers.find((t) => t.id === group.teacher_id)?.full_name ?? null)
           : null;
         return (
           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
@@ -196,7 +225,9 @@ function GroupCard({
             </span>
             <span
               className={`rounded-full px-2 py-0.5 ${
-                teacherName ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"
+                teacherName
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : "bg-amber-500/10 text-amber-500"
               }`}
             >
               {teacherName ?? "O'qituvchi biriktirilmagan"}
@@ -213,15 +244,33 @@ function GroupCard({
         onClick={onToggle}
         className="mt-4 inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary"
       >
-        <Users className="h-3.5 w-3.5" /> O'quvchilar {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+        <Users className="h-3.5 w-3.5" /> O'quvchilar{" "}
+        {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
       </button>
 
-      {isOpen && <GroupRoster group={group} isStaff={isStaff} teachers={teachers} />}
+      {isOpen && (
+        <GroupRoster
+          group={group}
+          isStaff={isStaff}
+          canGenerateTelegram={isStaff || isTeacher}
+          teachers={teachers}
+        />
+      )}
     </div>
   );
 }
 
-function GroupRoster({ group, isStaff, teachers: _teachers }: { group: Group; isStaff: boolean; teachers: Teacher[] }) {
+function GroupRoster({
+  group,
+  isStaff,
+  canGenerateTelegram,
+  teachers,
+}: {
+  group: Group;
+  isStaff: boolean;
+  canGenerateTelegram: boolean;
+  teachers: Teacher[];
+}) {
   const [rows, setRows] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -246,7 +295,11 @@ function GroupRoster({ group, isStaff, teachers: _teachers }: { group: Group; is
 
   const loadCandidates = async (term: string) => {
     // Sanitize like search page: strip PostgREST/SQL wildcards
-    const clean = term.replace(/[,()%_]/g, " ").replace(/\s+/g, " ").trim().slice(0, 64);
+    const clean = term
+      .replace(/[,()%_]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 64);
     if (clean.length < 2) {
       setCandidates([]);
       return;
@@ -306,8 +359,21 @@ function GroupRoster({ group, isStaff, teachers: _teachers }: { group: Group; is
                 <div className="truncate font-semibold">
                   {r.student?.first_name} {r.student?.last_name ?? ""}
                 </div>
-                {r.student?.parent_phone && <div className="truncate text-muted-foreground">{r.student.parent_phone}</div>}
+                {r.student?.parent_phone && (
+                  <div className="truncate text-muted-foreground">{r.student.parent_phone}</div>
+                )}
               </div>
+              {canGenerateTelegram && (
+                <TelegramIdButton
+                  kind="student"
+                  id={r.student_id}
+                  name={
+                    `${r.student?.first_name ?? ""} ${r.student?.last_name ?? ""}`.trim() ||
+                    "O'quvchi"
+                  }
+                  compact
+                />
+              )}
               {isStaff && (
                 <button
                   onClick={() => unenroll(r.id)}
@@ -320,6 +386,23 @@ function GroupRoster({ group, isStaff, teachers: _teachers }: { group: Group; is
             </li>
           ))}
         </ul>
+      )}
+
+      {canGenerateTelegram && group.teacher_id && (
+        <div className="mb-3 flex items-center justify-between gap-2 rounded-md border border-primary/20 bg-primary/5 p-2 text-xs">
+          <span>
+            O'qituvchi:{" "}
+            {teachers.find((teacher) => teacher.id === group.teacher_id)?.full_name ?? "—"}
+          </span>
+          <TelegramIdButton
+            kind="teacher"
+            id={group.teacher_id}
+            name={
+              teachers.find((teacher) => teacher.id === group.teacher_id)?.full_name ?? "O'qituvchi"
+            }
+            compact
+          />
+        </div>
       )}
 
       {isStaff && (
@@ -353,7 +436,9 @@ function GroupRoster({ group, isStaff, teachers: _teachers }: { group: Group; is
                       >
                         <span className="truncate">
                           {c.first_name} {c.last_name ?? ""}
-                          {c.parent_phone && <span className="ml-1 text-muted-foreground">· {c.parent_phone}</span>}
+                          {c.parent_phone && (
+                            <span className="ml-1 text-muted-foreground">· {c.parent_phone}</span>
+                          )}
                         </span>
                         <UserPlus className="h-3 w-3 text-primary" />
                       </button>
@@ -414,7 +499,6 @@ function GroupModal({
     });
   }, [teachers, localSubjects, form.subject_id]);
 
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -449,7 +533,9 @@ function GroupModal({
         </div>
         <form onSubmit={submit} className="space-y-4">
           <label className="block text-sm">
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nomi</div>
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Nomi
+            </div>
             <input
               required
               value={form.name}
@@ -460,15 +546,23 @@ function GroupModal({
           </label>
           <label className="block text-sm">
             <div className="mb-1 flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fan</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Fan
+              </span>
               <button
                 type="button"
                 onClick={async () => {
                   const name = prompt("Yangi fan nomi (masalan: Ingliz tili)")?.trim();
                   if (!name) return;
-                  const { data, error } = await supabase.from("subjects").insert({ name }).select("id, name").single();
+                  const { data, error } = await supabase
+                    .from("subjects")
+                    .insert({ name })
+                    .select("id, name")
+                    .single();
                   if (error) return toast.error(error.message);
-                  setLocalSubjects((p) => [...p, data as Subject].sort((a, b) => a.name.localeCompare(b.name)));
+                  setLocalSubjects((p) =>
+                    [...p, data as Subject].sort((a, b) => a.name.localeCompare(b.name)),
+                  );
                   setForm((f) => ({ ...f, subject_id: (data as Subject).id }));
                   toast.success("Fan qo'shildi");
                 }}
@@ -510,7 +604,8 @@ function GroupModal({
             </select>
             {teachers.length === 0 && (
               <p className="mt-1 text-xs text-amber-500">
-                Hali biror foydalanuvchida <b>teacher</b> roli yo'q. Sozlamalar → O'qituvchilar bo'limidan yarating.
+                Hali biror foydalanuvchida <b>teacher</b> roli yo'q. Sozlamalar → O'qituvchilar
+                bo'limidan yarating.
               </p>
             )}
           </label>
@@ -528,7 +623,9 @@ function GroupModal({
               />
             </label>
             <label className="block text-sm">
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Jadval</div>
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Jadval
+              </div>
               <input
                 value={form.schedule}
                 onChange={(e) => setForm({ ...form, schedule: e.target.value })}

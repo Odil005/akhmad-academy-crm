@@ -22,7 +22,6 @@ import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated/face-id'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
-import { Route as AuthenticatedGradesRouteImport } from './routes/_authenticated/grades'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
@@ -36,7 +35,9 @@ import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
 import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authenticated/teacher-balance'
+import { Route as AuthenticatedTeacherKpiRouteImport } from './routes/_authenticated/teacher-kpi'
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
+import { Route as AuthenticatedVideoLessonsRouteImport } from './routes/_authenticated/video-lessons'
 import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -46,7 +47,6 @@ import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsCredentialsRouteImport } from './routes/_authenticated/settings.credentials'
 import { Route as AuthenticatedSettingsDesignRouteImport } from './routes/_authenticated/settings.design'
 import { Route as AuthenticatedSettingsDirectorReportRouteImport } from './routes/_authenticated/settings.director-report'
-import { Route as AuthenticatedSettingsGradeTemplateRouteImport } from './routes/_authenticated/settings.grade-template'
 import { Route as AuthenticatedSettingsHomepageCoursesRouteImport } from './routes/_authenticated/settings.homepage-courses'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
 import { Route as AuthenticatedSettingsMarketplaceRouteImport } from './routes/_authenticated/settings.marketplace'
@@ -136,11 +136,6 @@ const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
   path: '/finance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedGradesRoute = AuthenticatedGradesRouteImport.update({
-  id: '/grades',
-  path: '/grades',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
   id: '/groups',
   path: '/groups',
@@ -208,10 +203,21 @@ const AuthenticatedTeacherBalanceRoute =
     path: '/teacher-balance',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTeacherKpiRoute = AuthenticatedTeacherKpiRouteImport.update({
+  id: '/teacher-kpi',
+  path: '/teacher-kpi',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTeacherPanelRoute =
   AuthenticatedTeacherPanelRouteImport.update({
     id: '/teacher-panel',
     path: '/teacher-panel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedVideoLessonsRoute =
+  AuthenticatedVideoLessonsRouteImport.update({
+    id: '/video-lessons',
+    path: '/video-lessons',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ReceiptIdRoute = ReceiptIdRouteImport.update({
@@ -264,12 +270,6 @@ const AuthenticatedSettingsDirectorReportRoute =
   AuthenticatedSettingsDirectorReportRouteImport.update({
     id: '/director-report',
     path: '/director-report',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsGradeTemplateRoute =
-  AuthenticatedSettingsGradeTemplateRouteImport.update({
-    id: '/grade-template',
-    path: '/grade-template',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedSettingsHomepageCoursesRoute =
@@ -414,7 +414,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
-  '/grades': typeof AuthenticatedGradesRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/import': typeof AuthenticatedImportRoute
   '/leads': typeof AuthenticatedLeadsRoute
@@ -428,7 +427,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
+  '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -437,7 +438,6 @@ export interface FileRoutesByFullPath {
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
   '/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
-  '/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
@@ -475,7 +475,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
-  '/grades': typeof AuthenticatedGradesRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/import': typeof AuthenticatedImportRoute
   '/leads': typeof AuthenticatedLeadsRoute
@@ -488,7 +487,9 @@ export interface FileRoutesByTo {
   '/search': typeof AuthenticatedSearchRoute
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
+  '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -497,7 +498,6 @@ export interface FileRoutesByTo {
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
   '/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
-  '/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
@@ -537,7 +537,6 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/face-id': typeof AuthenticatedFaceIdRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
-  '/_authenticated/grades': typeof AuthenticatedGradesRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/import': typeof AuthenticatedImportRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
@@ -551,7 +550,9 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
   '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
+  '/_authenticated/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/_authenticated/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -560,7 +561,6 @@ export interface FileRoutesById {
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/_authenticated/settings/design': typeof AuthenticatedSettingsDesignRoute
   '/_authenticated/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
-  '/_authenticated/settings/grade-template': typeof AuthenticatedSettingsGradeTemplateRoute
   '/_authenticated/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/_authenticated/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
@@ -600,7 +600,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/face-id'
     | '/finance'
-    | '/grades'
     | '/groups'
     | '/import'
     | '/leads'
@@ -614,7 +613,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/students'
     | '/teacher-balance'
+    | '/teacher-kpi'
     | '/teacher-panel'
+    | '/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -623,7 +624,6 @@ export interface FileRouteTypes {
     | '/settings/credentials'
     | '/settings/design'
     | '/settings/director-report'
-    | '/settings/grade-template'
     | '/settings/homepage-courses'
     | '/settings/integrations'
     | '/settings/marketplace'
@@ -661,7 +661,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/face-id'
     | '/finance'
-    | '/grades'
     | '/groups'
     | '/import'
     | '/leads'
@@ -674,7 +673,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/students'
     | '/teacher-balance'
+    | '/teacher-kpi'
     | '/teacher-panel'
+    | '/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -683,7 +684,6 @@ export interface FileRouteTypes {
     | '/settings/credentials'
     | '/settings/design'
     | '/settings/director-report'
-    | '/settings/grade-template'
     | '/settings/homepage-courses'
     | '/settings/integrations'
     | '/settings/marketplace'
@@ -722,7 +722,6 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/face-id'
     | '/_authenticated/finance'
-    | '/_authenticated/grades'
     | '/_authenticated/groups'
     | '/_authenticated/import'
     | '/_authenticated/leads'
@@ -736,7 +735,9 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/students'
     | '/_authenticated/teacher-balance'
+    | '/_authenticated/teacher-kpi'
     | '/_authenticated/teacher-panel'
+    | '/_authenticated/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -745,7 +746,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/credentials'
     | '/_authenticated/settings/design'
     | '/_authenticated/settings/director-report'
-    | '/_authenticated/settings/grade-template'
     | '/_authenticated/settings/homepage-courses'
     | '/_authenticated/settings/integrations'
     | '/_authenticated/settings/marketplace'
@@ -888,13 +888,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/grades': {
-      id: '/_authenticated/grades'
-      path: '/grades'
-      fullPath: '/grades'
-      preLoaderRoute: typeof AuthenticatedGradesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/groups': {
       id: '/_authenticated/groups'
       path: '/groups'
@@ -986,11 +979,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeacherBalanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/teacher-kpi': {
+      id: '/_authenticated/teacher-kpi'
+      path: '/teacher-kpi'
+      fullPath: '/teacher-kpi'
+      preLoaderRoute: typeof AuthenticatedTeacherKpiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/teacher-panel': {
       id: '/_authenticated/teacher-panel'
       path: '/teacher-panel'
       fullPath: '/teacher-panel'
       preLoaderRoute: typeof AuthenticatedTeacherPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/video-lessons': {
+      id: '/_authenticated/video-lessons'
+      path: '/video-lessons'
+      fullPath: '/video-lessons'
+      preLoaderRoute: typeof AuthenticatedVideoLessonsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/receipt/$id': {
@@ -1054,13 +1061,6 @@ declare module '@tanstack/react-router' {
       path: '/director-report'
       fullPath: '/settings/director-report'
       preLoaderRoute: typeof AuthenticatedSettingsDirectorReportRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/grade-template': {
-      id: '/_authenticated/settings/grade-template'
-      path: '/grade-template'
-      fullPath: '/settings/grade-template'
-      preLoaderRoute: typeof AuthenticatedSettingsGradeTemplateRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
     '/_authenticated/settings/homepage-courses': {
@@ -1226,7 +1226,6 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsCredentialsRoute: typeof AuthenticatedSettingsCredentialsRoute
   AuthenticatedSettingsDesignRoute: typeof AuthenticatedSettingsDesignRoute
   AuthenticatedSettingsDirectorReportRoute: typeof AuthenticatedSettingsDirectorReportRoute
-  AuthenticatedSettingsGradeTemplateRoute: typeof AuthenticatedSettingsGradeTemplateRoute
   AuthenticatedSettingsHomepageCoursesRoute: typeof AuthenticatedSettingsHomepageCoursesRoute
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
   AuthenticatedSettingsMarketplaceRoute: typeof AuthenticatedSettingsMarketplaceRoute
@@ -1248,8 +1247,6 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsDesignRoute: AuthenticatedSettingsDesignRoute,
   AuthenticatedSettingsDirectorReportRoute:
     AuthenticatedSettingsDirectorReportRoute,
-  AuthenticatedSettingsGradeTemplateRoute:
-    AuthenticatedSettingsGradeTemplateRoute,
   AuthenticatedSettingsHomepageCoursesRoute:
     AuthenticatedSettingsHomepageCoursesRoute,
   AuthenticatedSettingsIntegrationsRoute:
@@ -1290,7 +1287,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFaceIdRoute: typeof AuthenticatedFaceIdRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
-  AuthenticatedGradesRoute: typeof AuthenticatedGradesRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
@@ -1304,7 +1300,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
   AuthenticatedTeacherBalanceRoute: typeof AuthenticatedTeacherBalanceRoute
+  AuthenticatedTeacherKpiRoute: typeof AuthenticatedTeacherKpiRoute
   AuthenticatedTeacherPanelRoute: typeof AuthenticatedTeacherPanelRoute
+  AuthenticatedVideoLessonsRoute: typeof AuthenticatedVideoLessonsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1314,7 +1312,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFaceIdRoute: AuthenticatedFaceIdRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
-  AuthenticatedGradesRoute: AuthenticatedGradesRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
@@ -1328,7 +1325,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedStudentsRoute: AuthenticatedStudentsRouteWithChildren,
   AuthenticatedTeacherBalanceRoute: AuthenticatedTeacherBalanceRoute,
+  AuthenticatedTeacherKpiRoute: AuthenticatedTeacherKpiRoute,
   AuthenticatedTeacherPanelRoute: AuthenticatedTeacherPanelRoute,
+  AuthenticatedVideoLessonsRoute: AuthenticatedVideoLessonsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

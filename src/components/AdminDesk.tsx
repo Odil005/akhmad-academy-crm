@@ -2,10 +2,25 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Search, UserPlus, CreditCard, Loader2, Users, Wallet, CalendarDays, AlertTriangle, Clock, GraduationCap,
+  Search,
+  UserPlus,
+  CreditCard,
+  Loader2,
+  Users,
+  Wallet,
+  CalendarDays,
+  AlertTriangle,
+  Clock,
+  GraduationCap,
 } from "lucide-react";
 import {
-  loadStudentIndex, searchIndex, initialsOf, shortId, type StudentIndexRow,
+  loadAdminDeskMetrics,
+  loadStudentIndex,
+  searchIndex,
+  initialsOf,
+  shortId,
+  type AdminDeskMetrics,
+  type StudentIndexRow,
 } from "@/lib/admin-search";
 import { STATUS_META } from "@/lib/status";
 import { Student360 } from "@/components/Student360";
@@ -26,9 +41,13 @@ type Lesson = {
 };
 
 export function AdminDesk() {
+  const [metrics, setMetrics] = useState<AdminDeskMetrics | null>(null);
+  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState<string | null>(null);
   const [index, setIndex] = useState<StudentIndexRow[]>([]);
   const [indexError, setIndexError] = useState<string | null>(null);
-  const [indexLoading, setIndexLoading] = useState(true);
+  const [indexLoading, setIndexLoading] = useState(false);
+  const [indexReady, setIndexReady] = useState(false);
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [openList, setOpenList] = useState(false);
@@ -37,21 +56,36 @@ export function AdminDesk() {
   const [newTeacher, setNewTeacher] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
-  const refreshIndex = useCallback(async () => {
+  const refreshMetrics = useCallback(async (force = false) => {
+    setMetricsLoading(true);
+    try {
+      setMetrics(await loadAdminDeskMetrics(force));
+      setMetricsError(null);
+    } catch (error: unknown) {
+      setMetricsError(error instanceof Error ? error.message : "Ko'rsatkichlarni yuklab bo'lmadi");
+    } finally {
+      setMetricsLoading(false);
+    }
+  }, []);
+
+  const refreshIndex = useCallback(async (force = false) => {
     setIndexLoading(true);
     try {
-      const rows = await loadStudentIndex();
+      const rows = await loadStudentIndex(force);
       setIndex(rows);
+      setIndexReady(true);
       setIndexError(null);
-      setSelected((cur) => (cur ? rows.find((r) => r.id === cur.id) ?? cur : cur));
-    } catch (e: any) {
-      setIndexError(e?.message ?? "Ma'lumotni yuklab bo'lmadi");
+      setSelected((cur) => (cur ? (rows.find((r) => r.id === cur.id) ?? cur) : cur));
+    } catch (error: unknown) {
+      setIndexError(error instanceof Error ? error.message : "Ma'lumotni yuklab bo'lmadi");
     } finally {
       setIndexLoading(false);
     }
   }, []);
 
-  useEffect(() => { refreshIndex(); }, [refreshIndex]);
+  useEffect(() => {
+    void refreshMetrics();
+  }, [refreshMetrics]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query), 280);
@@ -68,25 +102,21 @@ export function AdminDesk() {
 
   const results = useMemo(() => searchIndex(index, debounced, 10), [index, debounced]);
 
-  const stats = useMemo(() => {
-    const debtors = index.filter((r) => r.debt > 0);
-    return {
-      students: index.length,
-      active: index.filter((r) => r.status_enum === "active").length,
-      debtors: debtors.length,
-      debtTotal: debtors.reduce((s, r) => s + r.debt, 0),
-      paidThisMonth: index.filter((r) => r.paidThisMonth).length,
-      noTelegram: index.filter((r) => !r.parent_telegram_chat_id).length,
-    };
-  }, [index]);
+  const refreshAll = useCallback(async () => {
+    await Promise.all([refreshIndex(true), refreshMetrics(true)]);
+  }, [refreshIndex, refreshMetrics]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 lg:flex lg:flex-wrap lg:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl font-extrabold tracking-tight md:text-3xl">Administrator ish stoli</h1>
-          <p className="text-sm text-muted-foreground">O'quvchi qidirish, to'lov olish va bugungi darslar</p>
+          <h1 className="truncate text-2xl font-extrabold tracking-tight md:text-3xl">
+            Administrator ish stoli
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            O'quvchi qidirish, to'lov olish va bugungi darslar
+          </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Link
@@ -115,12 +145,20 @@ export function AdminDesk() {
         <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
         <input
           value={query}
-          onChange={(e) => { setQuery(e.target.value); setOpenList(true); }}
-          onFocus={() => setOpenList(true)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpenList(true);
+          }}
+          onFocus={() => {
+            setOpenList(true);
+            if (!indexReady && !indexLoading) void refreshIndex();
+          }}
           placeholder="O'quvchi ismi, familiyasi, telefon raqami yoki ID orqali qidiring..."
           className="w-full rounded-2xl border border-border bg-card py-4 pl-12 pr-12 text-sm shadow-sm outline-none transition focus:border-primary"
         />
-        {indexLoading && <Loader2 className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />}
+        {indexLoading && indexReady && (
+          <Loader2 className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+        )}
 
         {openList && debounced.trim().length >= 2 && (
           <div className="absolute z-40 mt-2 max-h-[420px] w-full overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-2xl">
@@ -128,20 +166,35 @@ export function AdminDesk() {
               <p className="px-3 py-4 text-sm text-muted-foreground">Hech narsa topilmadi</p>
             )}
             {results.map((r) => {
-              const meta = STATUS_META[r.status_enum as keyof typeof STATUS_META] ?? { label: r.status_enum, bg: "bg-muted" };
-              const pay = r.debt > 0
-                ? { text: "Qarzdor", cls: "bg-destructive/15 text-destructive" }
-                : r.paidThisMonth
-                  ? { text: "To'lovlari to'liq", cls: "bg-green-500/15 text-green-600" }
-                  : { text: "To'lov kutilmoqda", cls: "bg-amber-500/20 text-amber-700" };
+              const meta = STATUS_META[r.status_enum as keyof typeof STATUS_META] ?? {
+                label: r.status_enum,
+                bg: "bg-muted",
+              };
+              const pay =
+                r.debt > 0
+                  ? { text: "Qarzdor", cls: "bg-destructive/15 text-destructive" }
+                  : r.paidThisMonth
+                    ? { text: "To'lovlari to'liq", cls: "bg-green-500/15 text-green-600" }
+                    : { text: "To'lov kutilmoqda", cls: "bg-amber-500/20 text-amber-700" };
               return (
                 <button
                   key={r.id}
-                  onClick={() => { setSelected(r); setOpenList(false); }}
+                  onClick={() => {
+                    setSelected(r);
+                    setOpenList(false);
+                  }}
                   className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-secondary"
                 >
                   {r.profile?.avatar_url ? (
-                    <img src={r.profile.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" width={40} height={40} loading="lazy" decoding="async" />
+                    <img
+                      src={r.profile.avatar_url}
+                      alt=""
+                      className="h-10 w-10 shrink-0 rounded-full object-cover"
+                      width={40}
+                      height={40}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                       {initialsOf(r.name)}
@@ -150,12 +203,21 @@ export function AdminDesk() {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold">{r.name}</span>
                     <span className="block truncate text-xs text-muted-foreground">
-                      {r.phone || r.parent_phone || "telefon yo'q"} · {shortId(r.id)} · {r.groupNames[0] ?? "guruhsiz"}
+                      {r.phone || r.parent_phone || "telefon yo'q"} · {shortId(r.id)} ·{" "}
+                      {r.groupNames[0] ?? "guruhsiz"}
                     </span>
                   </span>
                   <span className="hidden shrink-0 items-center gap-2 sm:flex">
-                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${pay.cls}`}>{pay.text}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold text-white ${meta.bg}`}>{meta.label}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${pay.cls}`}
+                    >
+                      {pay.text}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold text-white ${meta.bg}`}
+                    >
+                      {meta.label}
+                    </span>
                   </span>
                 </button>
               );
@@ -164,20 +226,56 @@ export function AdminDesk() {
         )}
       </div>
 
+      {!indexReady && !indexError && (
+        <p className="-mt-3 text-xs text-muted-foreground">
+          Qidiruv satrini bosing — o'quvchilar ro'yxati faqat kerak bo'lganda yuklanadi.
+        </p>
+      )}
+
       {indexError && (
         <div className="flex items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
           <AlertTriangle className="h-4 w-4" /> {indexError}
-          <button onClick={refreshIndex} className="font-semibold underline">Qayta urinish</button>
+          <button onClick={() => void refreshIndex(true)} className="font-semibold underline">
+            Qayta urinish
+          </button>
         </div>
       )}
 
       {/* KPI */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Kpi icon={Users} label="Faol o'quvchilar" value={`${stats.active} / ${stats.students}`} />
-        <Kpi icon={Wallet} label="Shu oy to'lov qilganlar" value={String(stats.paidThisMonth)} tone="ok" />
-        <Kpi icon={AlertTriangle} label="Qarzdorlar" value={String(stats.debtors)} tone="bad" />
-        <Kpi icon={CreditCard} label="Umumiy qarzdorlik" value={`${fmt(stats.debtTotal)} so'm`} tone="bad" />
+        <Kpi
+          icon={Users}
+          label="Faol o'quvchilar"
+          value={metricsLoading ? "..." : metrics ? `${metrics.active} / ${metrics.students}` : "—"}
+        />
+        <Kpi
+          icon={Wallet}
+          label="Shu oy to'lov qilganlar"
+          value={metricsLoading ? "..." : String(metrics?.paidThisMonth ?? 0)}
+          tone="ok"
+        />
+        <Kpi
+          icon={AlertTriangle}
+          label="Qarzdorlar"
+          value={metricsLoading ? "..." : String(metrics?.debtors ?? 0)}
+          tone="bad"
+        />
+        <Kpi
+          icon={CreditCard}
+          label="Umumiy qarzdorlik"
+          value={metricsLoading ? "..." : `${fmt(metrics?.debtTotal ?? 0)} so'm`}
+          tone="bad"
+        />
       </div>
+
+      {metricsError && (
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-xs">
+          <AlertTriangle className="h-4 w-4" /> Ko'rsatkichlar olinmadi: {metricsError}
+          <button onClick={() => void refreshMetrics(true)} className="font-semibold underline">
+            Qayta urinish
+          </button>
+        </div>
+      )}
 
       {/* Selected student 360 */}
       {selected ? (
@@ -185,11 +283,18 @@ export function AdminDesk() {
           key={selected.id}
           row={selected}
           onPay={(id) => setPayFor(id)}
-          onChanged={refreshIndex}
+          onChanged={refreshAll}
         />
       ) : (
         <div className="grid gap-5 lg:grid-cols-2">
-          <DebtorsBlock rows={index} onPick={setSelected} onPay={(id) => setPayFor(id)} />
+          <DebtorsBlock
+            rows={index}
+            ready={indexReady}
+            loading={indexLoading}
+            onLoad={refreshIndex}
+            onPick={setSelected}
+            onPay={(id) => setPayFor(id)}
+          />
           <TodayLessons />
           <div className="lg:col-span-2">
             <TelegramLinkPanel />
@@ -212,7 +317,7 @@ export function AdminDesk() {
         <PaymentModal
           initialStudentId={payFor || undefined}
           onClose={() => setPayFor(null)}
-          onDone={refreshIndex}
+          onDone={refreshAll}
         />
       )}
     </div>
@@ -220,11 +325,21 @@ export function AdminDesk() {
 }
 
 function Kpi({
-  icon: Icon, label, value, tone,
-}: { icon: React.ComponentType<{ className?: string }>; label: string; value: string; tone?: "ok" | "bad" }) {
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  tone?: "ok" | "bad";
+}) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
-      <Icon className={`h-5 w-5 ${tone === "ok" ? "text-green-600" : tone === "bad" ? "text-destructive" : "text-primary"}`} />
+      <Icon
+        className={`h-5 w-5 ${tone === "ok" ? "text-green-600" : tone === "bad" ? "text-destructive" : "text-primary"}`}
+      />
       <div className="mt-2 truncate text-xl font-extrabold">{value}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
     </div>
@@ -232,27 +347,67 @@ function Kpi({
 }
 
 function DebtorsBlock({
-  rows, onPick, onPay,
-}: { rows: StudentIndexRow[]; onPick: (r: StudentIndexRow) => void; onPay: (id: string) => void }) {
-  const debtors = useMemo(() => rows.filter((r) => r.debt > 0).sort((a, b) => b.debt - a.debt).slice(0, 8), [rows]);
+  rows,
+  ready,
+  loading,
+  onLoad,
+  onPick,
+  onPay,
+}: {
+  rows: StudentIndexRow[];
+  ready: boolean;
+  loading: boolean;
+  onLoad: () => void;
+  onPick: (r: StudentIndexRow) => void;
+  onPay: (id: string) => void;
+}) {
+  const debtors = useMemo(
+    () =>
+      rows
+        .filter((r) => r.debt > 0)
+        .sort((a, b) => b.debt - a.debt)
+        .slice(0, 8),
+    [rows],
+  );
   return (
     <section className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-base font-bold"><Wallet className="h-4 w-4 text-primary" /> Qarzdorlar</h2>
-        <Link to="/payments" className="text-xs font-semibold text-primary hover:underline">Barchasi</Link>
+        <h2 className="flex items-center gap-2 text-base font-bold">
+          <Wallet className="h-4 w-4 text-primary" /> Qarzdorlar
+        </h2>
+        <Link to="/payments" className="text-xs font-semibold text-primary hover:underline">
+          Barchasi
+        </Link>
       </div>
       <div className="mt-3 divide-y divide-border text-sm">
-        {debtors.length === 0 && <p className="py-3 text-muted-foreground">Qarzdorlar yo'q</p>}
+        {!ready && (
+          <button
+            onClick={onLoad}
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 font-semibold text-primary disabled:opacity-60"
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? "Ro'yxat yuklanmoqda..." : "Qarzdorlar ro'yxatini ko'rish"}
+          </button>
+        )}
+        {ready && debtors.length === 0 && (
+          <p className="py-3 text-muted-foreground">Qarzdorlar yo'q</p>
+        )}
         {debtors.map((r) => (
           <div key={r.id} className="flex items-center justify-between gap-2 py-2.5">
             <button onClick={() => onPick(r)} className="min-w-0 flex-1 text-left">
               <span className="block truncate font-semibold">{r.name}</span>
-              <span className="block truncate text-xs text-muted-foreground">{r.groupNames[0] ?? "guruhsiz"}</span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {r.groupNames[0] ?? "guruhsiz"}
+              </span>
             </button>
             <span className="shrink-0 rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-bold text-destructive">
               {fmt(r.debt)} so'm
             </span>
-            <button onClick={() => onPay(r.id)} className="shrink-0 rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground">
+            <button
+              onClick={() => onPay(r.id)}
+              className="shrink-0 rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground"
+            >
               To'lov
             </button>
           </div>
@@ -270,22 +425,33 @@ function TodayLessons() {
   useEffect(() => {
     supabase
       .from("lessons")
-      .select("id, group_id, start_time, end_time, group:groups(name, subject:subjects(name)), teacher:profiles!lessons_teacher_user_id_fkey(full_name), room:rooms(name)")
+      .select(
+        "id, group_id, start_time, end_time, group:groups(name, subject:subjects(name)), teacher:profiles!lessons_teacher_user_id_fkey(full_name), room:rooms(name)",
+      )
       .eq("day_of_week", dow)
       .eq("is_active", true)
       .order("start_time")
-      .then(({ data }) => { setRows((data as never) ?? []); setLoading(false); });
+      .then(({ data }) => {
+        setRows((data as never) ?? []);
+        setLoading(false);
+      });
   }, [dow]);
 
   return (
     <section className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-base font-bold"><CalendarDays className="h-4 w-4 text-primary" /> Bugungi darslar</h2>
-        <Link to="/schedule" className="text-xs font-semibold text-primary hover:underline">Jadval</Link>
+        <h2 className="flex items-center gap-2 text-base font-bold">
+          <CalendarDays className="h-4 w-4 text-primary" /> Bugungi darslar
+        </h2>
+        <Link to="/schedule" className="text-xs font-semibold text-primary hover:underline">
+          Jadval
+        </Link>
       </div>
       <div className="mt-3 divide-y divide-border text-sm">
         {loading && <div className="h-16 animate-pulse rounded-xl bg-secondary/60" />}
-        {!loading && rows.length === 0 && <p className="py-3 text-muted-foreground">Bugun dars belgilanmagan</p>}
+        {!loading && rows.length === 0 && (
+          <p className="py-3 text-muted-foreground">Bugun dars belgilanmagan</p>
+        )}
         {rows.map((l) => (
           <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
             <div className="min-w-0">

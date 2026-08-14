@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "bun install --frozen-lockfile",
+  "buildCommand": "bun run build",
+  "crons": [
+    {
+      "path": "/api/public/cron/reminders",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/public/cron/parent-digest",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/public/cron/notifications-dispatch",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/public/cron/daily-report",
+      "schedule": "0 16 * * *"
+    }
+  ]
+}

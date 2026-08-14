@@ -12,12 +12,11 @@ const ROUTE_MAP: RouteIntent[] = [
   { to: "/groups", label: "Guruhlar", keywords: ["guruh", "sinf", "group"] },
   { to: "/schedule", label: "Dars jadvali", keywords: ["jadval", "dars jadval", "schedule", "raspisaniya"] },
   { to: "/attendance", label: "Davomat", keywords: ["davomat", "kelmagan", "yo'q", "yoq", "attendance"] },
-  { to: "/grades", label: "Baholar", keywords: ["baho", "ball", "grade"] },
   { to: "/rooms", label: "Xonalar", keywords: ["xona", "auditoriya", "room"] },
   { to: "/payments", label: "To'lovlar", keywords: ["to'lov", "tolov", "payment", "pul kelgan", "kim to'ladi"] },
   { to: "/finance", label: "Moliya", keywords: ["moliya", "daromad", "xarajat", "foyda", "finance", "kassa", "balans"] },
   { to: "/leads", label: "Lidlar", keywords: ["lid", "lead", "mijoz", "yangi mijoz"] },
-  { to: "/behavior", label: "Xulq baholash", keywords: ["xulq", "behavior", "intizom"] },
+  { to: "/behavior", label: "Dars faolligi", keywords: ["faollik", "ishtirok", "xulq", "behavior", "intizom"] },
   { to: "/messages", label: "Xabarlar", keywords: ["xabar", "message", "yozishma", "chat"] },
   { to: "/marketplace", label: "Marketplace", keywords: ["market", "do'kon", "dokon", "mahsulot", "sotib"] },
   { to: "/teacher-balance", label: "O'qituvchi balansi", keywords: ["o'qituvchi balan", "oqituvchi balan", "oylik", "salary", "maosh"] },
@@ -30,12 +29,8 @@ const ROUTE_MAP: RouteIntent[] = [
   { to: "/teacher-panel", label: "O'qituvchi paneli", keywords: ["o'qituvchi panel", "oqituvchi panel", "teacher panel"] },
 ];
 
-// Only treat a message as pure navigation when it is short and asks no real question.
-const QUESTION_RE = /(qancha|necha|kim|nima|nega|qanday|qachon|foyda|daromad|xarajat|qarz|maslahat|tahlil|hisobot|\?|yoz|qo'sh|qosh|yarat|o'zgartir|ozgartir|to'la|tola)/i;
-
 function detectRoute(text: string): RouteIntent | null {
-  const t = text.toLowerCase().trim();
-  if (t.length > 24 || QUESTION_RE.test(t) || /\d/.test(t)) return null;
+  const t = text.toLowerCase();
   let best: { intent: RouteIntent; score: number } | null = null;
   for (const intent of ROUTE_MAP) {
     for (const k of intent.keywords) {
@@ -47,7 +42,6 @@ function detectRoute(text: string): RouteIntent | null {
   }
   return best?.intent ?? null;
 }
-
 
 type Msg = { role: "user" | "assistant"; content: string };
 

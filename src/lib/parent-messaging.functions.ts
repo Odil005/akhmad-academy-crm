@@ -7,7 +7,10 @@ export const listMessageThreads = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data: rolesRows } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    const { data: rolesRows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
     const roles = (rolesRows ?? []).map((r) => r.role as string);
     const isStaff = roles.includes("director") || roles.includes("admin");
     if (!isStaff && !roles.includes("teacher")) throw new Response("Forbidden", { status: 403 });
@@ -31,11 +34,18 @@ export const listMessageThreads = createServerFn({ method: "GET" })
     const tMap = Object.fromEntries((profs ?? []).map((p) => [p.id, p.full_name]));
 
     // Group per (student_id + teacher_id)
-    const threads = new Map<string, {
-      key: string; studentId: string; teacherId: string;
-      studentName: string; teacherName: string;
-      last: typeof msgs[number]; unread: number;
-    }>();
+    const threads = new Map<
+      string,
+      {
+        key: string;
+        studentId: string;
+        teacherId: string;
+        studentName: string;
+        teacherName: string;
+        last: (typeof msgs)[number];
+        unread: number;
+      }
+    >();
     for (const m of msgs ?? []) {
       const key = `${m.student_id}:${m.teacher_id}`;
       const cur = threads.get(key);
@@ -63,7 +73,9 @@ export const listMessageThreads = createServerFn({ method: "GET" })
 /** Get one thread's full message list. */
 export const getMessageThread = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ studentId: z.string().uuid(), teacherId: z.string().uuid() }).parse(d))
+  .inputValidator((d) =>
+    z.object({ studentId: z.string().uuid(), teacherId: z.string().uuid() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: msgs, error } = await supabase
@@ -80,15 +92,20 @@ export const getMessageThread = createServerFn({ method: "GET" })
 export const replyToParent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      studentId: z.string().uuid(),
-      teacherId: z.string().uuid().optional(),
-      message: z.string().min(1).max(4000),
-    }).parse(d),
+    z
+      .object({
+        studentId: z.string().uuid(),
+        teacherId: z.string().uuid().optional(),
+        message: z.string().min(1).max(4000),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: rolesRows } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    const { data: rolesRows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
     const roles = (rolesRows ?? []).map((r) => r.role as string);
     const isStaff = roles.includes("director") || roles.includes("admin");
     const teacherId = data.teacherId ?? userId;
@@ -109,21 +126,13 @@ export const replyToParent = createServerFn({ method: "POST" })
     const { data: student } = await supabaseAdmin
       .from("students")
       .select("first_name, last_name, parent_telegram_chat_id, parent_notifications_enabled")
-      .eq("id", data.studentId).maybeSingle();
+      .eq("id", data.studentId)
+      .maybeSingle();
     if (student?.parent_notifications_enabled && student.parent_telegram_chat_id) {
-      let token = process.env.TELEGRAM_BOT_TOKEN ?? "";
-      if (!token) {
-        const { data: setting } = await supabaseAdmin
-          .from("settings").select("value").eq("key", "telegram_bot").maybeSingle();
-        token = (setting?.value as { token?: string } | null)?.token ?? "";
-      }
-      if (token) {
+      if (process.env.TELEGRAM_BOT_TOKEN?.trim()) {
         const text = `👨‍🏫 O'qituvchidan xabar (${student.first_name} ${student.last_name ?? ""}):\n\n${data.message}\n\nJavob berish uchun bot menyusidan "💬 O'qituvchi javoblari" bo'limini oching.`;
-        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ chat_id: student.parent_telegram_chat_id, text }),
-        }).catch(() => null);
+        const { sendTelegramText } = await import("@/lib/telegram.server");
+        await sendTelegramText(student.parent_telegram_chat_id, text);
       }
     }
     return { ok: true as const };
@@ -132,16 +141,23 @@ export const replyToParent = createServerFn({ method: "POST" })
 /** Mark a thread as read by the teacher. */
 export const markThreadRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ studentId: z.string().uuid(), teacherId: z.string().uuid() }).parse(d))
+  .inputValidator((d) =>
+    z.object({ studentId: z.string().uuid(), teacherId: z.string().uuid() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (data.teacherId !== userId) {
       // staff also allowed
-      const { data: rolesRows } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+      const { data: rolesRows } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
       const roles = (rolesRows ?? []).map((r) => r.role as string);
-      if (!roles.includes("director") && !roles.includes("admin")) throw new Response("Forbidden", { status: 403 });
+      if (!roles.includes("director") && !roles.includes("admin"))
+        throw new Response("Forbidden", { status: 403 });
     }
-    const { error } = await supabase.from("parent_teacher_messages")
+    const { error } = await supabase
+      .from("parent_teacher_messages")
       .update({ read_at: new Date().toISOString(), status: "read" })
       .eq("student_id", data.studentId)
       .eq("teacher_id", data.teacherId)

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   CreditCard, UserPlus, Repeat, Phone, Send, Pencil, Snowflake, Archive,
-  Loader2, CalendarDays, GraduationCap, MessageSquare, Wallet, BookOpen,
+  Loader2, CalendarDays, MessageSquare, Wallet, BookOpen,
 } from "lucide-react";
 import { initialsOf, shortId, type StudentIndexRow } from "@/lib/admin-search";
 import { STATUS_META } from "@/lib/status";
@@ -33,7 +33,6 @@ type Payment = {
 };
 
 type AttendanceRow = { id: string; date: string; status: string; note: string | null };
-type GradeRow = { id: string; score: number; max_score: number; kind: string; graded_at: string; comment: string | null };
 type MessageRow = { id: string; message: string; sender_role: string; created_at: string; status: string };
 
 type Detail = {
@@ -41,11 +40,10 @@ type Detail = {
   enrollments: Enrollment[];
   payments: Payment[];
   attendance: AttendanceRow[];
-  grades: GradeRow[];
   messages: MessageRow[];
 };
 
-const TABS = ["Umumiy", "Kurslar", "To'lovlar", "Davomat", "Baholar", "Xabarlar"] as const;
+const TABS = ["Umumiy", "Kurslar", "To'lovlar", "Davomat", "Xabarlar"] as const;
 type Tab = (typeof TABS)[number];
 
 export function Student360({
@@ -73,7 +71,7 @@ export function Student360({
       const from = monthStart.toISOString().slice(0, 10);
       const to = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-      const [s, enr, pay, att, gr, msg] = await Promise.all([
+      const [s, enr, pay, att, msg] = await Promise.all([
         supabase
           .from("students")
           .select("*, profile:profiles(full_name, phone, avatar_url)")
@@ -87,7 +85,6 @@ export function Student360({
           .eq("student_id", row.id),
         supabase.from("payments").select("id, amount, total_amount, discount_amount, status, period_month, paid_at, payment_method, fiscal_status").eq("student_id", row.id).order("period_month", { ascending: false }).limit(50),
         supabase.from("attendance").select("id, date, status, note").eq("student_id", row.id).gte("date", from).lte("date", to),
-        supabase.from("grades").select("id, score, max_score, kind, graded_at, comment").eq("student_id", row.id).order("graded_at", { ascending: false }).limit(20),
         supabase.from("parent_teacher_messages").select("id, message, sender_role, created_at, status").eq("student_id", row.id).order("created_at", { ascending: false }).limit(20),
       ]);
       if (s.error) throw s.error;
@@ -96,7 +93,6 @@ export function Student360({
         enrollments: ((enr.data as never) ?? []) as Enrollment[],
         payments: ((pay.data as never) ?? []) as Payment[],
         attendance: (att.data ?? []) as AttendanceRow[],
-        grades: (gr.data ?? []) as GradeRow[],
         messages: (msg.data ?? []) as MessageRow[],
       });
     } catch (e: any) {
@@ -234,7 +230,6 @@ export function Student360({
             )}
             {(tab === "Umumiy" || tab === "Davomat") && <AttendanceCalendar rows={data.attendance} />}
             {(tab === "Umumiy" || tab === "To'lovlar") && <PaymentsPanel payments={data.payments} debt={debt} />}
-            {(tab === "Umumiy" || tab === "Baholar") && <GradesPanel grades={data.grades} />}
             {(tab === "Umumiy" || tab === "Xabarlar") && <MessagesPanel messages={data.messages} />}
           </>
         )}
@@ -454,29 +449,6 @@ function PaymentsPanel({ payments, debt }: { payments: Payment[]; debt: number }
                 Chek
               </a>
             )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function GradesPanel({ grades }: { grades: GradeRow[] }) {
-  const avg = grades.length
-    ? Math.round((grades.reduce((s, g) => s + (Number(g.score) / Number(g.max_score || 1)) * 100, 0) / grades.length))
-    : null;
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="flex items-baseline justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-base font-bold"><GraduationCap className="h-4 w-4 text-primary" /> Baholar</h3>
-        {avg !== null && <span className="text-sm font-semibold">O'rtacha: {avg}%</span>}
-      </div>
-      <div className="mt-3 divide-y divide-border text-sm">
-        {grades.length === 0 && <p className="py-3 text-muted-foreground">Baho yozuvi yo'q</p>}
-        {grades.map((g) => (
-          <div key={g.id} className="flex items-center justify-between gap-2 py-2.5">
-            <span className="text-muted-foreground">{new Date(g.graded_at).toLocaleDateString("uz-UZ")} · {g.kind}</span>
-            <span className="font-semibold">{g.score}/{g.max_score}</span>
           </div>
         ))}
       </div>

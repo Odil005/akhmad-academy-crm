@@ -1,42 +1,71 @@
-import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  redirect,
+  Link,
+  useNavigate,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { ChevronDown, LogOut, LayoutDashboard, Users, BookOpen, CreditCard, Menu, X, Settings, ShoppingBag, Smile, Search, Wallet, CalendarDays, ClipboardCheck, DoorOpen, BarChart3, Phone, ScanFace, GraduationCap, Inbox, Upload, MessageSquare, DollarSign } from "lucide-react";
+import {
+  ChevronDown,
+  LogOut,
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  CreditCard,
+  Menu,
+  X,
+  Settings,
+  ShoppingBag,
+  Smile,
+  Search,
+  Wallet,
+  CalendarDays,
+  ClipboardCheck,
+  DoorOpen,
+  BarChart3,
+  Phone,
+  ScanFace,
+  GraduationCap,
+  Inbox,
+  Upload,
+  MessageSquare,
+  DollarSign,
+} from "lucide-react";
 import { lazy, Suspense } from "react";
+import {
+  isAdmin as hasAdminRole,
+  isDirector as hasDirectorRole,
+  isStaff as hasStaffRole,
+} from "@/lib/authz";
+import {
+  clearAuthenticatedRouteCache,
+  getAuthenticatedRouteContext,
+} from "@/lib/authenticated-route-cache";
+import { SystemAlertIndicator } from "@/components/SystemAlertIndicator";
 // Jarvis is a heavy assistant panel — keep it out of the initial bundle.
 const Jarvis = lazy(() => import("@/components/Jarvis").then((m) => ({ default: m.Jarvis })));
 const logoAsset = { url: "/logo-256.webp" };
 
-type Role = "director" | "admin" | "teacher" | "student";
-
-type AuthSnapshot = {
-  user: Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"];
-  roles: Role[];
-  expiresAt: number;
-};
-
-let authSnapshot: AuthSnapshot | null = null;
-
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    if (authSnapshot?.user && authSnapshot.expiresAt > Date.now()) {
-      return { user: authSnapshot.user, roles: authSnapshot.roles };
-    }
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-    const { data: roleRows } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", data.user.id);
-    const roles = (roleRows ?? []).map((r) => r.role as Role);
-    authSnapshot = { user: data.user, roles, expiresAt: Date.now() + 5 * 60_000 };
-    return { user: data.user, roles };
+    const context = await getAuthenticatedRouteContext();
+    if (!context) throw redirect({ to: "/auth" });
+    return context;
   },
   component: AuthenticatedLayout,
 });
 
-type NavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }>; show: boolean };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  show: boolean;
+};
 
 function AuthenticatedLayout() {
   const { user, roles } = Route.useRouteContext();
@@ -46,11 +75,6 @@ function AuthenticatedLayout() {
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const isStaff = roles.includes("director") || roles.includes("admin");
-  const isAdmin = roles.includes("admin");
-  const isDirector = roles.includes("director");
-  const isTeacher = roles.includes("teacher");
-  const canSeeGroups = isStaff || isTeacher;
 
   useEffect(() => {
     supabase
@@ -66,33 +90,57 @@ function AuthenticatedLayout() {
   }, [pathname]);
 
   useEffect(() => {
-    if (!isStaff) return;
-    const warmRoutes = () => {
-      void router.preloadRoute({ to: "/students" });
-      void router.preloadRoute({ to: "/schedule" });
-      void router.preloadRoute({ to: "/finance" });
+    const preloadCoreRoutes = () => {
+      void Promise.all([
+        router.preloadRoute({ to: "/students" }),
+        router.preloadRoute({ to: "/groups" }),
+        router.preloadRoute({ to: "/schedule" }),
+      ]);
     };
-    const timer = window.setTimeout(warmRoutes, 250);
+    const timer = window.setTimeout(preloadCoreRoutes, 300);
     return () => window.clearTimeout(timer);
-  }, [isStaff, router]);
+  }, [router]);
+
+  const isStaff = hasStaffRole(roles);
+  const isAdmin = hasAdminRole(roles);
+  const isDirector = hasDirectorRole(roles);
+  const isTeacher = roles.includes("teacher");
+  const canSeeGroups = isStaff || isTeacher;
 
   const nav: NavItem[] = [
     { to: "/teacher-panel", label: "O'qituvchi paneli", icon: Users, show: isTeacher },
+    {
+      to: "/video-lessons",
+      label: "Video darslar",
+      icon: GraduationCap,
+      show: isTeacher || roles.includes("student"),
+    },
     { to: "/dashboard", label: "Boshqaruv", icon: LayoutDashboard, show: true },
     { to: "/students", label: "O'quvchilar", icon: Users, show: isStaff },
     { to: "/groups", label: "Guruhlar", icon: BookOpen, show: canSeeGroups },
+    {
+      to: "/settings/teachers",
+      label: "O'qituvchilar ro'yxati",
+      icon: GraduationCap,
+      show: isStaff,
+    },
     { to: "/schedule", label: "Dars jadvali", icon: CalendarDays, show: true },
     { to: "/attendance", label: "Davomat", icon: ClipboardCheck, show: isStaff || isTeacher },
-    { to: "/grades", label: "Baholar", icon: GraduationCap, show: true },
     { to: "/payments", label: "To'lovlar", icon: CreditCard, show: isStaff },
     { to: "/finance", label: "Moliya", icon: DollarSign, show: isStaff },
     { to: "/leads", label: "Lidlar", icon: Inbox, show: isAdmin },
     { to: "/calls", label: "Qo'ng'iroqlar", icon: Phone, show: isStaff },
     { to: "/messages", label: "Xabarlar", icon: MessageSquare, show: isStaff || isTeacher },
     { to: "/rooms", label: "Xonalar", icon: DoorOpen, show: isStaff },
-    { to: "/behavior", label: "Xulq baholash", icon: Smile, show: isTeacher },
+    { to: "/behavior", label: "Dars faolligi", icon: Smile, show: isTeacher },
     { to: "/face-id", label: "Face ID", icon: ScanFace, show: isTeacher },
-    { to: "/teacher-balance", label: "O'qituvchi balansi", icon: Wallet, show: isDirector },
+    { to: "/teacher-balance", label: "O'qituvchi balansi", icon: Wallet, show: isStaff },
+    {
+      to: "/teacher-kpi",
+      label: "Oylik KPI",
+      icon: GraduationCap,
+      show: isStaff || isTeacher,
+    },
     { to: "/marketplace", label: "Marketplace", icon: ShoppingBag, show: true },
     { to: "/reports", label: "Hisobotlar", icon: BarChart3, show: isDirector },
     { to: "/import", label: "Excel import", icon: Upload, show: isStaff },
@@ -105,11 +153,13 @@ function AuthenticatedLayout() {
   // qolganlari "Boshqa bo'limlar" ichida. Director menyusi to'liq qoladi.
   const adminSimplified = isAdmin && !isDirector;
   const ADMIN_PRIMARY = ["/dashboard", "/students", "/payments", "/groups"];
-  const primaryNav = adminSimplified ? visibleNav.filter((n) => ADMIN_PRIMARY.includes(n.to)) : visibleNav;
+  const primaryNav = adminSimplified
+    ? visibleNav.filter((n) => ADMIN_PRIMARY.includes(n.to))
+    : visibleNav;
   const moreNav = adminSimplified ? visibleNav.filter((n) => !ADMIN_PRIMARY.includes(n.to)) : [];
 
   const signOut = async () => {
-    authSnapshot = null;
+    clearAuthenticatedRouteCache();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
@@ -131,7 +181,9 @@ function AuthenticatedLayout() {
           fetchPriority="high"
         />
         <div className="leading-tight">
-          <div className="text-sm font-extrabold tracking-[0.14em] text-sidebar-primary">AKHMAD</div>
+          <div className="text-sm font-extrabold tracking-[0.14em] text-sidebar-primary">
+            AKHMAD
+          </div>
           <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sidebar-foreground/70">
             Academy
           </div>
@@ -221,13 +273,17 @@ function AuthenticatedLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] lg:block">{SidebarInner}</aside>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] lg:block">
+        {SidebarInner}
+      </aside>
 
       {/* Mobile drawer */}
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-foreground/40" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] shadow-2xl">{SidebarInner}</div>
+          <div className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] shadow-2xl">
+            {SidebarInner}
+          </div>
         </div>
       )}
 
@@ -256,6 +312,8 @@ function AuthenticatedLayout() {
               </Link>
             )}
 
+            {isStaff && <SystemAlertIndicator />}
+
             <button
               onClick={signOut}
               className="ml-auto rounded-xl border border-border p-2.5 text-foreground/70 transition hover:border-destructive/40 hover:text-destructive lg:ml-3"
@@ -267,7 +325,7 @@ function AuthenticatedLayout() {
         </header>
 
         <main>
-          <div key={pathname} className="animate-page-in mx-auto max-w-[1500px] px-4 py-6 md:px-8 md:py-8">
+          <div className="mx-auto max-w-[1500px] px-4 py-6 md:px-8 md:py-8">
             <Outlet />
           </div>
         </main>

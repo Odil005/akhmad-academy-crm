@@ -1,118 +1,104 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Plus, RefreshCw, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 import { TelegramIdButton } from "@/components/TelegramIdButton";
+import { NewTeacherModal } from "@/components/NewTeacherModal";
 
-export const Route = createFileRoute("/_authenticated/settings/teachers")({
-  component: TeachersPage,
-});
+export const Route = createFileRoute("/_authenticated/settings/teachers")({ component: TeachersPage });
 
 type Level = "junior" | "middle" | "senior" | "lead";
-type Row = { user_id: string; full_name: string; phone: string | null; teacher_level: Level | null; username: string | null };
+type Row = { user_id: string; full_name: string; phone: string | null; teacher_level: Level | null; username: string | null; groups: number };
 
-const LEVELS: { value: Level; label: string; hint: string; color: string }[] = [
-  { value: "junior", label: "Junior", hint: "Yangi boshlovchi o'qituvchi", color: "bg-sky-500/10 text-sky-500" },
-  { value: "middle", label: "Middle", hint: "Tajribali o'qituvchi", color: "bg-emerald-500/10 text-emerald-500" },
-  { value: "senior", label: "Senior", hint: "Kuchli o'qituvchi", color: "bg-amber-500/10 text-amber-500" },
-  { value: "lead", label: "Lead", hint: "Yetakchi / mentor", color: "bg-primary/10 text-primary" },
+const LEVELS: { value: Level; label: string; color: string }[] = [
+  { value: "junior", label: "Junior", color: "bg-sky-500/10 text-sky-600" },
+  { value: "middle", label: "Middle", color: "bg-emerald-500/10 text-emerald-600" },
+  { value: "senior", label: "Senior", color: "bg-amber-500/10 text-amber-600" },
+  { value: "lead", label: "Lead", color: "bg-primary/10 text-primary" },
 ];
 
 function TeachersPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [query, setQuery] = useState("");
+  const [newTeacherOpen, setNewTeacherOpen] = useState(false);
 
-  const load = async () => {
-    setLoading(true);
-    const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "teacher");
-    const ids = (roles ?? []).map((r: any) => r.user_id).filter(Boolean);
-    if (!ids.length) { setRows([]); setLoading(false); return; }
-    const [{ data: profs }, { data: creds }] = await Promise.all([
-      supabase.from("profiles").select("id, full_name, phone, teacher_level").in("id", ids),
-      supabase.from("teacher_credentials").select("teacher_user_id, username").in("teacher_user_id", ids),
-    ]);
-    const uMap = new Map((creds ?? []).map((c: any) => [c.teacher_user_id, c.username as string]));
-    const out: Row[] = (profs ?? []).map((p: any) => ({
-      user_id: p.id,
-      full_name: p.full_name ?? "—",
-      phone: p.phone,
-      teacher_level: p.teacher_level ?? null,
-      username: uMap.get(p.id) ?? null,
-    })).sort((a, b) => a.full_name.localeCompare(b.full_name));
-    setRows(out);
-    setLoading(false);
+  const load = useCallback(async (manual = false) => {
+    manual ? setRefreshing(true) : setLoading(true);
+    try {
+      // Mustaqil so'rovlar parallel bajariladi; bu sahifa katta ro'yxatlarda ham tez ochiladi.
+      const { data: roles, error: roleError } = await supabase.from("user_roles").select("user_id").eq("role", "teacher");
+      if (roleError) throw roleError;
+      const ids = (roles ?? []).map((r) => r.user_id).filter(Boolean);
+      if (!ids.length) { setRows([]); return; }
+      const [{ data: profs, error: profileError }, { data: creds }, { data: groups }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, phone, teacher_level").in("id", ids),
+        supabase.from("teacher_credentials").select("teacher_user_id, username").in("teacher_user_id", ids),
+        supabase.from("groups").select("teacher_id").in("teacher_id", ids),
+      ]);
+      if (profileError) throw profileError;
+      const usernames = new Map((creds ?? []).map((c) => [c.teacher_user_id, c.username]));
+      const groupCounts = new Map<string, number>();
+      (groups ?? []).forEach((group) => group.teacher_id && groupCounts.set(group.teacher_id, (groupCounts.get(group.teacher_id) ?? 0) + 1));
+      setRows((profs ?? []).map((p) => ({
+        user_id: p.id,
+        full_name: p.full_name || "—",
+        phone: p.phone,
+        teacher_level: p.teacher_level as Level | null,
+        username: usernames.get(p.id) ?? null,
+        groups: groupCounts.get(p.id) ?? 0,
+      })).sort((a, b) => a.full_name.localeCompare(b.full_name, "uz")));
+    } catch (error: any) {
+      toast.error(error?.message ?? "O'qituvchilar ro'yxatini yuklab bo'lmadi");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const visibleRows = useMemo(() => {
+    const term = query.trim().toLocaleLowerCase();
+    if (!term) return rows;
+    return rows.filter((row) => [row.full_name, row.phone, row.username, row.teacher_level].filter(Boolean).some((value) => String(value).toLocaleLowerCase().includes(term)));
+  }, [query, rows]);
+
+  const setLevel = async (userId: string, level: Level | null) => {
+    const previous = rows.find((row) => row.user_id === userId)?.teacher_level ?? null;
+    setRows((current) => current.map((row) => row.user_id === userId ? { ...row, teacher_level: level } : row));
+    const { error } = await supabase.from("profiles").update({ teacher_level: level }).eq("id", userId);
+    if (error) {
+      setRows((current) => current.map((row) => row.user_id === userId ? { ...row, teacher_level: previous } : row));
+      toast.error(error.message);
+      return;
+    }
+    toast.success("O'qituvchi darajasi yangilandi");
   };
-  useEffect(() => { load(); }, []);
 
-  const setLevel = async (user_id: string, level: Level | null) => {
-    const { error } = await supabase.from("profiles").update({ teacher_level: level }).eq("id", user_id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Daraja yangilandi");
-    setRows((rs) => rs.map((r) => r.user_id === user_id ? { ...r, teacher_level: level } : r));
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <GraduationCap className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold">O'qituvchilar darajasi</h2>
-        </div>
-        <div className="mb-4 flex flex-wrap gap-2">
-          {LEVELS.map((l) => (
-            <span key={l.value} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${l.color}`}>
-              {l.label} · <span className="opacity-70">{l.hint}</span>
-            </span>
-          ))}
-        </div>
-
-        {loading ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">Yuklanmoqda...</p>
-        ) : rows.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            O'qituvchi topilmadi. Sozlamalar → Login generator orqali yangi o'qituvchi yarating.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="py-2 pr-3">Ism</th>
-                  <th className="py-2 pr-3">Telefon</th>
-                  <th className="py-2 pr-3">Username</th>
-                  <th className="py-2 pr-3">Daraja</th>
-                  <th className="py-2 pr-3">Telegram</th>
-
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rows.map((r) => (
-                  <tr key={r.user_id}>
-                    <td className="py-2.5 pr-3 font-semibold">{r.full_name}</td>
-                    <td className="py-2.5 pr-3 text-muted-foreground">{r.phone ?? "—"}</td>
-                    <td className="py-2.5 pr-3 font-mono text-xs text-muted-foreground">{r.username ?? "—"}</td>
-                    <td className="py-2.5 pr-3">
-                      <select
-                        value={r.teacher_level ?? ""}
-                        onChange={(e) => setLevel(r.user_id, (e.target.value || null) as Level | null)}
-                        className="rounded-lg border border-border bg-background px-2 py-1.5 text-xs font-semibold"
-                      >
-                        <option value="">— belgilanmagan —</option>
-                        {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-                      </select>
-                    </td>
-                    <td className="py-2.5 pr-3">
-                      <TelegramIdButton kind="teacher" id={r.user_id} name={r.full_name ?? "O'qituvchi"} compact />
-                    </td>
-                  </tr>
-
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+  return <div className="space-y-5">
+    <header className="flex flex-col justify-between gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center">
+      <div className="flex items-center gap-3">
+        <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary"><GraduationCap className="h-6 w-6" /></span>
+        <div><h2 className="text-xl font-extrabold">O'qituvchilar ro'yxati</h2><p className="text-sm text-muted-foreground">O'qituvchilar, guruhlari va bog'lanish ma'lumotlarini boshqaring.</p></div>
       </div>
+      <button onClick={() => setNewTeacherOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><Plus className="h-4 w-4" /> O'qituvchi qo'shish</button>
+    </header>
+
+    <div className="grid gap-3 sm:grid-cols-4">
+      <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs font-semibold text-muted-foreground">Jami o'qituvchi</p><p className="mt-1 text-2xl font-extrabold">{rows.length}</p></div>
+      {LEVELS.slice(1).map((level) => <div key={level.value} className="rounded-xl border border-border bg-card p-4"><p className="text-xs font-semibold text-muted-foreground">{level.label}</p><p className="mt-1 text-2xl font-extrabold">{rows.filter((r) => r.teacher_level === level.value).length}</p></div>)}
     </div>
-  );
+
+    <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ism, telefon yoki login qidiring" className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-3 text-sm outline-none ring-primary focus:ring-2" /></div>
+        <button onClick={() => void load(true)} disabled={refreshing} className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2.5 text-sm font-semibold disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} /> Yangilash</button>
+      </div>
+      {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Ro'yxat yuklanmoqda...</p> : visibleRows.length === 0 ? <div className="py-12 text-center text-sm text-muted-foreground"><Users className="mx-auto mb-3 h-7 w-7 opacity-50" />{query ? "Qidiruvga mos o'qituvchi topilmadi." : "Hali o'qituvchi qo'shilmagan."}</div> : <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead className="border-b border-border text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"><tr><th className="pb-3 pr-3">O'qituvchi</th><th className="pb-3 pr-3">Telefon</th><th className="pb-3 pr-3">Login</th><th className="pb-3 pr-3 text-center">Guruhlar</th><th className="pb-3 pr-3">Daraja</th><th className="pb-3">Telegram</th></tr></thead><tbody className="divide-y divide-border">{visibleRows.map((row) => <tr key={row.user_id} className="hover:bg-muted/30"><td className="py-3 pr-3 font-semibold">{row.full_name}</td><td className="py-3 pr-3 text-muted-foreground">{row.phone || "—"}</td><td className="py-3 pr-3 font-mono text-xs text-muted-foreground">{row.username || "—"}</td><td className="py-3 pr-3 text-center font-semibold">{row.groups}</td><td className="py-3 pr-3"><select value={row.teacher_level ?? ""} onChange={(event) => void setLevel(row.user_id, (event.target.value || null) as Level | null)} className="rounded-lg border border-border bg-background px-2 py-1.5 text-xs font-semibold"><option value="">Belgilanmagan</option>{LEVELS.map((level) => <option key={level.value} value={level.value}>{level.label}</option>)}</select></td><td className="py-3"><TelegramIdButton kind="teacher" id={row.user_id} name={row.full_name} compact /></td></tr>)}</tbody></table></div>}
+    </section>
+    {newTeacherOpen && <NewTeacherModal onClose={() => setNewTeacherOpen(false)} onDone={() => void load(true)} />}
+  </div>;
 }

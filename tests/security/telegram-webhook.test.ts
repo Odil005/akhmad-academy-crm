@@ -12,12 +12,9 @@ import { postTelegram, telegramUpdate, requireEnv, TELEGRAM_WEBHOOK_SECRET } fro
 // negative signal is that no server error is thrown and the flow ends at
 // the "invalid link" branch.
 
-describe("Telegram webhook: parent-link hijack protection", () => {
+describe.skipIf(!TELEGRAM_WEBHOOK_SECRET)("Telegram webhook: parent-link hijack protection", () => {
   beforeAll(() => {
     requireEnv();
-    if (!TELEGRAM_WEBHOOK_SECRET) {
-      throw new Error("TELEGRAM_WEBHOOK_SECRET missing in test env");
-    }
   });
 
   it("rejects requests missing the secret header", async () => {

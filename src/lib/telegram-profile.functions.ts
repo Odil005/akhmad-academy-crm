@@ -21,7 +21,12 @@ async function rolesOf(supabase: any, userId: string): Promise<string[]> {
 }
 
 /** Staff (director/admin) may edit anyone; a user may edit their own profile row. */
-function assertCanEdit(kind: "student" | "profile", subjectId: string, userId: string, roles: string[]) {
+function assertCanEdit(
+  kind: "student" | "profile",
+  subjectId: string,
+  userId: string,
+  roles: string[],
+) {
   const staff = roles.includes("director") || roles.includes("admin");
   if (staff) return;
   if (kind === "profile" && subjectId === userId) return;
@@ -51,8 +56,14 @@ export const saveTelegramId = createServerFn({ method: "POST" })
       .object({
         kind: KIND,
         subjectId: z.string().uuid(),
-        chatId: z.union([chatIdSchema, z.literal("")]).nullable().optional(),
-        username: z.union([usernameSchema, z.literal("")]).nullable().optional(),
+        chatId: z
+          .union([chatIdSchema, z.literal("")])
+          .nullable()
+          .optional(),
+        username: z
+          .union([usernameSchema, z.literal("")])
+          .nullable()
+          .optional(),
       })
       .parse(data),
   )
@@ -92,9 +103,7 @@ export const saveTelegramId = createServerFn({ method: "POST" })
 /** Send a verification message through the bot; marks the record verified on success. */
 export const sendTelegramTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ kind: KIND, subjectId: z.string().uuid() }).parse(data),
-  )
+  .inputValidator((data) => z.object({ kind: KIND, subjectId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const roles = await rolesOf(supabase, userId);
@@ -107,36 +116,23 @@ export const sendTelegramTest = createServerFn({ method: "POST" })
       .eq("id", data.subjectId)
       .maybeSingle();
 
-    const chatId: string | null = (row as { telegram_chat_id?: string | null } | null)?.telegram_chat_id ?? null;
+    const chatId: string | null =
+      (row as { telegram_chat_id?: string | null } | null)?.telegram_chat_id ?? null;
     if (!chatId) return { ok: false as const, error: "Telegram ID saqlanmagan" };
 
-    const token = process.env["TELEGRAM_BOT_TOKEN"];
-    if (!token) return { ok: false as const, error: "Bot tokeni sozlanmagan" };
-
-    let ok = false;
-    let err: string | null = null;
-    try {
-      const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: "✅ Akhmad Academy: Telegram ulanishi tasdiqlandi. Bundan keyin davomat, to'lov va jadval xabarlari shu chatga keladi.",
-        }),
-      });
-      const body = (await resp.json().catch(() => ({}))) as { ok?: boolean; description?: string };
-      ok = body.ok === true;
-      if (!ok) {
-        err =
-          body.description === "Forbidden: bot was blocked by the user"
-            ? "Bot bloklangan — foydalanuvchi botni blokdan chiqarsin"
-            : body.description === "Bad Request: chat not found"
-              ? "Chat topilmadi — avval botga /start yuborilishi kerak"
-              : (body.description ?? `HTTP ${resp.status}`);
-      }
-    } catch (e) {
-      err = e instanceof Error ? e.message : "Tarmoq xatosi";
-    }
+    const { sendTelegramText } = await import("@/lib/telegram.server");
+    const result = await sendTelegramText(
+      chatId,
+      "✅ Akhmad Academy: Telegram ulanishi tasdiqlandi. Bundan keyin davomat, to'lov va jadval xabarlari shu chatga keladi.",
+    );
+    const ok = result.ok;
+    const rawError = result.ok ? null : result.error;
+    const err =
+      rawError === "Forbidden: bot was blocked by the user"
+        ? "Bot bloklangan — foydalanuvchi botni blokdan chiqarsin"
+        : rawError === "Bad Request: chat not found"
+          ? "Chat topilmadi — avval botga /start yuborilishi kerak"
+          : rawError;
 
     await supabase
       .from(table)

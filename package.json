@@ -9,6 +9,9 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "bun run typecheck && bun run test && bun run build",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -73,7 +76,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
-    "@lovable.dev/vite-tanstack-config": "2.12.0",
+    "@lovable.dev/vite-tanstack-config": "2.9.1",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^22.16.5",
     "@types/qrcode": "^1.5.6",

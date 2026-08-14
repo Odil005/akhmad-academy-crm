@@ -48,11 +48,14 @@ describe("leads RLS: anon insert-only, no read", () => {
     expect([401, 403]).toContain(res.status);
   });
 
-  it("rejects anon updates", async () => {
+  it("does not expose an anonymous update target", async () => {
     const res = await pgAnon("leads?id=eq.00000000-0000-0000-0000-000000000000", {
       method: "PATCH",
       body: JSON.stringify({ status: "converted" }),
     });
-    expect([401, 403, 404]).toContain(res.status);
+    // PostgREST returns 204 for an invisible row (zero rows updated), even
+    // when RLS correctly blocks the request. It must never return a record.
+    expect([200, 204, 401, 403, 404]).toContain(res.status);
+    if (res.status === 200) expect(await res.json()).toEqual([]);
   });
 });

@@ -7,7 +7,6 @@ import { TelegramIdButton } from "@/components/TelegramIdButton";
 import { TelegramIdField } from "@/components/TelegramIdField";
 import { toast } from "sonner";
 
-
 type Kind = "student" | "teacher" | "admin" | "director";
 
 type Person = { id: string; name: string; sub: string | null; linked: boolean };
@@ -35,10 +34,16 @@ function SelfTelegramLink() {
       ]);
       if (!alive) return;
       const list = (roles ?? []).map((r: any) => r.role as string);
-      const kind: Kind = list.includes("director") ? "director" : list.includes("admin") ? "admin" : "teacher";
+      const kind: Kind = list.includes("director")
+        ? "director"
+        : list.includes("admin")
+          ? "admin"
+          : "teacher";
       setMe({ id: uid, name: (prof as any)?.full_name || "Men", kind });
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   if (!me) return null;
@@ -46,7 +51,9 @@ function SelfTelegramLink() {
     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
       <div className="text-sm">
         <div className="font-bold">Mening Telegram ID</div>
-        <div className="text-xs text-muted-foreground">{me.name} — hisobotlar shu Telegramga keladi</div>
+        <div className="text-xs text-muted-foreground">
+          {me.name} — hisobotlar shu Telegramga keladi
+        </div>
       </div>
       <TelegramIdButton kind={me.kind} id={me.id} name={me.name} compact />
     </div>
@@ -61,9 +68,10 @@ export function TelegramLinkPanel() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
-  const [link, setLink] = useState<{ name: string; url: string | null; token: string } | null>(null);
+  const [link, setLink] = useState<{ name: string; url: string | null; token: string } | null>(
+    null,
+  );
   const [manual, setManual] = useState<string | null>(null);
-
 
   useEffect(() => {
     let alive = true;
@@ -73,7 +81,7 @@ export function TelegramLinkPanel() {
       if (kind === "student") {
         const { data } = await supabase
           .from("students")
-          .select("id, full_name, first_name, last_name, parent_phone, parent_telegram_chat_id")
+          .select("id, full_name, first_name, last_name, parent_phone, telegram_chat_id")
           .order("created_at", { ascending: false })
           .limit(400);
         if (!alive) return;
@@ -82,13 +90,22 @@ export function TelegramLinkPanel() {
             id: s.id,
             name: (s.full_name || `${s.last_name ?? ""} ${s.first_name ?? ""}`).trim() || "—",
             sub: s.parent_phone ?? null,
-            linked: Boolean(s.parent_telegram_chat_id),
+            linked: Boolean(s.telegram_chat_id),
           })),
         );
       } else {
-        const { data: roleRows } = await supabase.from("user_roles").select("user_id").eq("role", kind);
+        const { data: roleRows } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", kind);
         const ids = (roleRows ?? []).map((r: any) => r.user_id).filter(Boolean);
-        if (!ids.length) { if (alive) { setPeople([]); setLoading(false); } return; }
+        if (!ids.length) {
+          if (alive) {
+            setPeople([]);
+            setLoading(false);
+          }
+          return;
+        }
         const [{ data: profs }, { data: links }] = await Promise.all([
           supabase.from("profiles").select("id, full_name, phone").in("id", ids),
           supabase.from("staff_telegram_links").select("user_id").in("user_id", ids),
@@ -96,22 +113,28 @@ export function TelegramLinkPanel() {
         if (!alive) return;
         const linkedSet = new Set((links ?? []).map((l: any) => l.user_id));
         setPeople(
-          (profs ?? []).map((p: any) => ({
-            id: p.id,
-            name: p.full_name || "—",
-            sub: p.phone ?? null,
-            linked: linkedSet.has(p.id),
-          })).sort((a, b) => a.name.localeCompare(b.name)),
+          (profs ?? [])
+            .map((p: any) => ({
+              id: p.id,
+              name: p.full_name || "—",
+              sub: p.phone ?? null,
+              linked: linkedSet.has(p.id),
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name)),
         );
       }
       setLoading(false);
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [kind]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const rows = q ? people.filter((p) => p.name.toLowerCase().includes(q) || (p.sub ?? "").includes(q)) : people;
+    const rows = q
+      ? people.filter((p) => p.name.toLowerCase().includes(q) || (p.sub ?? "").includes(q))
+      : people;
     return rows.slice(0, 12);
   }, [people, query]);
 
@@ -126,7 +149,10 @@ export function TelegramLinkPanel() {
           label: p.name,
         },
       });
-      if (!res.ok) { toast.error(res.error); return; }
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
       setLink({ name: p.name, url: res.link, token: res.token });
       if (res.link) {
         await navigator.clipboard.writeText(res.link).catch(() => {});
@@ -162,8 +188,6 @@ export function TelegramLinkPanel() {
 
       <SelfTelegramLink />
 
-
-
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -174,9 +198,14 @@ export function TelegramLinkPanel() {
       {link && (
         <div className="mt-3 rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm">
           <div className="font-semibold">{link.name}</div>
-          <div className="mt-1 break-all font-mono text-xs text-muted-foreground">{link.url ?? link.token}</div>
+          <div className="mt-1 break-all font-mono text-xs text-muted-foreground">
+            {link.url ?? link.token}
+          </div>
           <button
-            onClick={() => { navigator.clipboard.writeText(link.url ?? link.token); toast.success("Nusxalandi"); }}
+            onClick={() => {
+              navigator.clipboard.writeText(link.url ?? link.token);
+              toast.success("Nusxalandi");
+            }}
             className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
             <Copy className="h-3.5 w-3.5" /> Havolani nusxalash
@@ -189,13 +218,17 @@ export function TelegramLinkPanel() {
 
       <div className="mt-3 divide-y divide-border text-sm">
         {loading && <div className="h-16 animate-pulse rounded-xl bg-secondary/60" />}
-        {!loading && filtered.length === 0 && <p className="py-3 text-muted-foreground">Ro'yxat bo'sh</p>}
+        {!loading && filtered.length === 0 && (
+          <p className="py-3 text-muted-foreground">Ro'yxat bo'sh</p>
+        )}
         {filtered.map((p) => (
           <div key={p.id} className="py-2.5">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div className="truncate font-semibold">{p.name}</div>
-                <div className="truncate text-xs text-muted-foreground">{p.sub ?? "telefon yo'q"}</div>
+                <div className="truncate text-xs text-muted-foreground">
+                  {p.sub ?? "telefon yo'q"}
+                </div>
               </div>
               {p.linked && (
                 <span className="hidden shrink-0 items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-bold text-green-600 sm:flex">

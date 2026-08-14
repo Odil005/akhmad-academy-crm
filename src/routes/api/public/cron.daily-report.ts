@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { isCronRequestAuthorized, unauthorizedCronResponse } from "@/lib/cron-auth.server";
 
 // Daily director report — called by pg_cron at 20:00 Asia/Tashkent (15:00 UTC).
 // Auth: Supabase anon key in `apikey` header (public /api/public/* endpoint).
@@ -10,9 +11,18 @@ async function sendTelegram(botToken: string, chatId: string, text: string) {
     const r = await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
     });
-    const j = (await r.json().catch(() => ({}))) as { ok?: boolean; result?: { message_id?: number }; description?: string };
+    const j = (await r.json().catch(() => ({}))) as {
+      ok?: boolean;
+      result?: { message_id?: number };
+      description?: string;
+    };
     return { ok: !!j.ok, message_id: j.result?.message_id, error: j.description };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
@@ -38,12 +48,17 @@ async function jarvisSummarize(payload: Record<string, unknown>): Promise<string
             content:
               "Sen Akhmad Academy o'quv markazining biznes-sherigisan. O'zbek tilida qisqacha, aniq va professional yakuniy hisobot yozasan. 3-5 gap, muhim raqamlar va tavsiyalar bilan.",
           },
-          { role: "user", content: `Bugungi hisobot ma'lumotlari:\n${JSON.stringify(payload, null, 2)}\n\nQisqa xulosa va tavsiya yoz.` },
+          {
+            role: "user",
+            content: `Bugungi hisobot ma'lumotlari:\n${JSON.stringify(payload, null, 2)}\n\nQisqa xulosa va tavsiya yoz.`,
+          },
         ],
         temperature: 0.6,
       }),
     });
-    const j = (await r.json().catch(() => ({}))) as { choices?: { message?: { content?: string } }[] };
+    const j = (await r.json().catch(() => ({}))) as {
+      choices?: { message?: { content?: string } }[];
+    };
     return j.choices?.[0]?.message?.content ?? "";
   } catch {
     return "";
@@ -99,10 +114,7 @@ async function buildAndSend() {
     .lte("enrolled_at", endISO);
 
   // Attendance
-  const { data: att } = await supabaseAdmin
-    .from("attendance")
-    .select("status")
-    .eq("date", today);
+  const { data: att } = await supabaseAdmin.from("attendance").select("status").eq("date", today);
   const total = att?.length ?? 0;
   const present = (att ?? []).filter((r) => r.status === "present" || r.status === "late").length;
   const attendanceRate = total > 0 ? Math.round((present / total) * 100) : 0;
@@ -190,8 +202,14 @@ async function buildAndSend() {
 export const Route = createFileRoute("/api/public/cron/daily-report")({
   server: {
     handlers: {
-      GET: async () => Response.json(await buildAndSend()),
-      POST: async () => Response.json(await buildAndSend()),
+      GET: async ({ request }) =>
+        isCronRequestAuthorized(request)
+          ? Response.json(await buildAndSend())
+          : unauthorizedCronResponse(),
+      POST: async ({ request }) =>
+        isCronRequestAuthorized(request)
+          ? Response.json(await buildAndSend())
+          : unauthorizedCronResponse(),
     },
   },
 });

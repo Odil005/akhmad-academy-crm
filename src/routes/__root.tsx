@@ -11,9 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AmbientBackground } from "@/components/AmbientBackground";
 import { InstallAppPrompt } from "@/components/InstallAppPrompt";
-
+import { clearAuthenticatedRouteCache } from "@/lib/authenticated-route-cache";
 
 function NotFoundComponent() {
   return (
@@ -86,21 +85,44 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Akhmad Academy" },
       { title: "Akhmad Academy — Bilimingizni rivojlantiring" },
-      { name: "description", content: "Akhmad Academy — zamonaviy o'quv markazi. Ingliz tili, matematika, mental arifmetika va boshqa yo'nalishlar bo'yicha malakali o'qituvchilar bilan sifatli ta'lim." },
+      {
+        name: "description",
+        content:
+          "Akhmad Academy — zamonaviy o'quv markazi. Ingliz tili, matematika, mental arifmetika va boshqa yo'nalishlar bo'yicha malakali o'qituvchilar bilan sifatli ta'lim.",
+      },
       { name: "author", content: "Akhmad Academy" },
       { property: "og:title", content: "Akhmad Academy — Bilimingizni rivojlantiring" },
-      { property: "og:description", content: "Akhmad Academy — zamonaviy o'quv markazi. Ingliz tili, matematika, mental arifmetika va boshqa yo'nalishlar bo'yicha malakali o'qituvchilar bilan sifatli ta'lim." },
+      {
+        property: "og:description",
+        content:
+          "Akhmad Academy — zamonaviy o'quv markazi. Ingliz tili, matematika, mental arifmetika va boshqa yo'nalishlar bo'yicha malakali o'qituvchilar bilan sifatli ta'lim.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Akhmad Academy — Bilimingizni rivojlantiring" },
-      { name: "twitter:description", content: "Akhmad Academy — zamonaviy o'quv markazi. Ingliz tili, matematika, mental arifmetika va boshqa yo'nalishlar bo'yicha malakali o'qituvchilar bilan sifatli ta'lim." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/hcTakEu6gKU76YMTH3D4bMFSxwE3/social-images/social-1783517655887-photo_2026-07-07_22-43-48.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/hcTakEu6gKU76YMTH3D4bMFSxwE3/social-images/social-1783517655887-photo_2026-07-07_22-43-48.webp" },
+      {
+        name: "twitter:description",
+        content:
+          "Akhmad Academy — zamonaviy o'quv markazi. Ingliz tili, matematika, mental arifmetika va boshqa yo'nalishlar bo'yicha malakali o'qituvchilar bilan sifatli ta'lim.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/hcTakEu6gKU76YMTH3D4bMFSxwE3/social-images/social-1783517655887-photo_2026-07-07_22-43-48.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/hcTakEu6gKU76YMTH3D4bMFSxwE3/social-images/social-1783517655887-photo_2026-07-07_22-43-48.webp",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap",
+      },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
@@ -140,6 +162,7 @@ function RootComponent() {
       const { data: sub } = supabase.auth.onAuthStateChange((event) => {
         if (!mounted) return;
         if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+        clearAuthenticatedRouteCache();
         router.invalidate();
         if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
       });
@@ -152,12 +175,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AmbientBackground />
       <Outlet />
       <InstallAppPrompt />
-
     </QueryClientProvider>
-
   );
 }
-

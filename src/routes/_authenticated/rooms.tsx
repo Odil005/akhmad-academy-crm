@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { Plus, Trash2, X, DoorOpen } from "lucide-react";
+import { Plus, X, DoorOpen, Power } from "lucide-react";
+import { toast } from "sonner";
 
 type Room = {
   id: string;
@@ -33,12 +34,32 @@ function RoomsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
-
-  const remove = async (id: string) => {
-    if (!confirm("Xona o'chirilsinmi?")) return;
-    await supabase.from("rooms").delete().eq("id", id);
+  useEffect(() => {
     load();
+  }, []);
+
+  const toggleActive = async (room: Room) => {
+    if (room.is_active) {
+      const { count, error } = await supabase
+        .from("lessons")
+        .select("id", { count: "exact", head: true })
+        .eq("room_id", room.id)
+        .eq("is_active", true);
+      if (error) return toast.error(error.message);
+      const warning = count
+        ? `Bu xonada ${count} ta faol dars bor. Xona faolsiz holatga o'tkazilsinmi?`
+        : "Xona faolsiz holatga o'tkazilsinmi?";
+      if (!confirm(warning)) return;
+    } else if (!confirm("Xona yana faol holatga o'tkazilsinmi?")) {
+      return;
+    }
+    const { error } = await supabase
+      .from("rooms")
+      .update({ is_active: !room.is_active })
+      .eq("id", room.id);
+    if (error) return toast.error(error.message);
+    toast.success(room.is_active ? "Xona faolsiz qilindi" : "Xona faollashtirildi");
+    void load();
   };
 
   return (
@@ -49,7 +70,10 @@ function RoomsPage() {
           <p className="text-sm text-muted-foreground">O'quv xonalari va sig'imi</p>
         </div>
         {isStaff && (
-          <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
+          <button
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+          >
             <Plus className="h-4 w-4" /> Xona qo'shish
           </button>
         )}
@@ -68,8 +92,16 @@ function RoomsPage() {
               <div className="flex items-start justify-between">
                 <DoorOpen className="h-8 w-8 text-primary" />
                 {isStaff && (
-                  <button onClick={() => remove(r.id)} className="text-destructive hover:opacity-70">
-                    <Trash2 className="h-4 w-4" />
+                  <button
+                    onClick={() => void toggleActive(r)}
+                    className={
+                      r.is_active
+                        ? "text-amber-600 hover:opacity-70"
+                        : "text-emerald-600 hover:opacity-70"
+                    }
+                    title={r.is_active ? "Faolsiz qilish" : "Faollashtirish"}
+                  >
+                    <Power className="h-4 w-4" />
                   </button>
                 )}
               </div>
@@ -88,7 +120,15 @@ function RoomsPage() {
         </div>
       )}
 
-      {open && <NewRoomModal onClose={() => setOpen(false)} onDone={() => { setOpen(false); load(); }} />}
+      {open && (
+        <NewRoomModal
+          onClose={() => setOpen(false)}
+          onDone={() => {
+            setOpen(false);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -108,7 +148,11 @@ function NewRoomModal({ onClose, onDone }: { onClose: () => void; onDone: () => 
       floor: form.floor || null,
       notes: form.notes || null,
     });
-    if (error) { setError(error.message); setLoading(false); return; }
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
     onDone();
   };
 
@@ -117,23 +161,55 @@ function NewRoomModal({ onClose, onDone }: { onClose: () => void; onDone: () => 
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">Yangi xona</h2>
-          <button onClick={onClose}><X className="h-5 w-5" /></button>
+          <button onClick={onClose}>
+            <X className="h-5 w-5" />
+          </button>
         </div>
         <form onSubmit={submit} className="space-y-4">
           <Field label="Nomi">
-            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" placeholder="203-xona" />
+            <input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
+              placeholder="203-xona"
+            />
           </Field>
           <Field label="Sig'im">
-            <input required type="number" min={1} value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" />
+            <input
+              required
+              type="number"
+              min={1}
+              value={form.capacity}
+              onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
+            />
           </Field>
           <Field label="Qavat">
-            <input value={form.floor} onChange={(e) => setForm({ ...form, floor: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" placeholder="2" />
+            <input
+              value={form.floor}
+              onChange={(e) => setForm({ ...form, floor: e.target.value })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
+              placeholder="2"
+            />
           </Field>
           <Field label="Izoh">
-            <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" placeholder="Proyektor bor" />
+            <input
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
+              placeholder="Proyektor bor"
+            />
           </Field>
-          {error && <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">{error}</p>}
-          <button disabled={loading} className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60">
+          {error && (
+            <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+              {error}
+            </p>
+          )}
+          <button
+            disabled={loading}
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
             {loading ? "..." : "Saqlash"}
           </button>
         </form>
@@ -145,7 +221,9 @@ function NewRoomModal({ onClose, onDone }: { onClose: () => void; onDone: () => 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block text-sm">
-      <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
       {children}
     </label>
   );

@@ -10,17 +10,22 @@ import { z } from "zod";
 export const sendParentTelegram = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
-    z.object({
-      student_id: z.string().uuid(),
-      text: z.string().min(1).max(4000),
-      kind: z.string().default("manual"),
-    }).parse(data)
+    z
+      .object({
+        student_id: z.string().uuid(),
+        text: z.string().min(1).max(4000),
+        kind: z.string().default("manual"),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
     // Authorization: staff always; teacher only if student is in their group
-    const { data: rolesData } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
     const roles = (rolesData ?? []).map((r) => r.role as string);
     const isStaff = roles.includes("director") || roles.includes("admin");
     const isTeacher = roles.includes("teacher");
@@ -48,45 +53,43 @@ export const sendParentTelegram = createServerFn({ method: "POST" })
 
     if (!student.parent_notifications_enabled || !student.parent_telegram_chat_id) {
       await supabaseAdmin.from("parent_notifications").insert({
-        student_id: data.student_id, kind: data.kind, channel: "telegram",
-        payload: { text: data.text }, status: "skipped",
+        student_id: data.student_id,
+        kind: data.kind,
+        channel: "telegram",
+        payload: { text: data.text },
+        status: "skipped",
         error: "Chat ID mavjud emas yoki bildirishnomalar o'chirilgan",
       });
       return { ok: false, reason: "no_chat" as const };
     }
 
-    let token = process.env.TELEGRAM_BOT_TOKEN ?? "";
-    if (!token) {
-      const { data: setting } = await supabaseAdmin
-        .from("settings").select("value").eq("key", "telegram_bot").maybeSingle();
-      token = (setting?.value as { token?: string } | null)?.token ?? "";
-    }
-    if (!token) {
+    if (!process.env.TELEGRAM_BOT_TOKEN?.trim()) {
       await supabaseAdmin.from("parent_notifications").insert({
-        student_id: data.student_id, kind: data.kind, channel: "telegram",
-        payload: { text: data.text }, status: "error",
+        student_id: data.student_id,
+        kind: data.kind,
+        channel: "telegram",
+        payload: { text: data.text },
+        status: "error",
         error: "Bot token sozlanmagan",
       });
-      throw new Response("Telegram bot token sozlanmagan (/settings/integrations)", { status: 400 });
+      throw new Response("Telegram bot token sozlanmagan (/settings/integrations)", {
+        status: 400,
+      });
     }
 
-    const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ chat_id: student.parent_telegram_chat_id, text: data.text }),
-    });
-    const body = (await resp.json().catch(() => ({}))) as { ok?: boolean; description?: string };
+    const { sendTelegramText } = await import("@/lib/telegram.server");
+    const result = await sendTelegramText(student.parent_telegram_chat_id, data.text);
 
     await supabaseAdmin.from("parent_notifications").insert({
       student_id: data.student_id,
       kind: data.kind,
       channel: "telegram",
       payload: { text: data.text },
-      status: body.ok ? "sent" : "error",
-      error: body.ok ? null : (body.description ?? `HTTP ${resp.status}`),
-      sent_at: body.ok ? new Date().toISOString() : null,
+      status: result.ok ? "sent" : "error",
+      error: result.ok ? null : result.error,
+      sent_at: result.ok ? new Date().toISOString() : null,
     });
 
-    if (!body.ok) throw new Response(body.description ?? "Yuborishda xato", { status: 502 });
+    if (!result.ok) throw new Response(result.error, { status: 502 });
     return { ok: true as const };
   });

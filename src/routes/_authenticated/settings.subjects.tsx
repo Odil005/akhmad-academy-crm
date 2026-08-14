@@ -46,7 +46,7 @@ function SubjectsPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Fan o'chirilsinmi? Bog'liq guruh/dars/baholardan avval bo'shatilishi kerak.")) return;
+    if (!confirm("Fan o'chirilsinmi? Bog'liq guruh va darslardan avval bo'shatilishi kerak.")) return;
     const { error } = await supabase.from("subjects").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("O'chirildi");
@@ -72,7 +72,7 @@ function SubjectsPage() {
           </button>
         </form>
         <p className="mt-3 text-xs text-muted-foreground">
-          Fanlar guruh, dars jadvali va baholarda tanlanadi. SAT hamda Ona tili va Adabiyot allaqachon qo'shilgan.
+          Fanlar guruh va dars jadvalida tanlanadi. SAT hamda Ona tili va Adabiyot allaqachon qo'shilgan.
         </p>
       </div>
 

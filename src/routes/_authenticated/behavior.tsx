@@ -9,10 +9,10 @@ export const Route = createFileRoute("/_authenticated/behavior")({
 });
 
 const RATINGS = [
-  { value: "qoniqarsiz", label: "Qoniqarsiz", color: "bg-red-500", text: "text-red-500" },
-  { value: "qoniqarli", label: "Qoniqarli", color: "bg-yellow-500", text: "text-yellow-500" },
-  { value: "yaxshi", label: "Yaxshi", color: "bg-blue-500", text: "text-blue-500" },
-  { value: "alo", label: "A'lo", color: "bg-green-500", text: "text-green-500" },
+  { value: "qoniqarsiz", label: "Passiv", color: "bg-red-500", text: "text-red-500" },
+  { value: "qoniqarli", label: "Qatnashdi", color: "bg-yellow-500", text: "text-yellow-500" },
+  { value: "yaxshi", label: "Faol", color: "bg-blue-500", text: "text-blue-500" },
+  { value: "alo", label: "Juda faol", color: "bg-green-500", text: "text-green-500" },
 ] as const;
 
 type Student = { id: string; profile: { full_name: string | null } | null; group_id: string | null };
@@ -52,7 +52,7 @@ function BehaviorPage() {
 
   const submit = async (studentId: string) => {
     const r = ratings[studentId];
-    if (!r?.rating) return toast.error("Baho tanlang");
+    if (!r?.rating) return toast.error("Faollik holatini tanlang");
     const { error } = await supabase.from("behavior_evaluations").insert({
       student_id: studentId,
       teacher_id: user.id,
@@ -61,15 +61,7 @@ function BehaviorPage() {
       comment: r.comment || null,
     });
     if (error) return toast.error(error.message);
-    // Also queue parent notification
-    await supabase.from("parent_notifications").insert({
-      student_id: studentId,
-      kind: "behavior",
-      channel: "telegram",
-      payload: { rating: r.rating, comment: r.comment ?? "" },
-      status: "pending",
-    });
-    toast.success("Saqlandi va ota-onaga xabar navbatga qo'shildi");
+    toast.success("Faollik qaydi saqlandi");
     setRatings((s) => ({ ...s, [studentId]: { rating: "", comment: "" } }));
   };
 
@@ -81,9 +73,9 @@ function BehaviorPage() {
     <div className="space-y-6">
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-extrabold md:text-3xl">
-          <Smile className="h-6 w-6 text-primary" /> Xulq baholash
+          <Smile className="h-6 w-6 text-primary" /> Darsdagi faollik
         </h1>
-        <p className="text-sm text-muted-foreground">Dars oxirida har bir o'quvchining xulqini baholang</p>
+        <p className="text-sm text-muted-foreground">Dars oxirida har bir o'quvchining ishtiroki va faolligini qayd eting</p>
       </header>
 
       <div className="max-w-sm">
@@ -133,7 +125,7 @@ function BehaviorPage() {
 
       {history.length > 0 && (
         <div className="rounded-2xl border border-border bg-card p-6">
-          <h3 className="mb-3 text-sm font-bold uppercase tracking-widest text-muted-foreground">Oxirgi baholarim</h3>
+          <h3 className="mb-3 text-sm font-bold uppercase tracking-widest text-muted-foreground">Oxirgi faollik qaydlari</h3>
           <ul className="divide-y divide-border">
             {history.map((h) => {
               const r = RATINGS.find((x) => x.value === h.rating);
