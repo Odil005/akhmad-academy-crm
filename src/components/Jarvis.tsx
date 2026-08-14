@@ -30,8 +30,12 @@ const ROUTE_MAP: RouteIntent[] = [
   { to: "/teacher-panel", label: "O'qituvchi paneli", keywords: ["o'qituvchi panel", "oqituvchi panel", "teacher panel"] },
 ];
 
+// Only treat a message as pure navigation when it is short and asks no real question.
+const QUESTION_RE = /(qancha|necha|kim|nima|nega|qanday|qachon|foyda|daromad|xarajat|qarz|maslahat|tahlil|hisobot|\?|yoz|qo'sh|qosh|yarat|o'zgartir|ozgartir|to'la|tola)/i;
+
 function detectRoute(text: string): RouteIntent | null {
-  const t = text.toLowerCase();
+  const t = text.toLowerCase().trim();
+  if (t.length > 24 || QUESTION_RE.test(t) || /\d/.test(t)) return null;
   let best: { intent: RouteIntent; score: number } | null = null;
   for (const intent of ROUTE_MAP) {
     for (const k of intent.keywords) {
@@ -43,6 +47,7 @@ function detectRoute(text: string): RouteIntent | null {
   }
   return best?.intent ?? null;
 }
+
 
 type Msg = { role: "user" | "assistant"; content: string };
 
