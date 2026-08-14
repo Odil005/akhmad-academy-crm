@@ -26,7 +26,7 @@ Yuklash tugagach repository bosh sahifasida `package.json`, `src`, `supabase` va
 
 ## 3. Supabase bazasini yangilash
 
-Hozir ishlatayotgan Supabase loyihangizda avvalgi migratsiyalar bor bo'lsa, `supabase/migrations` papkasidagi hali bajarilmagan yangi migratsiyalarni nomidagi sana-vaqt tartibida qo'llang. Telegram bot uchun eng oxirgi majburiy fayl: `supabase/migrations/20260814100000_telegram_bot_production.sql`.
+Hozir ishlatayotgan Supabase loyihangizda avvalgi migratsiyalar bor bo'lsa, `supabase/migrations` papkasidagi hali bajarilmagan yangi migratsiyalarni nomidagi sana-vaqt tartibida qo'llang. Jarvis va ota-ona xabarlari uchun eng oxirgi majburiy fayl: `supabase/migrations/20260814110000_jarvis_parent_automation.sql`.
 
 Yangi, bo'sh Supabase loyiha ochilgan bo'lsa, `supabase/migrations` ichidagi barcha SQL fayllarni nomidagi sana-vaqt tartibida qo'llash kerak. Bir faylni ikki marta qo'lda ishga tushirmang.
 
@@ -46,6 +46,7 @@ Majburiy qiymatlar:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `APP_BASE_URL`
 - `CRON_SECRET`
+- `LOVABLE_API_KEY` — Jarvis AI uchun
 
 Telegram ishlatilsa qo'shiladi:
 

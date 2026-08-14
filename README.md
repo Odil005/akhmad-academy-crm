@@ -9,6 +9,7 @@ O'quvchilar, o'qituvchilar, guruhlar, davomat, to'lovlar, moliya va hisobotlarni
 - Guruhlar, dars jadvali va davomat
 - To'lovlar, qarzdorlik va moliya hisoboti
 - Ota-onalarga xabarlar va Telegram integratsiyasi
+- Jarvis AI: tizim tahlili, ota-ona xabarlari va xavfsiz navbat ta'miri
 - Excel import/eksport
 - Vercel deploy uchun tayyor konfiguratsiya
 - Tezkor jadval, rollar va video darslar uchun bazadagi himoya
@@ -44,3 +45,5 @@ bun run build
 ## Muhim xavfsizlik qoidasi
 
 Supabase service-role kaliti, Telegram tokeni va boshqa maxfiy qiymatlarni GitHub'ga yozmang. Ularni faqat Vercel'dagi **Environment Variables** bo'limida saqlang.
+
+Jarvis sun'iy intellekti ishlashi uchun Vercel'da `LOVABLE_API_KEY` kerak. Jarvis o'chirish, rol yoki to'lovni o'zgartirish kabi xavfli ishlarni avtomatik bajarmaydi; yozish amallari faqat aniq buyruq va foydalanuvchi roli bilan bajariladi.

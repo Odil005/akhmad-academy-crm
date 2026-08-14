@@ -7,26 +7,62 @@ import { jarvisChat, jarvisTranscribe, jarvisSpeak } from "@/lib/jarvis.function
 type RouteIntent = { to: string; label: string; keywords: string[] };
 
 const ROUTE_MAP: RouteIntent[] = [
-  { to: "/dashboard", label: "Dashboard", keywords: ["dashboard", "bosh sahifa", "statistika", "umumiy", "panel"] },
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    keywords: ["dashboard", "bosh sahifa", "statistika", "umumiy", "panel"],
+  },
   { to: "/students", label: "O'quvchilar", keywords: ["o'quvchi", "oquvchi", "talaba", "student"] },
   { to: "/groups", label: "Guruhlar", keywords: ["guruh", "sinf", "group"] },
-  { to: "/schedule", label: "Dars jadvali", keywords: ["jadval", "dars jadval", "schedule", "raspisaniya"] },
-  { to: "/attendance", label: "Davomat", keywords: ["davomat", "kelmagan", "yo'q", "yoq", "attendance"] },
+  {
+    to: "/schedule",
+    label: "Dars jadvali",
+    keywords: ["jadval", "dars jadval", "schedule", "raspisaniya"],
+  },
+  {
+    to: "/attendance",
+    label: "Davomat",
+    keywords: ["davomat", "kelmagan", "yo'q", "yoq", "attendance"],
+  },
   { to: "/rooms", label: "Xonalar", keywords: ["xona", "auditoriya", "room"] },
-  { to: "/payments", label: "To'lovlar", keywords: ["to'lov", "tolov", "payment", "pul kelgan", "kim to'ladi"] },
-  { to: "/finance", label: "Moliya", keywords: ["moliya", "daromad", "xarajat", "foyda", "finance", "kassa", "balans"] },
+  {
+    to: "/payments",
+    label: "To'lovlar",
+    keywords: ["to'lov", "tolov", "payment", "pul kelgan", "kim to'ladi"],
+  },
+  {
+    to: "/finance",
+    label: "Moliya",
+    keywords: ["moliya", "daromad", "xarajat", "foyda", "finance", "kassa", "balans"],
+  },
   { to: "/leads", label: "Lidlar", keywords: ["lid", "lead", "mijoz", "yangi mijoz"] },
-  { to: "/behavior", label: "Dars faolligi", keywords: ["faollik", "ishtirok", "xulq", "behavior", "intizom"] },
+  {
+    to: "/behavior",
+    label: "Dars faolligi",
+    keywords: ["faollik", "ishtirok", "xulq", "behavior", "intizom"],
+  },
   { to: "/messages", label: "Xabarlar", keywords: ["xabar", "message", "yozishma", "chat"] },
-  { to: "/marketplace", label: "Marketplace", keywords: ["market", "do'kon", "dokon", "mahsulot", "sotib"] },
-  { to: "/teacher-balance", label: "O'qituvchi balansi", keywords: ["o'qituvchi balan", "oqituvchi balan", "oylik", "salary", "maosh"] },
+  {
+    to: "/marketplace",
+    label: "Marketplace",
+    keywords: ["market", "do'kon", "dokon", "mahsulot", "sotib"],
+  },
+  {
+    to: "/teacher-balance",
+    label: "O'qituvchi balansi",
+    keywords: ["o'qituvchi balan", "oqituvchi balan", "oylik", "salary", "maosh"],
+  },
   { to: "/calls", label: "Qo'ng'iroqlar", keywords: ["qo'ng'iroq", "qongiroq", "call", "telefon"] },
   { to: "/face-id", label: "Face ID", keywords: ["face", "yuz", "face id"] },
   { to: "/reports", label: "Hisobotlar", keywords: ["hisobot", "report", "otchet"] },
   { to: "/import", label: "Excel import", keywords: ["import", "excel", "yuklash"] },
   { to: "/search", label: "Qidiruv", keywords: ["qidir", "search", "topish"] },
   { to: "/settings", label: "Sozlamalar", keywords: ["sozlama", "setting", "konfig"] },
-  { to: "/teacher-panel", label: "O'qituvchi paneli", keywords: ["o'qituvchi panel", "oqituvchi panel", "teacher panel"] },
+  {
+    to: "/teacher-panel",
+    label: "O'qituvchi paneli",
+    keywords: ["o'qituvchi panel", "oqituvchi panel", "teacher panel"],
+  },
 ];
 
 function detectRoute(text: string): RouteIntent | null {
@@ -53,7 +89,11 @@ export function Jarvis() {
 
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([
-    { role: "assistant", content: "Assalomu alaykum, men Jarvis — biznes sherikingiz. Savol bering yoki kerakli bo'limni ayting — men uni CRM'da avtomatik ochaman." },
+    {
+      role: "assistant",
+      content:
+        "Assalomu alaykum, men Jarvis — CRM yordamchingiz. O'quvchi, xabarlar, to'lov, davomat yoki tizim holatini so'rang. Aniq buyruq bersangiz ruxsat doirasida amalni ham bajaraman.",
+    },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -73,11 +113,15 @@ export function Jarvis() {
     try {
       const r = await speak({ data: { text } });
       const src = `data:${r.mime};base64,${r.audio_base64}`;
-      if (audioRef.current) { audioRef.current.pause(); }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
       const a = new Audio(src);
       audioRef.current = a;
       a.play().catch(() => {});
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   };
 
   const send = async (text: string) => {
@@ -89,10 +133,15 @@ export function Jarvis() {
 
     // Instant navigation — skip AI round-trip when the intent is clear.
     const intent = detectRoute(q);
-    if (intent) {
+    const needsAnswer = /(bormi|qancha|necha|kim|qanday|tekshir|tahlil|yubor|tuzat)/i.test(q);
+    if (intent && !needsAnswer) {
       const reply = `🧭 "${intent.label}" bo'limi ochildi.`;
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
-      try { navigate({ to: intent.to }); } catch { /* ignore */ }
+      try {
+        navigate({ to: intent.to });
+      } catch {
+        /* ignore */
+      }
       // Fire TTS in background, do not await.
       void speakOut(reply);
       return;
@@ -100,11 +149,17 @@ export function Jarvis() {
 
     setBusy(true);
     try {
-      const r = await chat({ data: { messages: next.map((m) => ({ role: m.role, content: m.content })) } });
+      const r = await chat({
+        data: { messages: next.map((m) => ({ role: m.role, content: m.content })) },
+      });
       const reply = r.reply || "...";
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
       if (r.navigate) {
-        try { navigate({ to: r.navigate }); } catch { /* ignore */ }
+        try {
+          navigate({ to: r.navigate });
+        } catch {
+          /* ignore */
+        }
       }
       void speakOut(reply);
     } catch (e) {
@@ -113,7 +168,6 @@ export function Jarvis() {
     } finally {
       setBusy(false);
     }
-
   };
 
   const startRec = async () => {
@@ -121,7 +175,7 @@ export function Jarvis() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mimeCandidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
-      const mime = mimeCandidates.find((m) => (window as any).MediaRecorder?.isTypeSupported?.(m)) ?? "";
+      const mime = mimeCandidates.find((m) => MediaRecorder.isTypeSupported(m)) ?? "";
       const mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
       chunksRef.current = [];
       mr.ondataavailable = (e) => e.data.size > 0 && chunksRef.current.push(e.data);
@@ -177,26 +231,40 @@ export function Jarvis() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-sm font-bold">Jarvis</div>
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500">Online · biznes-sherik</div>
+              <div className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
+                Online · AI boshqaruv yordamchisi
+              </div>
             </div>
             <button
               onClick={() => setVoiceOn((v) => !v)}
               className="rounded-lg border border-border p-1.5 hover:bg-muted"
               title={voiceOn ? "Ovozni o'chirish" : "Ovozni yoqish"}
             >
-              {voiceOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+              {voiceOn ? (
+                <Volume2 className="h-4 w-4" />
+              ) : (
+                <VolumeX className="h-4 w-4 text-muted-foreground" />
+              )}
             </button>
-            <button onClick={() => setOpen(false)} className="rounded-lg border border-border p-1.5 hover:bg-muted">
+            <button
+              onClick={() => setOpen(false)}
+              className="rounded-lg border border-border p-1.5 hover:bg-muted"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
 
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
             {msgs.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                key={i}
+                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
-                    m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                    m.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
                   }`}
                 >
                   {m.content}
@@ -248,7 +316,14 @@ export function Jarvis() {
               </button>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {["O'quvchilar", "To'lovlar", "Moliya", "Lidlar", "Davomat", "Hisobotlar"].map((s) => (
+              {[
+                "Xabar bormi?",
+                "Tizimni tekshir",
+                "Qarzdorlar",
+                "Davomat",
+                "Dars faolligi",
+                "Hisobotlar",
+              ].map((s) => (
                 <button
                   key={s}
                   onClick={() => send(s)}

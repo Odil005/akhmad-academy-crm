@@ -32,6 +32,8 @@ Eng oxirida `supabase/migrations/20260812100000_admin_desk_metrics.sql` faylini 
 
 Telegram bot uchun undan keyin `supabase/migrations/20260814100000_telegram_bot_production.sql` faylini ishga tushiring. U dublikat webhooklarni bloklaydi, telefon bo'yicha ulanishni tezlashtiradi va o'quvchi Telegramini ota-ona Telegramidan ajratadi.
 
+Jarvis va dars faolligi bo'yicha ota-ona xabarlari uchun oxirida `supabase/migrations/20260814110000_jarvis_parent_automation.sql` faylini ishga tushiring. Vercel Environment Variables bo'limida `LOVABLE_API_KEY` bo'lmasa Jarvisning AI savol-javob, ovoz va tool amallari ishlamaydi.
+
 ## Deploydan keyingi majburiy tekshiruv
 
 1. `/auth` orqali administrator hisobiga kiring.

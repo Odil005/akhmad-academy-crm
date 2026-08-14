@@ -331,7 +331,7 @@ function AuthenticatedLayout() {
         </main>
       </div>
 
-      {isStaff && (
+      {(isStaff || isTeacher) && (
         <Suspense fallback={null}>
           <Jarvis />
         </Suspense>

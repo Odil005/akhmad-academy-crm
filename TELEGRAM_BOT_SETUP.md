@@ -33,7 +33,7 @@ Maxfiy qiymatlarni `.env`, skrinshot, chat yoki GitHub orqali tarqatmang.
 ## 3. Baza va deploy
 
 1. Yangi Supabase migratsiyalarini production bazaga qo'llang.
-   Eng oxirgi majburiy fayl: `supabase/migrations/20260814100000_telegram_bot_production.sql`.
+   Eng oxirgi majburiy fayl: `supabase/migrations/20260814110000_jarvis_parent_automation.sql`.
 2. Vercel'ga qayta deploy qiling.
 3. CRM'ga direktor yoki administrator sifatida kiring.
 4. Sozlamalar → Telegram / SMS bo'limini oching.
@@ -60,6 +60,8 @@ Maxfiy qiymatlarni `.env`, skrinshot, chat yoki GitHub orqali tarqatmang.
 - **Direktor:** administrator imkoniyatlari hamda kunlik direktor hisobotlari.
 
 O'quvchi havolasi `students.telegram_chat_id` maydoniga, ota-ona havolasi esa alohida `parent_telegram_chat_id` maydoniga yoziladi. Ularni bitta maydon sifatida ishlatmang.
+
+O'qituvchi dars faolligini saqlaganda xulq/faollik xabari ota-onaga darhol yuboriladi. Telegram vaqtincha ishlamasa xabar navbatga tushadi va Jarvis/cron uni xavfsiz qayta yuboradi. To'lov, qarzdorlik va kelmagan/kech qolgan davomat xabarlari ham avtomatik ishlaydi.
 
 ## Xavfsizlik
 

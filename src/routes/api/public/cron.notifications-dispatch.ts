@@ -1,23 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { isCronRequestAuthorized, unauthorizedCronResponse } from "@/lib/cron-auth.server";
+import { runSafeJarvisMaintenance } from "@/lib/jarvis-maintenance.server";
+import { sendTelegramText } from "@/lib/telegram.server";
 
 // Dispatch pending parent_notifications to Telegram. Runs every 5 minutes.
-
-const TG = "https://api.telegram.org";
-
-async function send(botToken: string, chatId: string, text: string) {
-  try {
-    const r = await fetch(`${TG}/bot${botToken}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
-    });
-    const j = (await r.json().catch(() => ({}))) as { ok?: boolean; description?: string };
-    return { ok: !!j.ok, error: j.description };
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
-}
 
 const fmt = (n: number) => Number(n).toLocaleString("uz-UZ");
 
@@ -38,15 +24,13 @@ function renderMessage(
       return `${label}\n👤 ${studentName}\n📅 ${p.date}`;
     }
     case "behavior": {
-      const rating = Number(p.rating || 0);
       const activity =
-        rating >= 4
-          ? "Faol"
-          : rating >= 3
-            ? "Yaxshi"
-            : rating > 0
-              ? "E'tibor kerak"
-              : "Qayd etildi";
+        {
+          qoniqarsiz: "E'tibor kerak",
+          qoniqarli: "Qatnashdi",
+          yaxshi: "Faol",
+          alo: "Juda faol",
+        }[String(p.rating)] ?? "Qayd etildi";
       return [
         `📚 Darsdagi faollik — ${activity}`,
         `👤 ${studentName}`,
@@ -56,6 +40,15 @@ function renderMessage(
         .filter(Boolean)
         .join("\n");
     }
+    case "jarvis_message":
+      return [
+        "🤖 O'quv markazidan xabar",
+        `👤 ${studentName}`,
+        p.reason ? `📌 ${p.reason}` : null,
+        p.message ? `💬 ${p.message}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n");
     case "daily_digest": {
       const pd = payload as {
         attendance?: string[];
@@ -82,12 +75,7 @@ async function dispatch() {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) return { ok: false, error: "TELEGRAM_BOT_TOKEN not configured" };
 
-  // A previous function invocation may have stopped after claiming a row.
-  await supabaseAdmin
-    .from("parent_notifications")
-    .update({ status: "pending", processing_started_at: null })
-    .eq("status", "processing")
-    .lt("processing_started_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+  const maintenance = await runSafeJarvisMaintenance();
 
   const { data: pending } = await supabaseAdmin
     .from("parent_notifications")
@@ -132,13 +120,13 @@ async function dispatch() {
     }
     const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim() || "O'quvchi";
     const text = renderMessage(n.kind, (n.payload as Record<string, unknown>) ?? {}, name);
-    const res = await send(botToken, s.parent_telegram_chat_id, text);
+    const res = await sendTelegramText(s.parent_telegram_chat_id, text);
     const nextAttempt = n.attempts + 1;
     await supabaseAdmin
       .from("parent_notifications")
       .update({
         status: res.ok ? "sent" : nextAttempt < 5 ? "pending" : "failed",
-        error: res.error ?? null,
+        error: res.ok ? null : res.error,
         sent_at: res.ok ? new Date().toISOString() : null,
         processing_started_at: null,
       })
@@ -147,7 +135,37 @@ async function dispatch() {
     else failed += 1;
   }
 
-  return { ok: true, sent, failed, total: pending?.length ?? 0 };
+  const { data: receiptRows } = await supabaseAdmin
+    .from("notification_queue")
+    .select("id, telegram_chat_id, message_text, attempts")
+    .eq("status", "pending")
+    .lt("attempts", 8)
+    .not("telegram_chat_id", "is", null)
+    .limit(30);
+  let receiptsSent = 0;
+  for (const row of receiptRows ?? []) {
+    if (!row.telegram_chat_id) continue;
+    const result = await sendTelegramText(row.telegram_chat_id, row.message_text);
+    await supabaseAdmin
+      .from("notification_queue")
+      .update({
+        status: result.ok ? "sent" : "pending",
+        attempts: (row.attempts ?? 0) + 1,
+        last_error: result.ok ? null : result.error,
+        sent_at: result.ok ? new Date().toISOString() : null,
+      })
+      .eq("id", row.id);
+    if (result.ok) receiptsSent += 1;
+  }
+
+  return {
+    ok: true,
+    sent,
+    failed,
+    total: pending?.length ?? 0,
+    receiptsSent,
+    maintenance,
+  };
 }
 
 export const Route = createFileRoute("/api/public/cron/notifications-dispatch")({
