@@ -306,12 +306,8 @@ export const jarvisChat = createServerFn({ method: "POST" })
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Response("LOVABLE_API_KEY yo'q", { status: 500 });
 
-    const lastUser = [...data.messages].reverse().find((m) => m.role === "user")?.content ?? "";
+    // Client already handles obvious navigation intents; here we always answer with the model.
 
-    // Ultra-fast path: pure navigation queries skip the LLM entirely (~0ms vs ~2000ms).
-    if (isPureNavigation(lastUser)) {
-      return { reply: "Ochilmoqda...", navigate: undefined as string | undefined };
-    }
 
     const ctx = await getContextCached(context.supabase, context.userId);
 
