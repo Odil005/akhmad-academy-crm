@@ -446,9 +446,10 @@ async function runTool(supabase: any, name: string, args: any): Promise<{ result
         .insert({
           first_name: args.first_name,
           last_name: args.last_name ?? null,
-          phone: args.phone ?? null,
-          parent_phone: args.parent_phone ?? null,
+          full_name: `${args.last_name ?? ""} ${args.first_name ?? ""}`.trim() || args.first_name,
+          parent_phone: args.parent_phone ?? args.phone ?? null,
         })
+
         .select("id, first_name, last_name")
         .single();
       return { result: error ? { error: error.message } : data, navigate: error ? undefined : "/students" };
