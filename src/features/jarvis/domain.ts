@@ -1,4 +1,5 @@
 export type JarvisRole = "director" | "admin" | "teacher" | "student";
+export type DirectJarvisIntent = "unread_messages" | "system_health" | "repair_queues";
 
 const MANAGER_TOOLS = new Set([
   "search_students",
@@ -45,4 +46,20 @@ export function isExplicitJarvisAction(text: string, tool: string): boolean {
     return /(tuzat|tikla|qayta urin|qayta yubor|repair|fix)/i.test(normalized);
   }
   return /(yarat|qo['‘’`]?sh|biriktir|tayinla|saqla)/i.test(normalized);
+}
+
+export function getDirectJarvisIntent(text: string): DirectJarvisIntent | null {
+  const normalized = text.toLocaleLowerCase("uz-UZ").replaceAll("’", "'").trim();
+  if (
+    /(tizim|nosozlik|navbat).*(tuzat|tikla|qayta urin|qayta yubor|repair|fix)/i.test(normalized)
+  ) {
+    return "repair_queues";
+  }
+  if (/(tizim|server|nosozlik).*(tekshir|holat|ishlayaptimi|xato bormi)/i.test(normalized)) {
+    return "system_health";
+  }
+  if (/(xabar|telegram).*(bormi|kelgan|keldi|tekshir)/i.test(normalized)) {
+    return "unread_messages";
+  }
+  return null;
 }

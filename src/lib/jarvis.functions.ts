@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   canUseJarvisTool,
+  getDirectJarvisIntent,
   isExplicitJarvisAction,
   isJarvisMutatingTool,
   type JarvisRole,
@@ -132,21 +133,6 @@ async function getContextCached(supabase: any, userId: string, roles: JarvisRole
   const ctx = await buildBusinessContext(supabase, userId, roles);
   ctxCache.set(userId, { at: now, ctx });
   return ctx;
-}
-
-// Navigation-only shortcut: skip LLM entirely when user just asks to open a section.
-const NAV_WORDS =
-  /^(och|ochib ber|ko'rsat|korsat|ber|menga|kerak|>|→)?\s*[a-zA-Z'oO'\u02BB\u2019\- ]{2,40}\??$/i;
-function isPureNavigation(text: string): boolean {
-  const t = text.trim();
-  if (t.length > 40) return false;
-  // No numbers, no question words that need data
-  if (/\d/.test(t)) return false;
-  if (
-    /(qancha|necha|kim|nima|qanday|foyda|daromad|xarajat|qarz|maslahat|hisobot ber|tahlil)/i.test(t)
-  )
-    return false;
-  return NAV_WORDS.test(t);
 }
 
 // ---- Tools: Jarvis can read AND act across the whole CRM ----
@@ -826,15 +812,7 @@ export const jarvisChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => d as { messages: ChatMsg[] })
   .handler(async ({ data, context }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Response("LOVABLE_API_KEY yo'q", { status: 500 });
-
     const lastUser = [...data.messages].reverse().find((m) => m.role === "user")?.content ?? "";
-
-    // Ultra-fast path: pure navigation queries skip the LLM entirely (~0ms vs ~2000ms).
-    if (isPureNavigation(lastUser)) {
-      return { reply: "Ochilmoqda...", navigate: undefined as string | undefined };
-    }
 
     const { data: roleRows, error: roleError } = await context.supabase
       .from("user_roles")
@@ -844,6 +822,51 @@ export const jarvisChat = createServerFn({ method: "POST" })
     const roles = (roleRows ?? []).map((row) => row.role as JarvisRole);
     if (!roles.some((role) => ["director", "admin", "teacher"].includes(role))) {
       throw new Response("Jarvis faqat xodimlar uchun", { status: 403 });
+    }
+
+    const directIntent = getDirectJarvisIntent(lastUser);
+    const actor: JarvisActor = { userId: context.userId, roles, lastUserMessage: lastUser };
+    if (directIntent === "unread_messages") {
+      const out = await runTool(context.supabase, "unread_parent_messages", {}, actor);
+      const count = Number(out.result?.count ?? 0);
+      return {
+        reply:
+          count > 0
+            ? `Ota-onalardan ${count} ta o'qilmagan xabar bor. Xabarlar bo'limini ochdim.`
+            : "Hozir ota-onalardan yangi o'qilmagan xabar yo'q.",
+        navigate: count > 0 ? "/messages" : undefined,
+      };
+    }
+    if (directIntent === "system_health") {
+      if (!roles.includes("director") && !roles.includes("admin")) {
+        return { reply: "Tizimning umumiy texnik holatini faqat administrator ko'ra oladi." };
+      }
+      const out = await runTool(context.supabase, "system_health", {}, actor);
+      const health = out.result;
+      return health?.healthy
+        ? { reply: "Tizim tekshirildi: xabar va fiskal navbatlarda nosozlik topilmadi." }
+        : {
+            reply: `Nosozlik topildi: Telegram ${health?.failed_parent_telegram ?? 0} ta, chek navbati ${health?.delayed_receipts ?? 0} ta, fiskal chek ${health?.failed_fiscal_receipts ?? 0} ta. Tuzatish uchun “Tizim navbatlarini tuzat” deb yozing.`,
+            navigate: out.navigate,
+          };
+    }
+    if (directIntent === "repair_queues") {
+      if (!roles.includes("director") && !roles.includes("admin")) {
+        return { reply: "Tizim navbatlarini faqat administrator xavfsiz tiklay oladi." };
+      }
+      const out = await runTool(context.supabase, "repair_system_queues", {}, actor);
+      return {
+        reply: `Xavfsiz tiklash tugadi: ${out.result?.staleNotificationsRecovered ?? 0} ta qotib qolgan va ${out.result?.failedNotificationsRequeued ?? 0} ta xato xabar qayta navbatga qo'yildi. Biznes ma'lumotlari o'zgartirilmadi.`,
+        navigate: out.navigate,
+      };
+    }
+
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) {
+      throw new Response(
+        "Jarvisning erkin AI savol-javobi uchun Vercel'da LOVABLE_API_KEY ni kiriting",
+        { status: 503 },
+      );
     }
 
     const ctx = await getContextCached(context.supabase, context.userId, roles);

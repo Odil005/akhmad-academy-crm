@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canUseJarvisTool,
+  getDirectJarvisIntent,
   isExplicitJarvisAction,
   isJarvisMutatingTool,
 } from "../../src/features/jarvis/domain";
@@ -27,5 +28,12 @@ describe("Jarvis action safety", () => {
   it("classifies read and write tools", () => {
     expect(isJarvisMutatingTool("send_parent_message")).toBe(true);
     expect(isJarvisMutatingTool("unread_parent_messages")).toBe(false);
+  });
+
+  it("recognizes fast operational commands without an AI round-trip", () => {
+    expect(getDirectJarvisIntent("Xabar bormi?")).toBe("unread_messages");
+    expect(getDirectJarvisIntent("Tizimni tekshir")).toBe("system_health");
+    expect(getDirectJarvisIntent("Tizim navbatlarini tuzat")).toBe("repair_queues");
+    expect(getDirectJarvisIntent("Bugun qanday ishlaymiz?")).toBeNull();
   });
 });
