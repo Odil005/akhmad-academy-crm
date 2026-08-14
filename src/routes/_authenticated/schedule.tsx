@@ -450,6 +450,40 @@ function SchedulePage() {
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="mb-3 flex flex-wrap items-center gap-2">
+          <GraduationCap className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-bold">O'qituvchilar</h2>
+          <span className="text-xs text-muted-foreground">{teacherStats.length}</span>
+        </div>
+        <div className="max-h-[320px] overflow-auto rounded-xl border border-border">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-muted text-xs uppercase">
+              <tr>
+                {["#", "O'qituvchi", "Darslar", "O'quvchilar", "Davomat"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {teacherStats.length === 0 ? (
+                <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-muted-foreground">O'qituvchi topilmadi</td></tr>
+              ) : teacherStats.map((t, i) => (
+                <tr key={t.id} className="border-t border-border">
+                  <td className="px-3 py-1.5 text-xs text-muted-foreground">{i + 1}</td>
+                  <td className="px-3 py-1.5 font-medium">{t.name}</td>
+                  <td className="px-3 py-1.5">{t.lessons}</td>
+                  <td className="px-3 py-1.5">{t.students}</td>
+                  <td className="px-3 py-1.5">{t.rate === null ? "—" : `${t.rate}%`}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <Users className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-bold">O'quvchilar ro'yxati</h2>
           <span className="text-xs text-muted-foreground">{visibleStudents.length}</span>
