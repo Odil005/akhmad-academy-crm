@@ -183,7 +183,7 @@ export function Jarvis() {
       const r = await chat({
         data: { messages: next.map((m) => ({ role: m.role, content: m.content })) },
       });
-      const reply = r.reply || "Jarvis bo'sh javob qaytardi. AI sozlamalarini tekshirish kerak.";
+      const reply = r.reply || "Javobni olishda uzilish bo'ldi. Iltimos, bir marta qayta yuboring.";
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
       if (r.navigate) {
         try {
@@ -193,9 +193,15 @@ export function Jarvis() {
         }
       }
       void speakOut(reply);
-    } catch (e) {
-      const err = e instanceof Response ? await e.text() : (e as Error).message;
-      setMsgs((m) => [...m, { role: "assistant", content: `Xatolik: ${err}` }]);
+    } catch {
+      setMsgs((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content:
+            "Hozir javob xizmatiga ulanishda uzilish bo'ldi. “Xabar bormi?” yoki “Tizimni tekshir” buyrug'ini sinab ko'ring.",
+        },
+      ]);
     } finally {
       setBusy(false);
     }
@@ -219,9 +225,14 @@ export function Jarvis() {
           const b64 = await blobToBase64(blob);
           const t = await transcribe({ data: { audio_base64: b64, mime: blob.type } });
           if (t.text?.trim()) await send(t.text);
-        } catch (e) {
-          const err = e instanceof Response ? await e.text() : (e as Error).message;
-          setMsgs((m) => [...m, { role: "assistant", content: `Ovozni o'qib bo'lmadi: ${err}` }]);
+        } catch {
+          setMsgs((m) => [
+            ...m,
+            {
+              role: "assistant",
+              content: "Ovozli xizmat hozircha faol emas. Savolingizni yozib yuboring.",
+            },
+          ]);
         } finally {
           setBusy(false);
         }

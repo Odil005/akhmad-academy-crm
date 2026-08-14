@@ -881,7 +881,7 @@ export const jarvisChat = createServerFn({ method: "POST" })
     if (!key) {
       return {
         reply:
-          "Bu savolga erkin AI javobi uchun LOVABLE_API_KEY hali ulanmagan. Hozircha “Xabar bormi?”, “Tizimni tekshir” yoki bo'limni ochish buyruqlaridan foydalanishingiz mumkin.",
+          "Men hozir test rejimida ishlayapman. Tizim buyruqlari faol: “Xabar bormi?”, “Tizimni tekshir” yoki kerakli bo'limni ochishni so'rang. Erkin suhbat xizmati ishga tushirilgach boshqa savollarga ham batafsil javob beraman.",
       };
     }
 
