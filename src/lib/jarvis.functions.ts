@@ -9,6 +9,7 @@ import {
   isJarvisMutatingTool,
   type JarvisRole,
 } from "@/features/jarvis/domain";
+import { normalizeJarvisSpeech } from "@/features/jarvis/speech";
 import { sendTelegramText } from "@/lib/telegram.server";
 
 type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
@@ -1002,14 +1003,18 @@ export const jarvisSpeak = createServerFn({ method: "POST" })
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Response("LOVABLE_API_KEY yo'q", { status: 500 });
 
-    const text = data.text.slice(0, 3000);
+    const text = normalizeJarvisSpeech(data.text);
+    if (!text) throw new Response("Ovozga aylantiriladigan matn yo'q", { status: 400 });
     const res = await fetch(`${GATEWAY}/audio/speech`, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "openai/gpt-4o-mini-tts",
         input: text,
-        voice: "alloy",
+        voice: "cedar",
+        instructions:
+          "Speak in natural conversational Uzbek. Sound warm, calm and confident, like a helpful person in a normal conversation. Keep an even everyday pace with short pauses only at sentence boundaries. Do not stretch vowels or words. Avoid a robotic, dramatic or announcer-like tone. Pronounce Uzbek apostrophe words naturally and clearly.",
+        speed: 1.06,
         response_format: "mp3",
       }),
     });

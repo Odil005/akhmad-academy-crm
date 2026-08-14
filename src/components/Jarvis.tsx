@@ -105,6 +105,8 @@ export function Jarvis() {
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const speechRequestRef = useRef(0);
 
   useEffect(() => {
     try {
@@ -139,17 +141,57 @@ export function Jarvis() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs, busy]);
 
+  useEffect(
+    () => () => {
+      speechRequestRef.current += 1;
+      audioRef.current?.pause();
+      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+    },
+    [],
+  );
+
+  const stopSpeaking = () => {
+    speechRequestRef.current += 1;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+  };
+
   const speakOut = async (text: string) => {
     if (!voiceOn || !text) return;
+    stopSpeaking();
+    const requestId = speechRequestRef.current;
     try {
       const r = await speak({ data: { text } });
-      const src = `data:${r.mime};base64,${r.audio_base64}`;
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (requestId !== speechRequestRef.current) return;
+
+      const src = base64ToObjectUrl(r.audio_base64, r.mime);
+      if (requestId !== speechRequestRef.current) {
+        URL.revokeObjectURL(src);
+        return;
       }
       const a = new Audio(src);
+      a.preload = "auto";
+      a.playbackRate = 1;
+      a.preservesPitch = true;
       audioRef.current = a;
-      a.play().catch(() => {});
+      audioUrlRef.current = src;
+      const releaseAudio = () => {
+        if (audioRef.current === a) audioRef.current = null;
+        if (audioUrlRef.current === src) {
+          URL.revokeObjectURL(src);
+          audioUrlRef.current = null;
+        }
+      };
+      a.onended = releaseAudio;
+      a.onerror = () => releaseAudio();
+      await a.play();
     } catch {
       /* ignore */
     }
@@ -252,9 +294,18 @@ export function Jarvis() {
   };
 
   const clearConversation = () => {
-    audioRef.current?.pause();
+    stopSpeaking();
     sessionStorage.removeItem(CHAT_STORAGE_KEY);
     setMsgs([WELCOME_MESSAGE]);
+  };
+
+  const toggleVoice = () => {
+    if (voiceOn) {
+      stopSpeaking();
+      setVoiceOn(false);
+      return;
+    }
+    setVoiceOn(true);
   };
 
   return (
@@ -292,7 +343,7 @@ export function Jarvis() {
               <RotateCcw className="h-4 w-4" />
             </button>
             <button
-              onClick={() => setVoiceOn((v) => !v)}
+              onClick={toggleVoice}
               className="rounded-lg border border-border p-1.5 hover:bg-muted"
               title={voiceOn ? "Ovozni o'chirish" : "Ovozni yoqish"}
             >
@@ -407,4 +458,13 @@ function blobToBase64(blob: Blob): Promise<string> {
     r.onerror = reject;
     r.readAsDataURL(blob);
   });
+}
+
+function base64ToObjectUrl(base64: string, mime: string): string {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return URL.createObjectURL(new Blob([bytes], { type: mime }));
 }
