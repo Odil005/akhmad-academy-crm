@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { generateAccessCode, generateUsername } from "@/lib/credentials";
+import { generateAccessCode, generateUsername, usernameToEmail } from "@/lib/credentials";
 
 async function requireStaff(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -99,7 +99,7 @@ export const importTeachers = createServerFn({ method: "POST" })
           while (takenUsernames.has(username)) username = `${username}${n++}`;
           const accessCode = generateAccessCode(8);
           const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-            email: `${username}@edunest.local`,
+            email: usernameToEmail(username),
             password: accessCode,
             email_confirm: true,
             user_metadata: { full_name: fullName, phone: row.phone ?? "" },

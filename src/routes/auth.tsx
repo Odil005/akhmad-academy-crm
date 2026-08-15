@@ -48,7 +48,7 @@ function AuthPage() {
       if (data.session) goAfterAuth();
     });
     if (typeof window !== "undefined") {
-      const saved = window.localStorage.getItem("edunest.auth-tab") as Tab | null;
+      const saved = window.localStorage.getItem("akhmad.auth-tab") as Tab | null;
       if (saved === "username" || saved === "email") setTab(saved);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,7 +57,7 @@ function AuthPage() {
   const switchTab = (t: Tab) => {
     setTab(t);
     setError(null);
-    if (typeof window !== "undefined") window.localStorage.setItem("edunest.auth-tab", t);
+    if (typeof window !== "undefined") window.localStorage.setItem("akhmad.auth-tab", t);
   };
 
   const submitUsername = async (e: React.FormEvent) => {
@@ -70,12 +70,20 @@ function AuthPage() {
         throw new Error("Foydalanuvchi nomi 3–64 belgidan iborat bo'lishi kerak (a-z, 0-9, . _ -)");
       }
       if (!accessCode) throw new Error("Kirish kodini kiriting");
-      const derivedEmail = `${cleaned}@edunest.local`;
-      const { error } = await supabase.auth.signInWithPassword({
-        email: derivedEmail,
-        password: accessCode,
-      });
-      if (error) throw new Error("Foydalanuvchi nomi yoki kod xato");
+      const { legacyUsernameEmails, usernameToEmail } = await import("@/lib/credentials");
+      const candidates = [usernameToEmail(cleaned), ...legacyUsernameEmails(cleaned)];
+      let signedIn = false;
+      for (const candidate of candidates) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: candidate,
+          password: accessCode,
+        });
+        if (!error) {
+          signedIn = true;
+          break;
+        }
+      }
+      if (!signedIn) throw new Error("Foydalanuvchi nomi yoki kod xato");
       goAfterAuth();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Xatolik yuz berdi");

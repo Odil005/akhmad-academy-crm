@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { canManageAccount, isDirector, isStaff, type AppRole } from "@/lib/authz";
+import { emailToUsername, usernameToEmail } from "@/lib/credentials";
 import { z } from "zod";
 
 const CreateUserSchema = z.object({
@@ -39,7 +40,7 @@ async function targetRolesOf(supabaseAdmin: any, userId: string): Promise<AppRol
 }
 
 /**
- * Director/Admin only. Creates an auth user with email = `${username}@edunest.local`,
+ * Director/Admin only. Creates an auth user with email = usernameToEmail(username),
  * password = access_code, assigns role, writes profile + credentials row.
  * Admin may create only student/teacher accounts; director manages privileged roles.
  */
@@ -62,7 +63,7 @@ export const createManagedUser = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const email = `${username}@edunest.local`;
+    const email = usernameToEmail(username);
 
     const [studentCredential, teacherCredential, adminCredential, directorCredential] =
       await Promise.all([
@@ -80,7 +81,7 @@ export const createManagedUser = createServerFn({ method: "POST" })
         supabaseAdmin
           .from("director_credentials")
           .select("id")
-          .eq("email", `${username}@edunest.local`)
+          .eq("email", usernameToEmail(username))
           .maybeSingle(),
       ]);
 
@@ -320,7 +321,7 @@ export const listDirectorLogins = createServerFn({ method: "POST" })
 
     return (data ?? []).map((r) => ({
       id: r.id,
-      username: r.email.replace(/@edunest\.local$/, ""),
+      username: emailToUsername(r.email),
       user_id: r.director_user_id,
       label: nameMap.get(r.director_user_id) ?? "Director",
     }));

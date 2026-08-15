@@ -1380,7 +1380,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             await supabaseAdmin.rpc("finish_telegram_update", {
               p_update_id: trackedUpdateId,
               p_success: true,
-              p_error: null,
+              p_error: "",
             });
           }
           return response;

@@ -30,3 +30,25 @@ export function generateAccessCode(length = 8): string {
   crypto.getRandomValues(buf);
   return Array.from(buf, (b) => alphabet[b % alphabet.length]).join('');
 }
+
+/** Internal auth email domain used for username-based logins. */
+export const AUTH_EMAIL_DOMAIN = 'akhmadacademy.local';
+/** Older domains kept only so previously created accounts can still sign in. */
+export const LEGACY_AUTH_EMAIL_DOMAINS = ['edunest.local'];
+
+export function usernameToEmail(username: string): string {
+  return `${username.trim().toLowerCase()}@${AUTH_EMAIL_DOMAIN}`;
+}
+
+export function legacyUsernameEmails(username: string): string[] {
+  const u = username.trim().toLowerCase();
+  return LEGACY_AUTH_EMAIL_DOMAINS.map((d) => `${u}@${d}`);
+}
+
+export function emailToUsername(email: string): string {
+  const domains = [AUTH_EMAIL_DOMAIN, ...LEGACY_AUTH_EMAIL_DOMAINS];
+  for (const d of domains) {
+    if (email.toLowerCase().endsWith(`@${d}`)) return email.slice(0, -(d.length + 1));
+  }
+  return email;
+}
