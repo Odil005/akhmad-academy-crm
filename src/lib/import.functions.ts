@@ -188,7 +188,7 @@ export const bulkImport = createServerFn({ method: "POST" })
 
     if (data.kind === "teachers") {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { generateUsername, generateAccessCode } = await import("@/lib/credentials");
+      const { generateUsername, generateAccessCode, usernameToEmail } = await import("@/lib/credentials");
 
       const { data: groupsData } = await supabase.from("groups").select("id, name");
       const groupIdByName = new Map<string, string>();
