@@ -310,6 +310,120 @@ function StudentsPage() {
   );
 }
 
+type TeacherRow = {
+  user_id: string;
+  full_name: string;
+  phone: string | null;
+  groups: number;
+  students: number;
+};
+
+/** O'quvchilar jadvali ostidagi o'qituvchilar ro'yxati. */
+function TeachersTable() {
+  const [rows, setRows] = useState<TeacherRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "teacher");
+        const ids = (roles ?? []).map((r) => r.user_id).filter(Boolean);
+        if (!ids.length) {
+          if (!cancelled) setRows([]);
+          return;
+        }
+        const [{ data: profs }, { data: grps }] = await Promise.all([
+          supabase.from("profiles").select("id, full_name, phone").in("id", ids),
+          supabase.from("groups").select("id, teacher_id").in("teacher_id", ids),
+        ]);
+        const groupIds = (grps ?? []).map((g) => g.id);
+        const { data: studs } = groupIds.length
+          ? await supabase.from("students").select("group_id").in("group_id", groupIds)
+          : { data: [] as Array<{ group_id: string | null }> };
+        const studentsByGroup = new Map<string, number>();
+        (studs ?? []).forEach((s) => {
+          if (s.group_id)
+            studentsByGroup.set(s.group_id, (studentsByGroup.get(s.group_id) ?? 0) + 1);
+        });
+        const groupCount = new Map<string, number>();
+        const studentCount = new Map<string, number>();
+        (grps ?? []).forEach((g) => {
+          if (!g.teacher_id) return;
+          groupCount.set(g.teacher_id, (groupCount.get(g.teacher_id) ?? 0) + 1);
+          studentCount.set(
+            g.teacher_id,
+            (studentCount.get(g.teacher_id) ?? 0) + (studentsByGroup.get(g.id) ?? 0),
+          );
+        });
+        const next = (profs ?? [])
+          .map((p) => ({
+            user_id: p.id,
+            full_name: p.full_name?.trim() || "Ismsiz o'qituvchi",
+            phone: p.phone,
+            groups: groupCount.get(p.id) ?? 0,
+            students: studentCount.get(p.id) ?? 0,
+          }))
+          .sort((a, b) => a.full_name.localeCompare(b.full_name, "uz"));
+        if (!cancelled) setRows(next);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <section className="rounded-2xl border border-border bg-card">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <h2 className="text-sm font-bold">O'qituvchilar</h2>
+        <span className="text-xs text-muted-foreground">{rows.length} ta</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="px-4 py-2 text-left font-semibold">O'qituvchi</th>
+              <th className="px-4 py-2 text-left font-semibold">Telefon</th>
+              <th className="px-4 py-2 text-left font-semibold">Guruhlar</th>
+              <th className="px-4 py-2 text-left font-semibold">O'quvchilar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-6 text-center text-xs text-muted-foreground">
+                  Yuklanmoqda...
+                </td>
+              </tr>
+            ) : rows.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-6 text-center text-xs text-muted-foreground">
+                  O'qituvchi qo'shilmagan
+                </td>
+              </tr>
+            ) : (
+              rows.map((t) => (
+                <tr key={t.user_id} className="border-t border-border">
+                  <td className="px-4 py-2 font-medium">{t.full_name}</td>
+                  <td className="px-4 py-2 text-xs text-muted-foreground">{t.phone ?? "—"}</td>
+                  <td className="px-4 py-2 text-xs">{t.groups} ta</td>
+                  <td className="px-4 py-2 text-xs">{t.students} ta</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 type NewRole = "student" | "teacher";
 
 function NewStudentModal({
