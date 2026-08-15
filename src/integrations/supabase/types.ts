@@ -830,6 +830,48 @@ export type Database = {
           },
         ]
       }
+      jarvis_github_requests: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          error: string | null
+          github_external_id: string | null
+          github_issue_number: number | null
+          github_url: string | null
+          id: string
+          repository: string
+          request_text: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          error?: string | null
+          github_external_id?: string | null
+          github_issue_number?: number | null
+          github_url?: string | null
+          id?: string
+          repository: string
+          request_text: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          error?: string | null
+          github_external_id?: string | null
+          github_issue_number?: number | null
+          github_url?: string | null
+          id?: string
+          repository?: string
+          request_text?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           course: string | null
@@ -1187,34 +1229,40 @@ export type Database = {
       }
       parent_notifications: {
         Row: {
+          attempts: number
           channel: string
           created_at: string
           error: string | null
           id: string
           kind: string
           payload: Json
+          processing_started_at: string | null
           sent_at: string | null
           status: string
           student_id: string
         }
         Insert: {
+          attempts?: number
           channel?: string
           created_at?: string
           error?: string | null
           id?: string
           kind: string
           payload?: Json
+          processing_started_at?: string | null
           sent_at?: string | null
           status?: string
           student_id: string
         }
         Update: {
+          attempts?: number
           channel?: string
           created_at?: string
           error?: string | null
           id?: string
           kind?: string
           payload?: Json
+          processing_started_at?: string | null
           sent_at?: string | null
           status?: string
           student_id?: string
@@ -2244,6 +2292,36 @@ export type Database = {
           },
         ]
       }
+      telegram_updates: {
+        Row: {
+          chat_id: string | null
+          created_at: string
+          error: string | null
+          finished_at: string | null
+          status: string
+          update_id: number
+          update_kind: string | null
+        }
+        Insert: {
+          chat_id?: string | null
+          created_at?: string
+          error?: string | null
+          finished_at?: string | null
+          status?: string
+          update_id: number
+          update_kind?: string | null
+        }
+        Update: {
+          chat_id?: string | null
+          created_at?: string
+          error?: string | null
+          finished_at?: string | null
+          status?: string
+          update_id?: number
+          update_kind?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -2357,12 +2435,69 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_desk_metrics: {
+        Args: never
+        Returns: {
+          active_students: number
+          debt_total: number
+          debtors: number
+          paid_this_month: number
+          total_students: number
+        }[]
+      }
+      claim_telegram_update: {
+        Args: { p_chat_id: string; p_update_id: number; p_update_kind: string }
+        Returns: boolean
+      }
+      finish_telegram_update: {
+        Args: { p_error: string; p_success: boolean; p_update_id: number }
+        Returns: undefined
+      }
+      schedule_insights: {
+        Args: { p_since: string }
+        Returns: {
+          attendance_ok: number
+          attendance_total: number
+          enrolled_students: number
+          group_id: string
+          lesson_id: string
+        }[]
+      }
+      schedule_week_attendance: {
+        Args: { p_week_start: string }
+        Returns: {
+          attendance_count: number
+          attendance_date: string
+          lesson_id: string
+        }[]
+      }
       teachers_for_student: {
         Args: { _student_id: string }
         Returns: {
           group_name: string
           subject_name: string
           teacher_id: string
+        }[]
+      }
+      telegram_center_report: {
+        Args: never
+        Returns: {
+          active_students: number
+          debt_total: number
+          debtors: number
+          groups_count: number
+        }[]
+      }
+      telegram_students_by_parent_phone: {
+        Args: { p_phone: string }
+        Returns: {
+          first_name: string
+          full_name: string
+          id: string
+          last_name: string
+          parent_phone: string
+          parent_phones: string[]
+          parent_telegram_chat_id: string
         }[]
       }
     }
