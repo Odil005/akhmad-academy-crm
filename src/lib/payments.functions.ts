@@ -25,7 +25,7 @@ function getBotToken(): string {
 }
 
 function appBaseUrl() {
-  return (process.env.APP_BASE_URL ?? "https://edunestlive.lovable.app").replace(/\/+$/, "");
+  return (process.env.APP_BASE_URL ?? "https://akhmadacademy.life").replace(/\/+$/, "");
 }
 
 function buildParentMessage(p: {

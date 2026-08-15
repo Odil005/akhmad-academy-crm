@@ -99,7 +99,7 @@ export const importTeachers = createServerFn({ method: "POST" })
           while (takenUsernames.has(username)) username = `${username}${n++}`;
           const accessCode = generateAccessCode(8);
           const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-            email: `${username}@edunest.local`,
+            email: usernameToEmail(username),
             password: accessCode,
             email_confirm: true,
             user_metadata: { full_name: fullName, phone: row.phone ?? "" },

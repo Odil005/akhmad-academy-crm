@@ -37,7 +37,7 @@ export const createFirstDirector = createServerFn({ method: "POST" })
 
     // No director yet — create one and return credentials exactly once.
     const suffix = rand(4).toLowerCase();
-    const email = `director-${suffix}@edunest.uz`;
+    const email = `director-${suffix}@akhmadacademy.uz`;
     const access_code = rand(10);
 
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({

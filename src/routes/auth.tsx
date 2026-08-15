@@ -48,7 +48,7 @@ function AuthPage() {
       if (data.session) goAfterAuth();
     });
     if (typeof window !== "undefined") {
-      const saved = window.localStorage.getItem("edunest.auth-tab") as Tab | null;
+      const saved = window.localStorage.getItem("akhmad.auth-tab") as Tab | null;
       if (saved === "username" || saved === "email") setTab(saved);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,7 +57,7 @@ function AuthPage() {
   const switchTab = (t: Tab) => {
     setTab(t);
     setError(null);
-    if (typeof window !== "undefined") window.localStorage.setItem("edunest.auth-tab", t);
+    if (typeof window !== "undefined") window.localStorage.setItem("akhmad.auth-tab", t);
   };
 
   const submitUsername = async (e: React.FormEvent) => {

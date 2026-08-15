@@ -214,7 +214,7 @@ export const bulkImport = createServerFn({ method: "POST" })
         if (exists) { errors.push({ row: i + 2, message: `Login band: ${username}` }); continue; }
 
         const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-          email: `${username}@edunest.local`,
+          email: usernameToEmail(username),
           password: accessCode,
           email_confirm: true,
           user_metadata: { full_name: v.full_name, phone: v.phone },
