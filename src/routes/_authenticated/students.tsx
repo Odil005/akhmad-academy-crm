@@ -292,6 +292,10 @@ function StudentsPage() {
         </div>
       </div>
 
+      <TeachersTable />
+
+
+
       {open && (
         <NewStudentModal
           groups={groups}
