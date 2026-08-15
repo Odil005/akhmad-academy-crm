@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { canManageAccount, isDirector, isStaff, type AppRole } from "@/lib/authz";
+import { emailToUsername, usernameToEmail } from "@/lib/credentials";
 import { z } from "zod";
 
 const CreateUserSchema = z.object({
