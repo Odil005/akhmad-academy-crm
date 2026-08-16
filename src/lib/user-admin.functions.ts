@@ -10,6 +10,7 @@ const CreateUserSchema = z.object({
   full_name: z.string().min(1),
   phone: z.string().optional().nullable(),
   role: z.enum(["student", "teacher", "admin", "director"]),
+  avatar_url: z.string().max(3_000_000).optional().nullable(),
   // student-only linkage
   student_id: z.string().uuid().optional().nullable(),
   group_id: z.string().uuid().optional().nullable(),
@@ -116,6 +117,7 @@ export const createManagedUser = createServerFn({ method: "POST" })
       id: newUserId,
       full_name: data.full_name,
       phone: data.phone ?? null,
+      avatar_url: data.avatar_url || null,
     });
 
     // 3. Roles: replace default 'student' assignment if needed

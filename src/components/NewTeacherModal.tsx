@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { createManagedUser } from "@/lib/user-admin.functions";
 import { generateUsername, generateAccessCode } from "@/lib/credentials";
-import { Copy, RefreshCw, X } from "lucide-react";
+import { Camera, Copy, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 
 /** Quick teacher creation: makes the auth login + teacher role, so the new
@@ -13,6 +13,22 @@ export function NewTeacherModal({ onClose, onDone }: { onClose: () => void; onDo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ username: string; access_code: string } | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
+
+  /** Rasmni brauzerda 256px kvadratga siqib, kichik data-URL sifatida saqlaymiz. */
+  const pickPhoto = async (file: File | undefined) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Faqat rasm fayli"); return; }
+    const bitmap = await createImageBitmap(file);
+    const size = 256;
+    const canvas = document.createElement("canvas");
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const side = Math.min(bitmap.width, bitmap.height);
+    ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size);
+    setPhoto(canvas.toDataURL("image/jpeg", 0.8));
+  };
 
   const regenerate = () =>
     setForm((f) => ({
@@ -30,7 +46,7 @@ export function NewTeacherModal({ onClose, onDone }: { onClose: () => void; onDo
     const access_code = form.access_code || generateAccessCode(8);
     try {
       const res = await create({
-        data: { username, access_code, full_name, phone: form.phone || null, role: "teacher" },
+        data: { username, access_code, full_name, phone: form.phone || null, role: "teacher", avatar_url: photo },
       });
       if (!res.ok) { setError(res.error ?? "Xatolik"); return; }
       setCreated({ username: res.username!, access_code: res.access_code! });
@@ -71,6 +87,25 @@ export function NewTeacherModal({ onClose, onDone }: { onClose: () => void; onDo
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-secondary">
+                {photo ? (
+                  <img src={photo} alt="O'qituvchi rasmi" className="h-16 w-16 object-cover" width={64} height={64} />
+                ) : (
+                  <Camera className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary">
+                  <Camera className="h-3.5 w-3.5" /> Rasm tanlash
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => void pickPhoto(e.target.files?.[0])} />
+                </label>
+                {photo && (
+                  <button type="button" onClick={() => setPhoto(null)} className="ml-2 text-xs text-destructive">O'chirish</button>
+                )}
+                <p className="mt-1 text-[10px] text-muted-foreground">Ixtiyoriy. Profil ro'yxatida ko'rinadi.</p>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <input required placeholder="Ism" value={form.first_name}
                 onChange={(e) => setForm({ ...form, first_name: e.target.value })}
