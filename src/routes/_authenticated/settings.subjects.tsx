@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authenticated/settings/subjects")({
   component: SubjectsPage,
 });
 
-type Subject = { id: string; name: string };
+type Subject = { id: string; name: string; groups: number; students: number };
 
 function SubjectsPage() {
   const [items, setItems] = useState<Subject[]>([]);
@@ -17,8 +17,22 @@ function SubjectsPage() {
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    const { data } = await supabase.from("subjects").select("id, name").order("name");
-    setItems(data ?? []);
+    // Fan bo'yicha guruh va o'quvchi sonini bitta yuklashda hisoblaymiz.
+    const [{ data: subs }, { data: groups }, { data: students }] = await Promise.all([
+      supabase.from("subjects").select("id, name").order("name"),
+      supabase.from("groups").select("id, subject_id"),
+      supabase.from("students").select("group_id").eq("status_enum", "active"),
+    ]);
+    const perGroup = new Map<string, number>();
+    (students ?? []).forEach((st) => st.group_id && perGroup.set(st.group_id, (perGroup.get(st.group_id) ?? 0) + 1));
+    const gCount = new Map<string, number>();
+    const sCount = new Map<string, number>();
+    (groups ?? []).forEach((g) => {
+      if (!g.subject_id) return;
+      gCount.set(g.subject_id, (gCount.get(g.subject_id) ?? 0) + 1);
+      sCount.set(g.subject_id, (sCount.get(g.subject_id) ?? 0) + (perGroup.get(g.id) ?? 0));
+    });
+    setItems((subs ?? []).map((x) => ({ ...x, groups: gCount.get(x.id) ?? 0, students: sCount.get(x.id) ?? 0 })));
   };
   useEffect(() => { load(); }, []);
 
@@ -77,7 +91,8 @@ function SubjectsPage() {
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="mb-4 text-lg font-bold">Mavjud fanlar ({items.length})</h2>
+        <h2 className="mb-1 text-lg font-bold">Mavjud fanlar ({items.length})</h2>
+        <p className="mb-4 text-xs text-muted-foreground">Jami {items.reduce((a, b) => a + b.groups, 0)} guruh · {items.reduce((a, b) => a + b.students, 0)} faol o'quvchi</p>
         <ul className="divide-y divide-border">
           {items.length === 0 && <li className="py-6 text-center text-sm text-muted-foreground">Fanlar yo'q</li>}
           {items.map((s) => (
@@ -100,6 +115,8 @@ function SubjectsPage() {
               ) : (
                 <>
                   <span className="flex-1 text-sm font-semibold">{s.name}</span>
+                  <span className="rounded-md bg-secondary px-2 py-1 text-[11px] font-semibold text-muted-foreground">{s.groups} guruh</span>
+                  <span className="rounded-md bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary">{s.students} o'quvchi</span>
                   <button onClick={() => setEditing({ id: s.id, name: s.name })} className="rounded-md border border-border p-1.5 hover:border-primary">
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
