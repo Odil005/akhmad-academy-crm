@@ -65,7 +65,7 @@ function TeachersPage() {
         username: usernames.get(p.id) ?? null,
         groups: groupCounts.get(p.id) ?? 0,
         avatar_url: (p as { avatar_url?: string | null }).avatar_url ?? null,
-        day_status: marked.has(p.id) ? "attendance_done" : checkedIn.has(p.id) ? "checked_in" : "none",
+        day_status: (marked.has(p.id) ? "attendance_done" : checkedIn.has(p.id) ? "checked_in" : "none") as DayStatus,
       })).sort((a, b) => a.full_name.localeCompare(b.full_name, "uz")));
     } catch (error: any) {
       toast.error(error?.message ?? "O'qituvchilar ro'yxatini yuklab bo'lmadi");
