@@ -21,6 +21,7 @@ import { Route as AuthenticatedBehaviorRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
 import { Route as AuthenticatedCheckinLocationsRouteImport } from './routes/_authenticated/checkin-locations'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDebtorsRouteImport } from './routes/_authenticated/debtors'
 import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated/face-id'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
@@ -134,6 +135,11 @@ const AuthenticatedCheckinLocationsRoute =
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDebtorsRoute = AuthenticatedDebtorsRouteImport.update({
+  id: '/debtors',
+  path: '/debtors',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFaceIdRoute = AuthenticatedFaceIdRouteImport.update({
@@ -439,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/calls': typeof AuthenticatedCallsRoute
   '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/debtors': typeof AuthenticatedDebtorsRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
@@ -504,6 +511,7 @@ export interface FileRoutesByTo {
   '/calls': typeof AuthenticatedCallsRoute
   '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/debtors': typeof AuthenticatedDebtorsRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
@@ -570,6 +578,7 @@ export interface FileRoutesById {
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/debtors': typeof AuthenticatedDebtorsRoute
   '/_authenticated/face-id': typeof AuthenticatedFaceIdRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
@@ -637,6 +646,7 @@ export interface FileRouteTypes {
     | '/calls'
     | '/checkin-locations'
     | '/dashboard'
+    | '/debtors'
     | '/face-id'
     | '/finance'
     | '/groups'
@@ -702,6 +712,7 @@ export interface FileRouteTypes {
     | '/calls'
     | '/checkin-locations'
     | '/dashboard'
+    | '/debtors'
     | '/face-id'
     | '/finance'
     | '/groups'
@@ -767,6 +778,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calls'
     | '/_authenticated/checkin-locations'
     | '/_authenticated/dashboard'
+    | '/_authenticated/debtors'
     | '/_authenticated/face-id'
     | '/_authenticated/finance'
     | '/_authenticated/groups'
@@ -929,6 +941,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/debtors': {
+      id: '/_authenticated/debtors'
+      path: '/debtors'
+      fullPath: '/debtors'
+      preLoaderRoute: typeof AuthenticatedDebtorsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/face-id': {
@@ -1364,6 +1383,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
   AuthenticatedCheckinLocationsRoute: typeof AuthenticatedCheckinLocationsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDebtorsRoute: typeof AuthenticatedDebtorsRoute
   AuthenticatedFaceIdRoute: typeof AuthenticatedFaceIdRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
@@ -1393,6 +1413,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
   AuthenticatedCheckinLocationsRoute: AuthenticatedCheckinLocationsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDebtorsRoute: AuthenticatedDebtorsRoute,
   AuthenticatedFaceIdRoute: AuthenticatedFaceIdRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
