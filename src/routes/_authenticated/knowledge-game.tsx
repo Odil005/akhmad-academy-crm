@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Brain, CheckCircle2, Loader2, RotateCcw, Trophy, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSubjectQuiz } from "@/lib/quiz.functions";
 import { toast } from "sonner";
+
+const WordGame = lazy(() => import("@/features/games/WordGame"));
+
 
 export const Route = createFileRoute("/_authenticated/knowledge-game")({
   component: KnowledgeGamePage,
