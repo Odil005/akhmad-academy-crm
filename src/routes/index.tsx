@@ -101,11 +101,18 @@ function Header() {
 
           <div className="flex items-center gap-2">
             <Link
+              to="/donate"
+              className="hidden items-center gap-2 px-4 text-sm font-semibold text-accent transition-opacity hover:opacity-80 lg:inline-flex"
+            >
+              <Heart className="h-4 w-4" /> Donat
+            </Link>
+            <Link
               to="/auth"
               className="hidden items-center gap-2 px-5 text-sm font-semibold text-primary-foreground/85 transition-colors hover:text-accent lg:inline-flex"
             >
               <LogIn className="h-4 w-4" /> Kabinet
             </Link>
+
             <button
               onClick={() => handleNav("#contact")}
               className="hidden items-center gap-3 self-stretch bg-[oklch(0.45_0.22_265)] px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-[oklch(0.50_0.22_265)] lg:inline-flex"
