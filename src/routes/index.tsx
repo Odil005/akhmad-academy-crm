@@ -143,12 +143,20 @@ function Header() {
                 </button>
               ))}
               <Link
-                to="/auth"
+                to="/donate"
                 onClick={() => setOpen(false)}
                 className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/60 px-4 py-2 text-sm font-semibold text-accent"
               >
+                <Heart className="h-4 w-4" /> Donat qilish
+              </Link>
+              <Link
+                to="/auth"
+                onClick={() => setOpen(false)}
+                className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-primary-foreground/30 px-4 py-2 text-sm font-semibold text-primary-foreground"
+              >
                 <LogIn className="h-4 w-4" /> Kabinet
               </Link>
+
               <button
                 onClick={() => handleNav("#contact")}
                 className="mt-2 rounded-lg bg-[oklch(0.45_0.22_265)] px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
