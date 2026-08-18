@@ -145,9 +145,9 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           const mainMenu = {
             reply_markup: {
               keyboard: [
-                [{ text: MENU_PAYMENT }, { text: MENU_STATS }],
-                [{ text: MENU_TEACHER }, { text: MENU_ANSWERS }],
-                [{ text: MENU_MEETING }],
+                [{ text: MENU_PAYMENT }, { text: MENU_RECEIPT }],
+                [{ text: MENU_STATS }, { text: MENU_TEACHER }],
+                [{ text: MENU_ANSWERS }, { text: MENU_MEETING }],
                 [{ text: MENU_AI }, { text: MENU_HOME }],
               ],
               resize_keyboard: true,
