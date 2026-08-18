@@ -216,35 +216,50 @@ function Hero() {
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <div className="relative grid gap-0 overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           {/* Left panel */}
-          <div className="relative z-10 bg-background px-6 py-14 md:px-14 md:py-24">
-            <div className="flex gap-8">
-              <div className="hidden flex-col items-center gap-4 pt-3 md:flex">
+          <div className="relative z-10 bg-background px-6 py-16 md:px-14 md:py-28">
+            <div className="flex gap-6 md:gap-10">
+              <div className="hidden flex-col items-center gap-4 pt-4 md:flex">
                 <span className="h-16 w-px bg-accent" />
                 {["01", "02", "03", "04"].map((n, i) => (
                   <span
                     key={n}
-                    className={`text-[11px] tracking-widest ${i === 0 ? "text-accent" : "text-muted-foreground/60"}`}
+                    className={`text-[11px] tracking-[0.25em] ${i === 0 ? "text-accent" : "text-muted-foreground/50"}`}
                   >
                     {n}
                   </span>
                 ))}
               </div>
 
-              <div>
-                <h1 className="font-display text-[2.1rem] leading-[1.08] tracking-tight text-primary sm:text-5xl md:text-[3.4rem]">
-                  Natija tasodif emas.
-                  <br />U tizimdan boshlanadi.
+              <div className="min-w-0 max-w-xl">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">
+                  Akhmad Academy
+                </span>
+                <h1
+                  className="mt-5 pb-2 font-display tracking-tight text-primary"
+                  style={{
+                    fontSize: "clamp(2.15rem, 6.2vw, 3.6rem)",
+                    lineHeight: 1.14,
+                    textWrap: "balance",
+                  }}
+                >
+                  Natija tasodif emas. U tizimdan boshlanadi.
                 </h1>
+                <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
+                  Zamonaviy o'quv markazi: aniq jadval, shaffof to'lov, har bir o'quvchi uchun
+                  individual natija xaritasi.
+                </p>
                 <div className="mt-8 h-px w-40 bg-accent" />
                 <a
                   href="#courses"
-                  className="mt-10 inline-flex items-center gap-6 border border-primary/40 px-7 py-4 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                  className="mt-9 inline-flex items-center gap-5 border border-primary/40 px-7 py-4 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
                 >
                   Akademiyani ko'rish <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
             </div>
           </div>
+
+
 
           {/* Right image */}
           <div className="relative min-h-[280px] md:min-h-[420px]">
