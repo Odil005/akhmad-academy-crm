@@ -1793,6 +1793,81 @@ export type Database = {
           },
         ]
       }
+      payment_receipts: {
+        Row: {
+          created_at: string
+          declared_amount: number | null
+          id: string
+          note: string | null
+          parent_chat_id: string | null
+          parent_name: string | null
+          payment_id: string | null
+          payment_method: string
+          period_month: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          storage_path: string | null
+          student_id: string | null
+          telegram_file_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          declared_amount?: number | null
+          id?: string
+          note?: string | null
+          parent_chat_id?: string | null
+          parent_name?: string | null
+          payment_id?: string | null
+          payment_method?: string
+          period_month?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          storage_path?: string | null
+          student_id?: string | null
+          telegram_file_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          declared_amount?: number | null
+          id?: string
+          note?: string | null
+          parent_chat_id?: string | null
+          parent_name?: string | null
+          payment_id?: string | null
+          payment_method?: string
+          period_month?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          storage_path?: string | null
+          student_id?: string | null
+          telegram_file_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_receipts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -3129,6 +3204,19 @@ export type Database = {
           attendance_count: number
           attendance_date: string
           lesson_id: string
+        }[]
+      }
+      teacher_payroll_preview: {
+        Args: { p_period: string }
+        Returns: {
+          bonus: number
+          collected_total: number
+          expected_total: number
+          penalty: number
+          percent: number
+          students_count: number
+          teacher_name: string
+          teacher_user_id: string
         }[]
       }
       teachers_for_student: {
