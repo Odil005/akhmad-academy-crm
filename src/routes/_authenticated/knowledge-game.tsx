@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Brain, CheckCircle2, Loader2, RotateCcw, Trophy, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSubjectQuiz } from "@/lib/quiz.functions";
 import { toast } from "sonner";
+
+const WordGame = lazy(() => import("@/features/games/WordGame"));
+
 
 export const Route = createFileRoute("/_authenticated/knowledge-game")({
   component: KnowledgeGamePage,
@@ -145,8 +148,12 @@ function KnowledgeGamePage() {
     setQuestions(null);
   };
 
+  const [tab, setTab] = useState<"quiz" | "word">("quiz");
   const current = questions?.[index];
   const totalPoints = attempts.reduce((sum, a) => sum + a.points, 0);
+
+
+
 
   return (
     <div className="space-y-6">
@@ -162,7 +169,34 @@ function KnowledgeGamePage() {
         </div>
       </header>
 
-      {!current ? (
+      <div className="inline-flex rounded-xl border border-border bg-card p-1">
+        {(["quiz", "word"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+            }`}
+          >
+            {t === "quiz" ? "Test o'yini" : "So'z o'yini"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "word" && (
+        <Suspense
+          fallback={
+            <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+              Yuklanmoqda...
+            </div>
+          }
+        >
+          <WordGame />
+        </Suspense>
+      )}
+
+      {tab !== "quiz" ? null : !current ? (
+
         <div className="grid gap-4 rounded-2xl border border-border bg-card p-6 md:grid-cols-3">
           <label className="text-sm md:col-span-1">
             Fan
