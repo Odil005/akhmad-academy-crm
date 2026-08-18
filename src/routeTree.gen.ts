@@ -26,6 +26,7 @@ import { Route as AuthenticatedDebtorsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated/face-id'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
+import { Route as AuthenticatedGuideRouteImport } from './routes/_authenticated/guide'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedKnowledgeGameRouteImport } from './routes/_authenticated/knowledge-game'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
@@ -162,6 +163,11 @@ const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
 const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
   id: '/groups',
   path: '/groups',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGuideRoute = AuthenticatedGuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
@@ -463,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
+  '/guide': typeof AuthenticatedGuideRoute
   '/import': typeof AuthenticatedImportRoute
   '/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/leads': typeof AuthenticatedLeadsRoute
@@ -531,6 +538,7 @@ export interface FileRoutesByTo {
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
+  '/guide': typeof AuthenticatedGuideRoute
   '/import': typeof AuthenticatedImportRoute
   '/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/leads': typeof AuthenticatedLeadsRoute
@@ -600,6 +608,7 @@ export interface FileRoutesById {
   '/_authenticated/face-id': typeof AuthenticatedFaceIdRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
+  '/_authenticated/guide': typeof AuthenticatedGuideRoute
   '/_authenticated/import': typeof AuthenticatedImportRoute
   '/_authenticated/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
@@ -670,6 +679,7 @@ export interface FileRouteTypes {
     | '/face-id'
     | '/finance'
     | '/groups'
+    | '/guide'
     | '/import'
     | '/knowledge-game'
     | '/leads'
@@ -738,6 +748,7 @@ export interface FileRouteTypes {
     | '/face-id'
     | '/finance'
     | '/groups'
+    | '/guide'
     | '/import'
     | '/knowledge-game'
     | '/leads'
@@ -806,6 +817,7 @@ export interface FileRouteTypes {
     | '/_authenticated/face-id'
     | '/_authenticated/finance'
     | '/_authenticated/groups'
+    | '/_authenticated/guide'
     | '/_authenticated/import'
     | '/_authenticated/knowledge-game'
     | '/_authenticated/leads'
@@ -1001,6 +1013,13 @@ declare module '@tanstack/react-router' {
       path: '/groups'
       fullPath: '/groups'
       preLoaderRoute: typeof AuthenticatedGroupsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/guide': {
+      id: '/_authenticated/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof AuthenticatedGuideRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/import': {
@@ -1427,6 +1446,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFaceIdRoute: typeof AuthenticatedFaceIdRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
+  AuthenticatedGuideRoute: typeof AuthenticatedGuideRoute
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
   AuthenticatedKnowledgeGameRoute: typeof AuthenticatedKnowledgeGameRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
@@ -1459,6 +1479,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFaceIdRoute: AuthenticatedFaceIdRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
+  AuthenticatedGuideRoute: AuthenticatedGuideRoute,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
   AuthenticatedKnowledgeGameRoute: AuthenticatedKnowledgeGameRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
