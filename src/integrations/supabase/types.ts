@@ -329,6 +329,45 @@ export type Database = {
         }
         Relationships: []
       }
+      checkin_locations: {
+        Row: {
+          active: boolean
+          address: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          radius_m: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          radius_m?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          radius_m?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       design_settings: {
         Row: {
           animated_bg_url: string | null
@@ -2237,31 +2276,49 @@ export type Database = {
       }
       teacher_checkins: {
         Row: {
+          accuracy_m: number | null
           checked_in_at: string
           created_at: string
+          distance_m: number | null
           id: string
+          latitude: number | null
           lesson_id: string | null
+          location_name: string | null
+          longitude: number | null
           method: string
           photo_url: string | null
           user_id: string
+          within_zone: boolean | null
         }
         Insert: {
+          accuracy_m?: number | null
           checked_in_at?: string
           created_at?: string
+          distance_m?: number | null
           id?: string
+          latitude?: number | null
           lesson_id?: string | null
+          location_name?: string | null
+          longitude?: number | null
           method?: string
           photo_url?: string | null
           user_id: string
+          within_zone?: boolean | null
         }
         Update: {
+          accuracy_m?: number | null
           checked_in_at?: string
           created_at?: string
+          distance_m?: number | null
           id?: string
+          latitude?: number | null
           lesson_id?: string | null
+          location_name?: string | null
+          longitude?: number | null
           method?: string
           photo_url?: string | null
           user_id?: string
+          within_zone?: boolean | null
         }
         Relationships: [
           {
