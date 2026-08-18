@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { contextualSuggestions, findHowTo, formatHowTo } from "@/lib/guide-help";
+import { useTour } from "@/components/tour/TourProvider";
 import { Bot, Mic, MicOff, RotateCcw, Send, X, Loader2, Volume2, VolumeX } from "lucide-react";
 import { jarvisChat, jarvisTranscribe, jarvisSpeak } from "@/lib/jarvis.functions";
 
@@ -85,7 +87,8 @@ function detectRoute(text: string): RouteIntent | null {
   return best?.intent ?? null;
 }
 
-type Msg = { role: "user" | "assistant"; content: string };
+type MsgAction = { label: string; to: string; tourTarget?: string };
+type Msg = { role: "user" | "assistant"; content: string; action?: MsgAction };
 
 const CHAT_STORAGE_KEY = "unicrm:jarvis:conversation";
 const WELCOME_MESSAGE: Msg = {
@@ -99,6 +102,9 @@ export function Jarvis() {
   const transcribe = useServerFn(jarvisTranscribe);
   const speak = useServerFn(jarvisSpeak);
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const { role, startAtTarget, start } = useTour();
+  const suggestions = useMemo(() => contextualSuggestions(pathname, role), [pathname, role]);
 
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([WELCOME_MESSAGE]);
@@ -210,6 +216,22 @@ export function Jarvis() {
     const next = [...msgs, { role: "user" as const, content: q }];
     setMsgs(next);
 
+    // O'rgatuvchi rejim: "qanday qilaman?" savoliga darhol qadamli javob.
+    const howTo = findHowTo(q, role);
+    if (howTo) {
+      const reply = formatHowTo(howTo);
+      setMsgs((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content: reply,
+          action: { label: "Ko'rsatib ber", to: howTo.to, tourTarget: howTo.tourTarget },
+        },
+      ]);
+      void speakOut(`${howTo.title}. ${howTo.steps.join(". ")}`);
+      return;
+    }
+
     // Instant navigation — skip AI round-trip when the intent is clear.
     const intent = detectRoute(q);
     const needsAnswer = /(bormi|qancha|necha|kim|qanday|tekshir|tahlil|yubor|tuzat)/i.test(q);
@@ -319,6 +341,7 @@ export function Jarvis() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
+          data-tour="jarvis-button"
           className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-2xl shadow-primary/40 transition hover:scale-105"
           title="Jarvis"
         >
@@ -337,7 +360,7 @@ export function Jarvis() {
             <div className="min-w-0 flex-1">
               <div className="text-sm font-bold">Jarvis</div>
               <div className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
-                Tayyor · AI boshqaruv yordamchisi
+                Tayyor · O'rgatuvchi va boshqaruv yordamchisi
               </div>
             </div>
             <button
@@ -381,6 +404,26 @@ export function Jarvis() {
                   }`}
                 >
                   {m.content}
+                  {m.action && (
+                    <button
+                      onClick={() => {
+                        const action = m.action!;
+                        try {
+                          navigate({ to: action.to });
+                        } catch {
+                          /* ignore */
+                        }
+                        if (action.tourTarget) {
+                          window.setTimeout(() => {
+                            if (!startAtTarget(action.tourTarget!)) start(0);
+                          }, 350);
+                        }
+                      }}
+                      className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
+                    >
+                      {m.action.label}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -429,14 +472,7 @@ export function Jarvis() {
               </button>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {[
-                "Xabar bormi?",
-                "Tizimni tekshir",
-                "Qarzdorlar",
-                "Davomat",
-                "Dars faolligi",
-                "Hisobotlar",
-              ].map((s) => (
+              {suggestions.map((s) => (
                 <button
                   key={s}
                   onClick={() => send(s)}

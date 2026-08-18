@@ -53,6 +53,8 @@ import {
   getAuthenticatedRouteContext,
 } from "@/lib/authenticated-route-cache";
 import { SystemAlertIndicator } from "@/components/SystemAlertIndicator";
+import { TourProvider, useTour } from "@/components/tour/TourProvider";
+import { HelpCircle } from "lucide-react";
 // Jarvis is a heavy assistant panel — keep it out of the initial bundle.
 const Jarvis = lazy(() => import("@/components/Jarvis").then((m) => ({ default: m.Jarvis })));
 const logoAsset = { url: "/logo-256.webp" };
@@ -125,6 +127,7 @@ function AuthenticatedLayout() {
     { to: "/knowledge-game", label: "Bilim o'yini", icon: Brain, show: true },
     { to: "/roadmap", label: "Maqsad xaritasi", icon: Target, show: true },
     { to: "/methodology", label: "Metodika", icon: BookOpen, show: true },
+    { to: "/guide", label: "Video qo'llanma", icon: GraduationCap, show: true },
 
 
     { to: "/dashboard", label: "Boshqaruv", icon: LayoutDashboard, show: true },
@@ -218,6 +221,7 @@ function AuthenticatedLayout() {
             <Link
               key={n.to}
               to={n.to}
+              data-tour={`nav-${n.to}`}
               className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
@@ -247,6 +251,7 @@ function AuthenticatedLayout() {
                   <Link
                     key={n.to}
                     to={n.to}
+                    data-tour={`nav-${n.to}`}
                     className={`ml-3 flex items-center gap-3 rounded-xl px-3.5 py-2 text-sm transition ${
                       active
                         ? "bg-sidebar-primary text-sidebar-primary-foreground"
@@ -286,6 +291,7 @@ function AuthenticatedLayout() {
   );
 
   return (
+    <TourProvider userId={user.id} roles={roles}>
     <div className="min-h-screen bg-background text-foreground">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] lg:block">
@@ -320,12 +326,15 @@ function AuthenticatedLayout() {
             {isStaff && (
               <Link
                 to="/search"
+                data-tour="topbar-search"
                 className="ml-auto flex w-full max-w-md items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-muted-foreground transition hover:border-accent"
               >
                 <Search className="h-4 w-4" />
                 <span className="truncate">O'quvchi yoki telefon raqamini qidiring</span>
               </Link>
             )}
+
+            <TourHelpButton />
 
             {isStaff && <SystemAlertIndicator />}
 
@@ -351,6 +360,30 @@ function AuthenticatedLayout() {
           <Jarvis />
         </Suspense>
       )}
+    </div>
+    </TourProvider>
+  );
+}
+
+function TourHelpButton() {
+  const { start, openChecklist, progress } = useTour();
+  return (
+    <div className="ml-auto flex items-center gap-1 lg:ml-3">
+      <button
+        onClick={() => start(0)}
+        data-tour="help-button"
+        title="Tizimni o'rgatuvchi tur"
+        className="rounded-xl border border-border p-2.5 text-foreground/70 transition hover:border-primary hover:text-primary"
+      >
+        <HelpCircle className="h-4 w-4" />
+      </button>
+      <button
+        onClick={openChecklist}
+        title="Boshlash vazifalari"
+        className="hidden rounded-xl border border-border px-3 py-2 text-xs font-bold text-primary transition hover:border-primary sm:block"
+      >
+        {progress}%
+      </button>
     </div>
   );
 }
