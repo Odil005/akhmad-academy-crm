@@ -132,26 +132,40 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             },
           };
 
-          const staffMenu = (role: string) => ({
+          const teacherMenu = {
             reply_markup: {
               keyboard: [
-                [
-                  { text: STAFF_TODAY },
-                  { text: role === "teacher" ? STAFF_MESSAGES : STAFF_REPORT },
-                ],
-                [{ text: STAFF_ATTENDANCE }, { text: STAFF_STATUS }],
+                [{ text: STAFF_TODAY }, { text: STAFF_ATTENDANCE }],
+                [{ text: TEACHER_GROUPS }, { text: STAFF_MESSAGES }],
+                [{ text: TEACHER_KPI }, { text: TEACHER_BALANCE }],
                 [{ text: STAFF_HOME }],
               ],
               resize_keyboard: true,
             },
-          });
+          };
+
+          const directorMenu = {
+            reply_markup: {
+              keyboard: [
+                [{ text: STAFF_REPORT }, { text: DIR_FINANCE }],
+                [{ text: DIR_DEBTORS }, { text: DIR_STUDENTS }],
+                [{ text: DIR_TEACHERS }, { text: DIR_LEADS }],
+                [{ text: STAFF_TODAY }, { text: STAFF_STATUS }],
+                [{ text: STAFF_HOME }],
+              ],
+              resize_keyboard: true,
+            },
+          };
+
+          const staffMenu = (role: string) => (role === "teacher" ? teacherMenu : directorMenu);
 
           const studentMenu = {
             reply_markup: {
               keyboard: [
-                [{ text: STUDENT_TODAY }, { text: STUDENT_ATTENDANCE }],
-                [{ text: STUDENT_PAYMENT }, { text: STUDENT_PROFILE }],
-                [{ text: STUDENT_HOME }],
+                [{ text: STUDENT_TODAY }, { text: STUDENT_WEEK }],
+                [{ text: STUDENT_ATTENDANCE }, { text: STUDENT_PAYMENT }],
+                [{ text: STUDENT_RESULTS }, { text: STUDENT_VIDEO }],
+                [{ text: STUDENT_PROFILE }, { text: STUDENT_HOME }],
               ],
               resize_keyboard: true,
             },
