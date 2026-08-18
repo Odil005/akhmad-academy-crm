@@ -1,0 +1,15 @@
+name = "akhmad-academy-crm"
+main = ".output/server/index.mjs"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".output/public"
+binding = "ASSETS"
+
+# Build: bun run build:cloudflare
+# Deploy: bunx wrangler deploy
+# Secrets (bunx wrangler secret put NAME):
+#   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY,
+#   APP_BASE_URL, CRON_SECRET, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET
+# VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY must be present at BUILD time.
