@@ -28,6 +28,7 @@ const MUTATING_TOOLS = new Set([
   "create_group",
   "create_student",
   "create_lead",
+  "create_methodology",
   "assign_student_to_group",
   "assign_teacher_to_group",
   "send_parent_message",
@@ -35,6 +36,7 @@ const MUTATING_TOOLS = new Set([
   "create_github_change_request",
   "update_system_setting",
 ]);
+
 
 export function isJarvisMutatingTool(tool: string): boolean {
   return MUTATING_TOOLS.has(tool);
