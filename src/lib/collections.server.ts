@@ -40,9 +40,6 @@ export function reminderText(row: {
       text: `Assalomu alaykum!\n${row.student_name} uchun to'lov muddati o'tdi.\nQarz: ${sum}${months}\nKechikish: ${row.days_overdue} kun\n\nIltimos, imkon topib to'lovni amalga oshiring. Savolingiz bo'lsa shu botga yozing.`,
     };
   }
-  if (row.days_couldNotHappen ?? false) {
-    return { stage: "due", text: "" };
-  }
   if (row.days_overdue <= 7) {
     return {
       stage: "firm",
