@@ -243,5 +243,5 @@ export function contextualSuggestions(pathname: string, role: string): string[] 
     role === "teacher"
       ? ["Davomatni qanday belgilaymiz?", "Video darsni qanday yuklayman?", "KPI qanday hisoblanadi?"]
       : ["Yangi o'quvchini qanday qo'shaman?", "To'lovni qanday qabul qilaman?", "Hisobot bormi?"];
-  return [...base, ...fallback].slice(0, 4);
+  return Array.from(new Set([...base, ...fallback])).slice(0, 4);
 }
