@@ -34,6 +34,9 @@ import {
   Upload,
   MessageSquare,
   DollarSign,
+  Brain,
+  Target,
+
 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import {
