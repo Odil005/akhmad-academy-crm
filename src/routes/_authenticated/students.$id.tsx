@@ -421,6 +421,17 @@ function StudentProfile() {
         )}
       </div>
 
+      {/* Metodika: o'quvchining fanlari bo'yicha */}
+      <MethodologyLibrary
+        compact
+        subjects={enrollments
+          .map((e) => e.group?.subject?.name || e.group?.name || "")
+          .filter(Boolean)}
+        title="Metodika (o'quvchi fanlari bo'yicha)"
+      />
+
+
+
       {assignOpen && (
         <AssignGroupModal
           existingGroupIds={enrollments.map((e) => e.group_id)}
