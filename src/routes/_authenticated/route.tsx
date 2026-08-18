@@ -30,6 +30,7 @@ import {
   Phone,
   ScanFace,
   GraduationCap,
+  MapPin,
   Inbox,
   Upload,
   MessageSquare,

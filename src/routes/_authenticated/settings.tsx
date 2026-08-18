@@ -10,7 +10,6 @@ import {
   MapPin,
   BarChart3,
   BookOpen,
-  GraduationCap,
   Star,
   Phone,
   Send,
