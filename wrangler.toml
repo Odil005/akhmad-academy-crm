@@ -13,3 +13,8 @@ binding = "ASSETS"
 #   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY,
 #   APP_BASE_URL, CRON_SECRET, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET
 # VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY must be present at BUILD time.
+
+# Cloudflare Workers Builds (GitHub'dan avtomatik deploy) uchun build buyrug'i.
+# Bu bo'lmasa CF default `npm run build` (Vercel preseti) ni ishlatib xato beradi.
+[build]
+command = "bun install --frozen-lockfile && bun run build:cloudflare"

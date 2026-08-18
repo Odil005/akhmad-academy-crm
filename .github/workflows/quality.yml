@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 15
     env:
       VITE_SUPABASE_URL: https://example.supabase.co
+      NITRO_PRESET: node-server
       VITE_SUPABASE_PUBLISHABLE_KEY: build-check-placeholder
       SUPABASE_URL: https://example.supabase.co
       SUPABASE_PUBLISHABLE_KEY: build-check-placeholder

@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll } from "vitest";
-import { pgAnon, requireEnv } from "./setup";
+import { pgAnon, requireEnv, hasLiveBackend } from "./setup";
 
 // Regression tests for finding: leads_admin_only_no_director
 // Public flow: the marketing site inserts a lead as anon, but no anon or
@@ -7,7 +7,7 @@ import { pgAnon, requireEnv } from "./setup";
 // half is enforced by RLS and covered by the migration; we assert the
 // anon-facing contract here.
 
-describe("leads RLS: anon insert-only, no read", () => {
+describe.skipIf(!hasLiveBackend)("leads RLS: anon insert-only, no read", () => {
   beforeAll(requireEnv);
 
   it("blocks anonymous reads", async () => {

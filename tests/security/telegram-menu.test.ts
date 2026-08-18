@@ -1,10 +1,10 @@
 import { describe, expect, it, beforeAll } from "vitest";
-import { postTelegram, telegramUpdate, requireEnv, TELEGRAM_WEBHOOK_SECRET, pgAnon } from "./setup";
+import { postTelegram, telegramUpdate, requireEnv, TELEGRAM_WEBHOOK_SECRET, hasLiveBackend, pgAnon } from "./setup";
 
 // Bot menu regression tests: the webhook returns 200 for menu button texts
 // without linking, and refuses to expose data to un-linked chats.
 
-describe.skipIf(!TELEGRAM_WEBHOOK_SECRET)("Telegram bot: parent menu", () => {
+describe.skipIf(!TELEGRAM_WEBHOOK_SECRET || !hasLiveBackend)("Telegram bot: parent menu", () => {
   beforeAll(() => {
     requireEnv();
   });

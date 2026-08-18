@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll } from "vitest";
-import { postTelegram, telegramUpdate, requireEnv, TELEGRAM_WEBHOOK_SECRET } from "./setup";
+import { postTelegram, telegramUpdate, requireEnv, TELEGRAM_WEBHOOK_SECRET, hasLiveBackend } from "./setup";
 
 // Regression tests for finding: tg_parent_link_hijack
 // The webhook must:
@@ -12,7 +12,7 @@ import { postTelegram, telegramUpdate, requireEnv, TELEGRAM_WEBHOOK_SECRET } fro
 // negative signal is that no server error is thrown and the flow ends at
 // the "invalid link" branch.
 
-describe.skipIf(!TELEGRAM_WEBHOOK_SECRET)("Telegram webhook: parent-link hijack protection", () => {
+describe.skipIf(!TELEGRAM_WEBHOOK_SECRET || !hasLiveBackend)("Telegram webhook: parent-link hijack protection", () => {
   beforeAll(() => {
     requireEnv();
   });
