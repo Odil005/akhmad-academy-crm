@@ -165,7 +165,34 @@ function KnowledgeGamePage() {
         </div>
       </header>
 
-      {!current ? (
+      <div className="inline-flex rounded-xl border border-border bg-card p-1">
+        {(["quiz", "word"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+            }`}
+          >
+            {t === "quiz" ? "Test o'yini" : "So'z o'yini"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "word" && (
+        <Suspense
+          fallback={
+            <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+              Yuklanmoqda...
+            </div>
+          }
+        >
+          <WordGame />
+        </Suspense>
+      )}
+
+      {tab === "quiz" && !current ? (
+
         <div className="grid gap-4 rounded-2xl border border-border bg-card p-6 md:grid-cols-3">
           <label className="text-sm md:col-span-1">
             Fan
