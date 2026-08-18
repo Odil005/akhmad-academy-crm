@@ -1095,6 +1095,41 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               await sendStaffReport(staff, chat);
               return true;
             }
+            if (staff.role === "teacher") {
+              if (command === TEACHER_GROUPS || command === "/groups") {
+                await sendTeacherGroups(staff, chat);
+                return true;
+              }
+              if (command === TEACHER_KPI || command === "/kpi") {
+                await sendTeacherKpi(staff, chat);
+                return true;
+              }
+              if (command === TEACHER_BALANCE || command === "/balance") {
+                await sendTeacherBalance(staff, chat);
+                return true;
+              }
+            } else {
+              if (command === DIR_FINANCE || command === "/finance") {
+                await sendDirectorFinance(chat);
+                return true;
+              }
+              if (command === DIR_DEBTORS || command === "/debtors") {
+                await sendDirectorDebtors(chat);
+                return true;
+              }
+              if (command === DIR_STUDENTS || command === "/students") {
+                await sendDirectorStudents(chat);
+                return true;
+              }
+              if (command === DIR_TEACHERS || command === "/teachers") {
+                await sendDirectorTeachers(chat);
+                return true;
+              }
+              if (command === DIR_LEADS || command === "/leads") {
+                await sendDirectorLeads(chat);
+                return true;
+              }
+            }
             if ([STAFF_HOME, "/menu", "/help", "/start"].includes(command)) {
               await reply(
                 chat,
