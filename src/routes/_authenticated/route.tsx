@@ -38,6 +38,9 @@ import {
   Brain,
   Target,
   AlertTriangle,
+  ReceiptText,
+  Calculator,
+
   Lock,
 
 
