@@ -101,7 +101,7 @@ export function getLocalJarvisReply(text: string): string | null {
     return "Arzimaydi! Yana nima yordam kerak?";
   }
   if (/(sen kimsan|isming nima|o'zing kimsan|nima qila olasan)/i.test(normalized)) {
-    return "Men Jarvisman — UNICRM ichidagi AI yordamchi. Savollarga javob beraman, tizim holatini tekshiraman, ma'lumotlarni topaman va ruxsat berilgan CRM ishlarini bajaraman.";
+    return "Men Jarvisman — Akhmad Academy CRM ichidagi AI yordamchi. Savollarga javob beraman, tizim holatini tekshiraman, ma'lumotlarni topaman va ruxsat berilgan CRM ishlarini bajaraman.";
   }
   return null;
 }
