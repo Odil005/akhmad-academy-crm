@@ -62,16 +62,27 @@ export const listPaymentReceipts = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { receiptSignedUrl } = await import("@/lib/receipts.server");
 
-    return await Promise.all(
+    const list: ReceiptRow[] = await Promise.all(
       ((rows ?? []) as Array<Record<string, any>>).map(async (row) => ({
-        ...row,
+        id: String(row.id),
+        student_id: row.student_id ?? null,
+        parent_chat_id: row.parent_chat_id ?? null,
+        parent_name: row.parent_name ?? null,
+        status: String(row.status ?? "pending"),
+        note: row.note ?? null,
+        review_note: row.review_note ?? null,
+        period_month: String(row.period_month ?? ""),
+        payment_method: row.payment_method ?? null,
+        created_at: String(row.created_at ?? new Date().toISOString()),
         declared_amount: row.declared_amount === null ? null : Number(row.declared_amount),
         student_name: nameOf.get(row.student_id)?.name ?? row.parent_name ?? "Noma'lum",
         monthly_fee: nameOf.get(row.student_id)?.monthly_fee ?? 0,
         image_url: await receiptSignedUrl(supabaseAdmin as any, row.storage_path),
       })),
     );
+    return list;
   });
+
 
 /** Approve (creates a paid payment) or reject a parent receipt, then notify the parent. */
 export const reviewPaymentReceipt = createServerFn({ method: "POST" })
