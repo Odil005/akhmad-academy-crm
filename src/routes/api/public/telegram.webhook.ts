@@ -1332,6 +1332,103 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             return new Response("ok");
           }
 
+          // Parent asks how to send a receipt
+          if (text === MENU_RECEIPT) {
+            const students = await linkedStudents(chatId);
+            if (!students.length) {
+              await askContact(chatId);
+              return new Response("ok");
+            }
+            await reply(
+              chatId,
+              [
+                "🧾 To'lov chekini yuborish",
+                "",
+                "1) To'lovni amalga oshirasiz (karta, bank yoki naqd).",
+                "2) Chek rasmini (screenshot yoki PDF) shu chatga yuborasiz.",
+                "3) Rasm izohiga summani yozing — masalan: 450000",
+                "",
+                "Chek moliya bo'limiga tushadi, administrator tekshirib tasdiqlaydi va sizga darhol xabar keladi.",
+              ].join("\n"),
+              mainMenu,
+            );
+            return new Response("ok");
+          }
+
+          // Parent sends a payment receipt photo/PDF → finance desk queue
+          const receiptFileId = msg?.photo?.length
+            ? msg.photo[msg.photo.length - 1]!.file_id
+            : msg?.document && /^(image\/|application\/pdf)/.test(msg.document.mime_type ?? "")
+              ? msg.document.file_id
+              : null;
+          if (receiptFileId) {
+            const students = await linkedStudents(chatId);
+            if (!students.length) {
+              await askContact(chatId, "Chekni qabul qilish uchun avval hisobingizni bog'lang.");
+              return new Response("ok");
+            }
+            const {
+              storeTelegramReceipt,
+              parseDeclaredAmount,
+              currentPeriodMonth,
+              notifyStaffNewReceipt,
+              money,
+            } = await import("@/lib/receipts.server");
+
+            const stored = await storeTelegramReceipt(supabaseAdmin as any, receiptFileId);
+            if ("error" in stored) {
+              await reply(
+                chatId,
+                `⚠️ Chekni saqlashda xatolik: ${stored.error}\nIltimos, birozdan so'ng qayta yuboring.`,
+                mainMenu,
+              );
+              return new Response("ok");
+            }
+
+            const caption = (msg?.caption ?? "").trim();
+            const amount = parseDeclaredAmount(caption);
+            const student = students[0];
+            const studentName =
+              `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() || "O'quvchi";
+
+            const { error: insertError } = await supabaseAdmin.from("payment_receipts").insert({
+              student_id: student.id,
+              parent_chat_id: String(chatId),
+              parent_name:
+                [msg?.chat?.first_name, msg?.chat?.last_name].filter(Boolean).join(" ") || null,
+              declared_amount: amount,
+              period_month: currentPeriodMonth(),
+              payment_method: "card",
+              note: caption || null,
+              telegram_file_id: receiptFileId,
+              storage_path: stored.path,
+              status: "pending",
+            });
+            if (insertError) {
+              await reply(chatId, "⚠️ Chek saqlanmadi. Administrator bilan bog'laning.", mainMenu);
+              return new Response("ok");
+            }
+
+            await notifyStaffNewReceipt(supabaseAdmin as any, {
+              studentName,
+              amount,
+              note: caption || null,
+            });
+            await reply(
+              chatId,
+              [
+                "🧾 Chek qabul qilindi!",
+                `O'quvchi: ${studentName}`,
+                amount ? `Summa: ${money(amount)} so'm` : "Summa: izohda ko'rsatilmagan",
+                "",
+                "⏳ Moliya bo'limi tekshiradi. Tasdiqlangach sizga darhol xabar yuboraman.",
+              ].join("\n"),
+              mainMenu,
+            );
+            return new Response("ok");
+          }
+
+
           // Force-reply flows
           const rt = msg?.reply_to_message?.text ?? "";
           const markerMatch = rt.match(/\u200b([^\u200b]+)\u200b/);
