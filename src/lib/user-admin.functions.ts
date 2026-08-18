@@ -371,19 +371,23 @@ export const updateManagedLogin = createServerFn({ method: "POST" })
     }
 
     const updated_at = new Date().toISOString();
-    const patch = {
-      ...(email ? { email } : {}),
-      ...(data.new_code ? { access_code: "***" } : {}),
-      updated_at,
-    };
-    const tables: Array<[string, string]> = [
-      ["student_credentials", "auth_user_id"],
-      ["teacher_credentials", "teacher_user_id"],
-      ["director_credentials", "director_user_id"],
-      ["admin_credentials", "admin_user_id"],
+    // Each credentials table stores the login differently: director keeps the
+    // full email, the others keep the bare username.
+    const tables: Array<[string, string, "username" | "email"]> = [
+      ["student_credentials", "auth_user_id", "username"],
+      ["teacher_credentials", "teacher_user_id", "username"],
+      ["admin_credentials", "admin_user_id", "username"],
+      ["director_credentials", "director_user_id", "email"],
     ];
-    for (const [table, column] of tables) {
-      await supabaseAdmin.from(table).update(patch).eq(column, data.user_id);
+    for (const [table, column, loginColumn] of tables) {
+      await supabaseAdmin
+        .from(table)
+        .update({
+          ...(username ? { [loginColumn]: loginColumn === "email" ? email : username } : {}),
+          ...(data.new_code ? { access_code: "***" } : {}),
+          updated_at,
+        })
+        .eq(column, data.user_id);
     }
 
     return { ok: true, username: username ?? null, access_code: data.new_code ?? null };
