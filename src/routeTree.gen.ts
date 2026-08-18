@@ -19,8 +19,10 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedBehaviorRouteImport } from './routes/_authenticated/behavior'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedCashShiftsRouteImport } from './routes/_authenticated/cash-shifts'
 import { Route as AuthenticatedCheckinLocationsRouteImport } from './routes/_authenticated/checkin-locations'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDebtorsRouteImport } from './routes/_authenticated/debtors'
 import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated/face-id'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
@@ -125,6 +127,11 @@ const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
   path: '/calls',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCashShiftsRoute = AuthenticatedCashShiftsRouteImport.update({
+  id: '/cash-shifts',
+  path: '/cash-shifts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCheckinLocationsRoute =
   AuthenticatedCheckinLocationsRouteImport.update({
     id: '/checkin-locations',
@@ -134,6 +141,11 @@ const AuthenticatedCheckinLocationsRoute =
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDebtorsRoute = AuthenticatedDebtorsRouteImport.update({
+  id: '/debtors',
+  path: '/debtors',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFaceIdRoute = AuthenticatedFaceIdRouteImport.update({
@@ -437,8 +449,10 @@ export interface FileRoutesByFullPath {
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/cash-shifts': typeof AuthenticatedCashShiftsRoute
   '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/debtors': typeof AuthenticatedDebtorsRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
@@ -502,8 +516,10 @@ export interface FileRoutesByTo {
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/cash-shifts': typeof AuthenticatedCashShiftsRoute
   '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/debtors': typeof AuthenticatedDebtorsRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
@@ -568,8 +584,10 @@ export interface FileRoutesById {
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/behavior': typeof AuthenticatedBehaviorRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
+  '/_authenticated/cash-shifts': typeof AuthenticatedCashShiftsRoute
   '/_authenticated/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/debtors': typeof AuthenticatedDebtorsRoute
   '/_authenticated/face-id': typeof AuthenticatedFaceIdRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
@@ -635,8 +653,10 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/behavior'
     | '/calls'
+    | '/cash-shifts'
     | '/checkin-locations'
     | '/dashboard'
+    | '/debtors'
     | '/face-id'
     | '/finance'
     | '/groups'
@@ -700,8 +720,10 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/behavior'
     | '/calls'
+    | '/cash-shifts'
     | '/checkin-locations'
     | '/dashboard'
+    | '/debtors'
     | '/face-id'
     | '/finance'
     | '/groups'
@@ -765,8 +787,10 @@ export interface FileRouteTypes {
     | '/_authenticated/attendance'
     | '/_authenticated/behavior'
     | '/_authenticated/calls'
+    | '/_authenticated/cash-shifts'
     | '/_authenticated/checkin-locations'
     | '/_authenticated/dashboard'
+    | '/_authenticated/debtors'
     | '/_authenticated/face-id'
     | '/_authenticated/finance'
     | '/_authenticated/groups'
@@ -917,6 +941,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cash-shifts': {
+      id: '/_authenticated/cash-shifts'
+      path: '/cash-shifts'
+      fullPath: '/cash-shifts'
+      preLoaderRoute: typeof AuthenticatedCashShiftsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/checkin-locations': {
       id: '/_authenticated/checkin-locations'
       path: '/checkin-locations'
@@ -929,6 +960,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/debtors': {
+      id: '/_authenticated/debtors'
+      path: '/debtors'
+      fullPath: '/debtors'
+      preLoaderRoute: typeof AuthenticatedDebtorsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/face-id': {
@@ -1362,8 +1400,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBehaviorRoute: typeof AuthenticatedBehaviorRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
+  AuthenticatedCashShiftsRoute: typeof AuthenticatedCashShiftsRoute
   AuthenticatedCheckinLocationsRoute: typeof AuthenticatedCheckinLocationsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDebtorsRoute: typeof AuthenticatedDebtorsRoute
   AuthenticatedFaceIdRoute: typeof AuthenticatedFaceIdRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
@@ -1391,8 +1431,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBehaviorRoute: AuthenticatedBehaviorRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
+  AuthenticatedCashShiftsRoute: AuthenticatedCashShiftsRoute,
   AuthenticatedCheckinLocationsRoute: AuthenticatedCheckinLocationsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDebtorsRoute: AuthenticatedDebtorsRoute,
   AuthenticatedFaceIdRoute: AuthenticatedFaceIdRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
