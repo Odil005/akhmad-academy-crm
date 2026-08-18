@@ -16,6 +16,7 @@ import {
   LogIn,
   Send,
   Instagram,
+  Heart,
 } from "lucide-react";
 const logoAsset = { url: "/logo.png", webp: "/logo-256.webp" };
 import heroClassroom from "@/assets/hero-classroom.webp";
