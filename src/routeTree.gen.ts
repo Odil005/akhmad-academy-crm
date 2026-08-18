@@ -30,6 +30,7 @@ import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenti
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated/roadmap'
 import { Route as AuthenticatedRoomsRouteImport } from './routes/_authenticated/rooms'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
@@ -177,6 +178,11 @@ const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRoadmapRoute = AuthenticatedRoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRoomsRoute = AuthenticatedRoomsRouteImport.update({
@@ -429,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof AuthenticatedMessagesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/search': typeof AuthenticatedSearchRoute
@@ -491,6 +498,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AuthenticatedMessagesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/search': typeof AuthenticatedSearchRoute
@@ -554,6 +562,7 @@ export interface FileRoutesById {
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
   '/_authenticated/rooms': typeof AuthenticatedRoomsRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
@@ -618,6 +627,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/payments'
     | '/reports'
+    | '/roadmap'
     | '/rooms'
     | '/schedule'
     | '/search'
@@ -680,6 +690,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/payments'
     | '/reports'
+    | '/roadmap'
     | '/rooms'
     | '/schedule'
     | '/search'
@@ -742,6 +753,7 @@ export interface FileRouteTypes {
     | '/_authenticated/messages'
     | '/_authenticated/payments'
     | '/_authenticated/reports'
+    | '/_authenticated/roadmap'
     | '/_authenticated/rooms'
     | '/_authenticated/schedule'
     | '/_authenticated/search'
@@ -955,6 +967,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/roadmap': {
+      id: '/_authenticated/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof AuthenticatedRoadmapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/rooms': {
@@ -1315,6 +1334,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
   AuthenticatedRoomsRoute: typeof AuthenticatedRoomsRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
@@ -1341,6 +1361,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
   AuthenticatedRoomsRoute: AuthenticatedRoomsRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
