@@ -68,7 +68,10 @@ type Msg = {
   chat?: { id: number; type?: string; first_name?: string; last_name?: string; username?: string };
   from?: { id: number };
   text?: string;
+  caption?: string;
   contact?: Contact;
+  photo?: Array<{ file_id: string; file_size?: number }>;
+  document?: { file_id: string; mime_type?: string };
   reply_to_message?: { text?: string };
 };
 type Update = {
