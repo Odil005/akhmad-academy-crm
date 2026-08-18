@@ -148,8 +148,11 @@ function KnowledgeGamePage() {
     setQuestions(null);
   };
 
+  const [tab, setTab] = useState<"quiz" | "word">("quiz");
   const current = questions?.[index];
   const totalPoints = attempts.reduce((sum, a) => sum + a.points, 0);
+
+
 
 
   return (
