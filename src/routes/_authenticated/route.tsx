@@ -146,6 +146,9 @@ function AuthenticatedLayout() {
     { to: "/finance", label: "Moliya", icon: DollarSign, show: isStaff },
     { to: "/debtors", label: "Qarzdorlar", icon: AlertTriangle, show: isStaff },
     { to: "/cash-shifts", label: "Kassa yopilishi", icon: Lock, show: isStaff },
+    { to: "/payment-receipts", label: "Chek tasdiqlash", icon: ReceiptText, show: isStaff },
+    { to: "/payroll", label: "Oylik hisobi", icon: Calculator, show: isStaff },
+
     { to: "/leads", label: "Lidlar", icon: Inbox, show: isAdmin },
     { to: "/calls", label: "Qo'ng'iroqlar", icon: Phone, show: isStaff },
     { to: "/messages", label: "Xabarlar", icon: MessageSquare, show: isStaff || isTeacher },
