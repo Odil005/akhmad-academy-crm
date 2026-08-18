@@ -7,6 +7,47 @@ export type GeneratedQuestion = {
   explanation: string | null;
 };
 
+export function createFallbackQuestions(
+  subjectName: string,
+  level: number,
+  count: number,
+): GeneratedQuestion[] {
+  const templates = [
+    {
+      question: `${subjectName} fanini o'rganishda eng muhim odat qaysi?`,
+      options: ["Muntazam mashq qilish", "Darslarni qoldirish", "Javobni taxmin qilish", "Faqat imtihon kuni o'qish"],
+      correct_index: 0,
+      explanation: "Muntazam mashq bilimni mustahkamlaydi.",
+    },
+    {
+      question: `${subjectName} bo'yicha murakkab topshiriq uchrasa, avval nima qilish kerak?`,
+      options: ["Shartni diqqat bilan o'qish", "Darhol taslim bo'lish", "Savolni o'tkazib yuborish", "Tasodifiy javob tanlash"],
+      correct_index: 0,
+      explanation: "Topshiriq shartini tushunish yechimning birinchi bosqichidir.",
+    },
+    {
+      question: `Yangi ${subjectName} mavzusini yaxshiroq eslab qolish usuli qaysi?`,
+      options: ["Misollar bilan takrorlash", "Bir marta ko'rib chiqish", "Mashq qilmaslik", "Faqat javobni yodlash"],
+      correct_index: 0,
+      explanation: "Misol va takrorlash mavzuni uzoq muddat eslab qolishga yordam beradi.",
+    },
+    {
+      question: `${subjectName} darsida xato qilish nimani anglatadi?`,
+      options: ["O'rganish imkoniyatini", "Darsni to'xtatishni", "Bahoni yashirishni", "Mavzuni almashtirishni"],
+      correct_index: 0,
+      explanation: "Xatoni tahlil qilish orqali bilim kuchayadi.",
+    },
+  ];
+
+  return Array.from({ length: count }, (_, index) => {
+    const item = templates[index % templates.length];
+    return {
+      ...item,
+      question: level > 1 ? `${item.question} (Daraja ${level})` : item.question,
+    };
+  });
+}
+
 /** Ask the AI gateway for a small set of subject questions in Uzbek. */
 export async function generateQuestions(
   subjectName: string,
