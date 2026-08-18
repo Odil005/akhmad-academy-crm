@@ -39,7 +39,9 @@ type GuideVideo = {
   published: boolean;
 };
 
-const ROLE_TABS: Array<{ key: string; label: string }> = [
+type RoleKey = "admin" | "director" | "teacher" | "student";
+
+const ROLE_TABS: Array<{ key: RoleKey; label: string }> = [
   { key: "admin", label: "Administrator" },
   { key: "director", label: "Director" },
   { key: "teacher", label: "O'qituvchi" },
@@ -51,14 +53,14 @@ function GuidePage() {
   const canManage = hasAdminRole(roles) || hasDirectorRole(roles);
   const myRole = resolveTourRole(roles);
 
-  const [tab, setTab] = useState<string>(myRole);
+  const [tab, setTab] = useState<RoleKey>(myRole);
   const [rows, setRows] = useState<GuideVideo[]>([]);
   const [views, setViews] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<GuideVideo | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", url: "", role: myRole });
+  const [form, setForm] = useState<{ title: string; description: string; url: string; role: RoleKey }>({ title: "", description: "", url: "", role: myRole });
 
   const db = supabase as unknown as { from: (table: string) => any };
 
@@ -181,7 +183,7 @@ function GuidePage() {
             Rol
             <select
               value={form.role}
-              onChange={(event) => setForm({ ...form, role: event.target.value })}
+              onChange={(event) => setForm({ ...form, role: event.target.value as RoleKey })}
               className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
             >
               {ROLE_TABS.map((item) => (
