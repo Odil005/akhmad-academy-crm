@@ -51,7 +51,6 @@ function SettingsLayout() {
       icon: Star,
       show: isDirector,
     },
-    { to: "/settings/teachers", label: "O'qituvchilar ro'yxati", icon: GraduationCap, show: true },
     { to: "/settings/marketplace", label: "Marketplace", icon: ShoppingBag, show: true },
     { to: "/settings/design", label: "Dizayn & Homepage", icon: Palette, show: isDirector },
     { to: "/settings/contact", label: "Aloqa ma'lumotlari", icon: MapPin, show: isDirector },
