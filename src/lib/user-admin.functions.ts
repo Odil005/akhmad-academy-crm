@@ -328,3 +328,76 @@ export const listDirectorLogins = createServerFn({ method: "POST" })
       label: nameMap.get(r.director_user_id) ?? "Director",
     }));
   });
+
+/**
+ * Change a managed user's login (username -> email) and optionally the password.
+ * Director/admin only, with the same role-escalation guard as resetAccessCode.
+ */
+export const updateManagedLogin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        user_id: z.string().uuid(),
+        username: z.string().min(3).max(64).optional(),
+        new_code: z.string().min(4).max(64).optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const callerRoles = await rolesOf(supabase, userId);
+    if (!isStaff(callerRoles)) throw new Error("Forbidden");
+    if (!data.username && !data.new_code) throw new Error("O'zgartirish uchun ma'lumot yo'q.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const targetRoles = await targetRolesOf(supabaseAdmin, data.user_id);
+    if (targetRoles.some((role) => !canManageAccount(callerRoles, role))) {
+      throw new Error("Siz bu foydalanuvchi loginini o'zgartira olmaysiz.");
+    }
+
+    const username = data.username?.trim().toLowerCase();
+    const email = username ? usernameToEmail(username) : undefined;
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
+      ...(email ? { email, email_confirm: true } : {}),
+      ...(data.new_code ? { password: data.new_code } : {}),
+    });
+    if (error) {
+      throw new Error(
+        /already|exists|registered/i.test(error.message)
+          ? `"${username}" foydalanuvchi nomi band. Boshqa nom tanlang.`
+          : error.message,
+      );
+    }
+
+    const updated_at = new Date().toISOString();
+    // Each credentials table stores the login differently: director keeps the
+    // full email, the others keep the bare username.
+    const tables: Array<[string, string, "username" | "email"]> = [
+      ["student_credentials", "auth_user_id", "username"],
+      ["teacher_credentials", "teacher_user_id", "username"],
+      ["admin_credentials", "admin_user_id", "username"],
+      ["director_credentials", "director_user_id", "email"],
+    ];
+    // Dynamic table names lose the generated row types, so go through a narrow shim.
+    const db = supabaseAdmin as unknown as {
+      from: (table: string) => {
+        update: (values: Record<string, unknown>) => {
+          eq: (column: string, value: string) => Promise<unknown>;
+        };
+      };
+    };
+    for (const [table, column, loginColumn] of tables) {
+      await db
+        .from(table)
+        .update({
+          ...(username ? { [loginColumn]: loginColumn === "email" ? email : username } : {}),
+          ...(data.new_code ? { access_code: "***" } : {}),
+          updated_at,
+        })
+        .eq(column, data.user_id);
+    }
+
+
+    return { ok: true, username: username ?? null, access_code: data.new_code ?? null };
+  });

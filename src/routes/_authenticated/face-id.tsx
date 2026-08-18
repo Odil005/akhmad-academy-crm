@@ -1,11 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
-import { Camera, CheckCircle2, ScanFace, Trash2 } from "lucide-react";
+import { Camera, CheckCircle2, MapPin, ScanFace, Trash2 } from "lucide-react";
+import { distanceMeters, type CheckinLocation } from "@/lib/geo";
 import { toast } from "sonner";
 
 type Enrollment = { id: string; image_url: string; created_at: string };
-type Checkin = { id: string; checked_in_at: string; method: string; photo_url: string | null };
+type Checkin = {
+  id: string;
+  checked_in_at: string;
+  method: string;
+  photo_url: string | null;
+  location_name: string | null;
+  distance_m: number | null;
+  within_zone: boolean | null;
+  latitude: number | null;
+  longitude: number | null;
+};
 
 export const Route = createFileRoute("/_authenticated/face-id")({
   component: FaceIdPage,
@@ -18,16 +29,27 @@ function FaceIdPage() {
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [zones, setZones] = useState<CheckinLocation[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const load = async () => {
-    const [{ data: enr }, { data: ci }] = await Promise.all([
+    const [{ data: enr }, { data: ci }, { data: locs }] = await Promise.all([
       supabase.from("teacher_face_enrollments").select("id, image_url, created_at").eq("user_id", user.id).maybeSingle(),
-      supabase.from("teacher_checkins").select("id, checked_in_at, method, photo_url").eq("user_id", user.id).order("checked_in_at", { ascending: false }).limit(20),
+      supabase
+        .from("teacher_checkins")
+        .select("id, checked_in_at, method, photo_url, location_name, distance_m, within_zone, latitude, longitude")
+        .eq("user_id", user.id)
+        .order("checked_in_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("checkin_locations")
+        .select("id, name, address, latitude, longitude, radius_m")
+        .eq("active", true),
     ]);
     setEnrollment((enr as Enrollment | null) ?? null);
     setCheckins((ci as Checkin[] | null) ?? []);
+    setZones((locs as CheckinLocation[] | null) ?? []);
   };
 
   useEffect(() => { load(); return () => stopCamera(); /* eslint-disable-next-line */ }, []);
@@ -69,16 +91,59 @@ function FaceIdPage() {
     stopCamera(); load();
   };
 
+  /** Aniq lokatsiya: brauzer GPS koordinatasini oladi va eng yaqin ruxsat etilgan nuqtaga tekshiradi. */
+  const readPosition = () =>
+    new Promise<GeolocationPosition | null>((resolve) => {
+      if (!navigator.geolocation) return resolve(null);
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve(position),
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
+      );
+    });
+
   const checkin = async () => {
     const img = capture();
     setBusy(true);
+    const position = await readPosition();
+    if (!position) {
+      setBusy(false);
+      toast.error("Lokatsiyaga ruxsat bering — kirish faqat aniq joylashuv bilan qayd etiladi.");
+      return;
+    }
+    const { latitude, longitude, accuracy } = position.coords;
+    const nearest = zones
+      .map((zone) => ({ zone, distance: distanceMeters(latitude, longitude, zone.latitude, zone.longitude) }))
+      .sort((a, b) => a.distance - b.distance)[0];
+    const within = nearest ? nearest.distance <= nearest.zone.radius_m : false;
+
     const { error } = await supabase.from("teacher_checkins").insert({
-      user_id: user.id, method: "face", photo_url: img,
+      user_id: user.id,
+      method: "face",
+      photo_url: img,
+      latitude,
+      longitude,
+      accuracy_m: accuracy ?? null,
+      location_name: nearest?.zone.name ?? null,
+      distance_m: nearest ? Math.round(nearest.distance) : null,
+      within_zone: nearest ? within : null,
     });
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Kirish qayd etildi");
-    stopCamera(); load();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (!nearest) {
+      toast.warning("Kirish qayd etildi, lekin ruxsat etilgan lokatsiya belgilanmagan.");
+    } else if (within) {
+      toast.success(`Kirish qayd etildi — ${nearest.zone.name} (${Math.round(nearest.distance)} m)`);
+    } else {
+      toast.warning(
+        `Kirish qayd etildi, lekin siz markazdan tashqarida (${Math.round(nearest.distance)} m).`,
+      );
+    }
+    stopCamera();
+    load();
   };
 
   if (!isTeacher) {
@@ -152,7 +217,22 @@ function FaceIdPage() {
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold">{new Date(c.checked_in_at).toLocaleString("uz-UZ")}</div>
-                  <div className="text-xs text-muted-foreground">Usul: {c.method}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Usul: {c.method}
+                    {c.location_name ? ` · ${c.location_name}` : ""}
+                    {c.distance_m != null ? ` · ${c.distance_m} m` : ""}
+                    {c.within_zone === false ? " · hudud tashqarisida" : ""}
+                  </div>
+                  {c.latitude != null && c.longitude != null && (
+                    <a
+                      href={`https://maps.google.com/?q=${c.latitude},${c.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                    >
+                      <MapPin className="h-3 w-3" /> Xaritada ko'rish
+                    </a>
+                  )}
                 </div>
                 {c.photo_url && <img src={c.photo_url} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" width={40} height={40} loading="lazy" decoding="async" />}
               </li>

@@ -19,6 +19,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedBehaviorRouteImport } from './routes/_authenticated/behavior'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedCheckinLocationsRouteImport } from './routes/_authenticated/checkin-locations'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated/face-id'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
@@ -39,6 +40,7 @@ import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authenticated/teacher-balance'
 import { Route as AuthenticatedTeacherKpiRouteImport } from './routes/_authenticated/teacher-kpi'
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
+import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
 import { Route as AuthenticatedVideoLessonsRouteImport } from './routes/_authenticated/video-lessons'
 import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -123,6 +125,12 @@ const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
   path: '/calls',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCheckinLocationsRoute =
+  AuthenticatedCheckinLocationsRouteImport.update({
+    id: '/checkin-locations',
+    path: '/checkin-locations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -227,6 +235,11 @@ const AuthenticatedTeacherPanelRoute =
     path: '/teacher-panel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTeachersRoute = AuthenticatedTeachersRouteImport.update({
+  id: '/teachers',
+  path: '/teachers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedVideoLessonsRoute =
   AuthenticatedVideoLessonsRouteImport.update({
     id: '/video-lessons',
@@ -424,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
@@ -444,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/teachers': typeof AuthenticatedTeachersRoute
   '/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -487,6 +502,7 @@ export interface FileRoutesByTo {
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
@@ -506,6 +522,7 @@ export interface FileRoutesByTo {
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/teachers': typeof AuthenticatedTeachersRoute
   '/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -551,6 +568,7 @@ export interface FileRoutesById {
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/behavior': typeof AuthenticatedBehaviorRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
+  '/_authenticated/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/face-id': typeof AuthenticatedFaceIdRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
@@ -571,6 +589,7 @@ export interface FileRoutesById {
   '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/_authenticated/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/_authenticated/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -616,6 +635,7 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/behavior'
     | '/calls'
+    | '/checkin-locations'
     | '/dashboard'
     | '/face-id'
     | '/finance'
@@ -636,6 +656,7 @@ export interface FileRouteTypes {
     | '/teacher-balance'
     | '/teacher-kpi'
     | '/teacher-panel'
+    | '/teachers'
     | '/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
@@ -679,6 +700,7 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/behavior'
     | '/calls'
+    | '/checkin-locations'
     | '/dashboard'
     | '/face-id'
     | '/finance'
@@ -698,6 +720,7 @@ export interface FileRouteTypes {
     | '/teacher-balance'
     | '/teacher-kpi'
     | '/teacher-panel'
+    | '/teachers'
     | '/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
@@ -742,6 +765,7 @@ export interface FileRouteTypes {
     | '/_authenticated/attendance'
     | '/_authenticated/behavior'
     | '/_authenticated/calls'
+    | '/_authenticated/checkin-locations'
     | '/_authenticated/dashboard'
     | '/_authenticated/face-id'
     | '/_authenticated/finance'
@@ -762,6 +786,7 @@ export interface FileRouteTypes {
     | '/_authenticated/teacher-balance'
     | '/_authenticated/teacher-kpi'
     | '/_authenticated/teacher-panel'
+    | '/_authenticated/teachers'
     | '/_authenticated/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
@@ -890,6 +915,13 @@ declare module '@tanstack/react-router' {
       path: '/calls'
       fullPath: '/calls'
       preLoaderRoute: typeof AuthenticatedCallsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/checkin-locations': {
+      id: '/_authenticated/checkin-locations'
+      path: '/checkin-locations'
+      fullPath: '/checkin-locations'
+      preLoaderRoute: typeof AuthenticatedCheckinLocationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -1030,6 +1062,13 @@ declare module '@tanstack/react-router' {
       path: '/teacher-panel'
       fullPath: '/teacher-panel'
       preLoaderRoute: typeof AuthenticatedTeacherPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/teachers': {
+      id: '/_authenticated/teachers'
+      path: '/teachers'
+      fullPath: '/teachers'
+      preLoaderRoute: typeof AuthenticatedTeachersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/video-lessons': {
@@ -1323,6 +1362,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBehaviorRoute: typeof AuthenticatedBehaviorRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
+  AuthenticatedCheckinLocationsRoute: typeof AuthenticatedCheckinLocationsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFaceIdRoute: typeof AuthenticatedFaceIdRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
@@ -1343,6 +1383,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTeacherBalanceRoute: typeof AuthenticatedTeacherBalanceRoute
   AuthenticatedTeacherKpiRoute: typeof AuthenticatedTeacherKpiRoute
   AuthenticatedTeacherPanelRoute: typeof AuthenticatedTeacherPanelRoute
+  AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
   AuthenticatedVideoLessonsRoute: typeof AuthenticatedVideoLessonsRoute
 }
 
@@ -1350,6 +1391,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBehaviorRoute: AuthenticatedBehaviorRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
+  AuthenticatedCheckinLocationsRoute: AuthenticatedCheckinLocationsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFaceIdRoute: AuthenticatedFaceIdRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
@@ -1370,6 +1412,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTeacherBalanceRoute: AuthenticatedTeacherBalanceRoute,
   AuthenticatedTeacherKpiRoute: AuthenticatedTeacherKpiRoute,
   AuthenticatedTeacherPanelRoute: AuthenticatedTeacherPanelRoute,
+  AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
   AuthenticatedVideoLessonsRoute: AuthenticatedVideoLessonsRoute,
 }
 
