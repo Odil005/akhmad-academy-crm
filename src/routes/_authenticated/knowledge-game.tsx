@@ -151,6 +151,7 @@ function KnowledgeGamePage() {
   const current = questions?.[index];
   const totalPoints = attempts.reduce((sum, a) => sum + a.points, 0);
 
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
