@@ -23,9 +23,11 @@ export default defineConfig({
   // External builders do not receive Lovable's VITE_* injection automatically.
   // These are public browser credentials (database access remains protected by RLS),
   // and defining them here prevents production hydration/auth from crashing.
-  define: {
-    "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(publicBackendUrl),
-    "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(publicBackendKey),
+  vite: {
+    define: {
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(publicBackendUrl),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(publicBackendKey),
+    },
   },
 
   nitro: {
