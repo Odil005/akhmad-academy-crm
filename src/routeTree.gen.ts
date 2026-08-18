@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BootstrapRouteImport } from './routes/bootstrap'
+import { Route as DonateRouteImport } from './routes/donate'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -55,6 +56,7 @@ import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsCredentialsRouteImport } from './routes/_authenticated/settings.credentials'
 import { Route as AuthenticatedSettingsDesignRouteImport } from './routes/_authenticated/settings.design'
 import { Route as AuthenticatedSettingsDirectorReportRouteImport } from './routes/_authenticated/settings.director-report'
+import { Route as AuthenticatedSettingsDonationRouteImport } from './routes/_authenticated/settings.donation'
 import { Route as AuthenticatedSettingsHomepageCoursesRouteImport } from './routes/_authenticated/settings.homepage-courses'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
 import { Route as AuthenticatedSettingsMarketplaceRouteImport } from './routes/_authenticated/settings.marketplace'
@@ -95,6 +97,11 @@ const AuthRoute = AuthRouteImport.update({
 const BootstrapRoute = BootstrapRouteImport.update({
   id: '/bootstrap',
   path: '/bootstrap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DonateRoute = DonateRouteImport.update({
+  id: '/donate',
+  path: '/donate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -323,6 +330,12 @@ const AuthenticatedSettingsDirectorReportRoute =
     path: '/director-report',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsDonationRoute =
+  AuthenticatedSettingsDonationRouteImport.update({
+    id: '/donation',
+    path: '/donation',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsHomepageCoursesRoute =
   AuthenticatedSettingsHomepageCoursesRouteImport.update({
     id: '/homepage-courses',
@@ -456,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
+  '/donate': typeof DonateRoute
   '/mcp': typeof McpRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -497,6 +511,7 @@ export interface FileRoutesByFullPath {
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
   '/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
+  '/settings/donation': typeof AuthenticatedSettingsDonationRoute
   '/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
@@ -525,6 +540,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
+  '/donate': typeof DonateRoute
   '/mcp': typeof McpRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -565,6 +581,7 @@ export interface FileRoutesByTo {
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
   '/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
+  '/settings/donation': typeof AuthenticatedSettingsDonationRoute
   '/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
@@ -595,6 +612,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
+  '/donate': typeof DonateRoute
   '/mcp': typeof McpRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -636,6 +654,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/_authenticated/settings/design': typeof AuthenticatedSettingsDesignRoute
   '/_authenticated/settings/director-report': typeof AuthenticatedSettingsDirectorReportRoute
+  '/_authenticated/settings/donation': typeof AuthenticatedSettingsDonationRoute
   '/_authenticated/settings/homepage-courses': typeof AuthenticatedSettingsHomepageCoursesRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/_authenticated/settings/marketplace': typeof AuthenticatedSettingsMarketplaceRoute
@@ -666,6 +685,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/bootstrap'
+    | '/donate'
     | '/mcp'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -707,6 +727,7 @@ export interface FileRouteTypes {
     | '/settings/credentials'
     | '/settings/design'
     | '/settings/director-report'
+    | '/settings/donation'
     | '/settings/homepage-courses'
     | '/settings/integrations'
     | '/settings/marketplace'
@@ -735,6 +756,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/bootstrap'
+    | '/donate'
     | '/mcp'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -775,6 +797,7 @@ export interface FileRouteTypes {
     | '/settings/credentials'
     | '/settings/design'
     | '/settings/director-report'
+    | '/settings/donation'
     | '/settings/homepage-courses'
     | '/settings/integrations'
     | '/settings/marketplace'
@@ -804,6 +827,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/bootstrap'
+    | '/donate'
     | '/mcp'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -845,6 +869,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/credentials'
     | '/_authenticated/settings/design'
     | '/_authenticated/settings/director-report'
+    | '/_authenticated/settings/donation'
     | '/_authenticated/settings/homepage-courses'
     | '/_authenticated/settings/integrations'
     | '/_authenticated/settings/marketplace'
@@ -875,6 +900,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BootstrapRoute: typeof BootstrapRoute
+  DonateRoute: typeof DonateRoute
   McpRoute: typeof McpRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -922,6 +948,13 @@ declare module '@tanstack/react-router' {
       path: '/bootstrap'
       fullPath: '/bootstrap'
       preLoaderRoute: typeof BootstrapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/donate': {
+      id: '/donate'
+      path: '/donate'
+      fullPath: '/donate'
+      preLoaderRoute: typeof DonateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -1218,6 +1251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsDirectorReportRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/donation': {
+      id: '/_authenticated/settings/donation'
+      path: '/donation'
+      fullPath: '/settings/donation'
+      preLoaderRoute: typeof AuthenticatedSettingsDonationRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/homepage-courses': {
       id: '/_authenticated/settings/homepage-courses'
       path: '/homepage-courses'
@@ -1381,6 +1421,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsCredentialsRoute: typeof AuthenticatedSettingsCredentialsRoute
   AuthenticatedSettingsDesignRoute: typeof AuthenticatedSettingsDesignRoute
   AuthenticatedSettingsDirectorReportRoute: typeof AuthenticatedSettingsDirectorReportRoute
+  AuthenticatedSettingsDonationRoute: typeof AuthenticatedSettingsDonationRoute
   AuthenticatedSettingsHomepageCoursesRoute: typeof AuthenticatedSettingsHomepageCoursesRoute
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
   AuthenticatedSettingsMarketplaceRoute: typeof AuthenticatedSettingsMarketplaceRoute
@@ -1402,6 +1443,7 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsDesignRoute: AuthenticatedSettingsDesignRoute,
   AuthenticatedSettingsDirectorReportRoute:
     AuthenticatedSettingsDirectorReportRoute,
+  AuthenticatedSettingsDonationRoute: AuthenticatedSettingsDonationRoute,
   AuthenticatedSettingsHomepageCoursesRoute:
     AuthenticatedSettingsHomepageCoursesRoute,
   AuthenticatedSettingsIntegrationsRoute:
@@ -1509,6 +1551,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BootstrapRoute: BootstrapRoute,
+  DonateRoute: DonateRoute,
   McpRoute: McpRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:

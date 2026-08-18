@@ -16,6 +16,7 @@ import {
   LogIn,
   Send,
   Instagram,
+  Heart,
 } from "lucide-react";
 const logoAsset = { url: "/logo.png", webp: "/logo-256.webp" };
 import heroClassroom from "@/assets/hero-classroom.webp";
@@ -101,11 +102,18 @@ function Header() {
 
           <div className="flex items-center gap-2">
             <Link
+              to="/donate"
+              className="hidden items-center gap-2 px-4 text-sm font-semibold text-accent transition-opacity hover:opacity-80 lg:inline-flex"
+            >
+              <Heart className="h-4 w-4" /> Donat
+            </Link>
+            <Link
               to="/auth"
               className="hidden items-center gap-2 px-5 text-sm font-semibold text-primary-foreground/85 transition-colors hover:text-accent lg:inline-flex"
             >
               <LogIn className="h-4 w-4" /> Kabinet
             </Link>
+
             <button
               onClick={() => handleNav("#contact")}
               className="hidden items-center gap-3 self-stretch bg-[oklch(0.45_0.22_265)] px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-[oklch(0.50_0.22_265)] lg:inline-flex"
@@ -135,12 +143,20 @@ function Header() {
                 </button>
               ))}
               <Link
-                to="/auth"
+                to="/donate"
                 onClick={() => setOpen(false)}
                 className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/60 px-4 py-2 text-sm font-semibold text-accent"
               >
+                <Heart className="h-4 w-4" /> Donat qilish
+              </Link>
+              <Link
+                to="/auth"
+                onClick={() => setOpen(false)}
+                className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-primary-foreground/30 px-4 py-2 text-sm font-semibold text-primary-foreground"
+              >
                 <LogIn className="h-4 w-4" /> Kabinet
               </Link>
+
               <button
                 onClick={() => handleNav("#contact")}
                 className="mt-2 rounded-lg bg-[oklch(0.45_0.22_265)] px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
@@ -571,9 +587,17 @@ function Footer() {
           <Monogram className="h-10 w-10" />
           <span className="font-display text-sm tracking-[0.25em] text-primary">AKHMAD ACADEMY</span>
         </div>
-        <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Akhmad Academy. Barcha huquqlar himoyalangan.
-        </p>
+        <div className="flex flex-col items-center gap-2 md:flex-row md:gap-6">
+          <Link
+            to="/donate"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary transition-opacity hover:opacity-80"
+          >
+            <Heart className="h-3.5 w-3.5" /> Donat qilish
+          </Link>
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Akhmad Academy. Barcha huquqlar himoyalangan.
+          </p>
+        </div>
       </div>
     </footer>
   );

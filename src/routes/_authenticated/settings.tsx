@@ -15,6 +15,7 @@ import {
   Send,
   Receipt,
   Rocket,
+  Heart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -65,6 +66,7 @@ function SettingsLayout() {
       show: isDirector,
     },
     { to: "/settings/director-report", label: "Direktor hisoboti", icon: Send, show: isDirector },
+    { to: "/settings/donation", label: "Donat / Homiylik", icon: Heart, show: isDirector },
     { to: "/settings/reports", label: "Excel & Word", icon: FileSpreadsheet, show: true },
   ];
 
