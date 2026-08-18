@@ -191,7 +191,7 @@ function KnowledgeGamePage() {
         </Suspense>
       )}
 
-      {tab === "quiz" && !current ? (
+      {tab !== "quiz" ? null : !current ? (
 
         <div className="grid gap-4 rounded-2xl border border-border bg-card p-6 md:grid-cols-3">
           <label className="text-sm md:col-span-1">
