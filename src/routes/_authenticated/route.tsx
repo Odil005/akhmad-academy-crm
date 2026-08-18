@@ -136,6 +136,8 @@ function AuthenticatedLayout() {
     { to: "/attendance", label: "Davomat", icon: ClipboardCheck, show: isStaff || isTeacher },
     { to: "/payments", label: "To'lovlar", icon: CreditCard, show: isStaff },
     { to: "/finance", label: "Moliya", icon: DollarSign, show: isStaff },
+    { to: "/debtors", label: "Qarzdorlar", icon: AlertTriangle, show: isStaff },
+    { to: "/cash-shifts", label: "Kassa yopilishi", icon: Lock, show: isStaff },
     { to: "/leads", label: "Lidlar", icon: Inbox, show: isAdmin },
     { to: "/calls", label: "Qo'ng'iroqlar", icon: Phone, show: isStaff },
     { to: "/messages", label: "Xabarlar", icon: MessageSquare, show: isStaff || isTeacher },

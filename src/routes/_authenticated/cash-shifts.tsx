@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/cash-shifts")({
       { property: "og:title", content: "Kassa yopilishi · Akhmad Academy" },
       {
         property: "og:description",
-        content: "Har kunlik kassa yopilishi va direktорga avtomatik Telegram xulosa.",
+        content: "Har kunlik kassa yopilishi va direktorga avtomatik Telegram xulosa.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
