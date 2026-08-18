@@ -24,6 +24,7 @@ import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
+import { Route as AuthenticatedKnowledgeGameRouteImport } from './routes/_authenticated/knowledge-game'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
@@ -146,6 +147,12 @@ const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
   path: '/import',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedKnowledgeGameRoute =
+  AuthenticatedKnowledgeGameRouteImport.update({
+    id: '/knowledge-game',
+    path: '/knowledge-game',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -416,6 +423,7 @@ export interface FileRoutesByFullPath {
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/import': typeof AuthenticatedImportRoute
+  '/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
@@ -477,6 +485,7 @@ export interface FileRoutesByTo {
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/import': typeof AuthenticatedImportRoute
+  '/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
@@ -539,6 +548,7 @@ export interface FileRoutesById {
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/import': typeof AuthenticatedImportRoute
+  '/_authenticated/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
@@ -602,6 +612,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/groups'
     | '/import'
+    | '/knowledge-game'
     | '/leads'
     | '/marketplace'
     | '/messages'
@@ -663,6 +674,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/groups'
     | '/import'
+    | '/knowledge-game'
     | '/leads'
     | '/marketplace'
     | '/messages'
@@ -724,6 +736,7 @@ export interface FileRouteTypes {
     | '/_authenticated/finance'
     | '/_authenticated/groups'
     | '/_authenticated/import'
+    | '/_authenticated/knowledge-game'
     | '/_authenticated/leads'
     | '/_authenticated/marketplace'
     | '/_authenticated/messages'
@@ -900,6 +913,13 @@ declare module '@tanstack/react-router' {
       path: '/import'
       fullPath: '/import'
       preLoaderRoute: typeof AuthenticatedImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/knowledge-game': {
+      id: '/_authenticated/knowledge-game'
+      path: '/knowledge-game'
+      fullPath: '/knowledge-game'
+      preLoaderRoute: typeof AuthenticatedKnowledgeGameRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leads': {
@@ -1289,6 +1309,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
+  AuthenticatedKnowledgeGameRoute: typeof AuthenticatedKnowledgeGameRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
@@ -1314,6 +1335,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
+  AuthenticatedKnowledgeGameRoute: AuthenticatedKnowledgeGameRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
