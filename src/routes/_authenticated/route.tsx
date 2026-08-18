@@ -37,6 +37,9 @@ import {
   DollarSign,
   Brain,
   Target,
+  AlertTriangle,
+  Lock,
+
 
 } from "lucide-react";
 import { lazy, Suspense } from "react";
