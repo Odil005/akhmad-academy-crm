@@ -1,10 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createHash, timingSafeEqual } from "node:crypto";
 import {
   isOwnTelegramContact,
   isPrivateTelegramChat,
   makeTeacherCallback,
   parseTeacherCallback,
 } from "@/features/telegram/domain";
+
+/** Derive a Telegram-safe (hex) webhook secret from the bot token. */
+function deriveWebhookSecret(token: string): string {
+  return createHash("sha256").update(`telegram-webhook:${token}`).digest("hex");
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
 
 // Telegram Bot webhook — parent-facing menu + self-service linking.
 //
