@@ -831,6 +831,77 @@ export type Database = {
           },
         ]
       }
+      guide_video_views: {
+        Row: {
+          id: string
+          user_id: string
+          video_id: string
+          watched_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          video_id: string
+          watched_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          video_id?: string
+          watched_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_video_views_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "guide_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guide_videos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          position: number
+          published: boolean
+          storage_path: string | null
+          target_role: string
+          title: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          position?: number
+          published?: boolean
+          storage_path?: string | null
+          target_role?: string
+          title: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          position?: number
+          published?: boolean
+          storage_path?: string | null
+          target_role?: string
+          title?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       homepage_courses: {
         Row: {
           created_at: string
@@ -1373,6 +1444,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      onboarding_progress: {
+        Row: {
+          completed: boolean
+          created_at: string
+          done_tasks: string[]
+          id: string
+          last_step: number
+          role: string
+          tour_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          done_tasks?: string[]
+          id?: string
+          last_step?: number
+          role?: string
+          tour_key?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          done_tasks?: string[]
+          id?: string
+          last_step?: number
+          role?: string
+          tour_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       parent_link_tokens: {
         Row: {
