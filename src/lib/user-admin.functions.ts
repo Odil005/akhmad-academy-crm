@@ -379,8 +379,16 @@ export const updateManagedLogin = createServerFn({ method: "POST" })
       ["admin_credentials", "admin_user_id", "username"],
       ["director_credentials", "director_user_id", "email"],
     ];
+    // Dynamic table names lose the generated row types, so go through a narrow shim.
+    const db = supabaseAdmin as unknown as {
+      from: (table: string) => {
+        update: (values: Record<string, unknown>) => {
+          eq: (column: string, value: string) => Promise<unknown>;
+        };
+      };
+    };
     for (const [table, column, loginColumn] of tables) {
-      await supabaseAdmin
+      await db
         .from(table)
         .update({
           ...(username ? { [loginColumn]: loginColumn === "email" ? email : username } : {}),
@@ -389,6 +397,7 @@ export const updateManagedLogin = createServerFn({ method: "POST" })
         })
         .eq(column, data.user_id);
     }
+
 
     return { ok: true, username: username ?? null, access_code: data.new_code ?? null };
   });
