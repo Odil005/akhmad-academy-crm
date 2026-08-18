@@ -1,14 +1,16 @@
 name = "akhmad-academy-crm"
-main = ".output/server/index.mjs"
+main = "dist/server/index.mjs"
 compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat"]
 
 [assets]
-directory = ".output/public"
+directory = "dist/client"
 binding = "ASSETS"
 
 # Build: bun run build:cloudflare
 # Deploy: bunx wrangler deploy
+#   (build generates .wrangler/deploy/config.json, so wrangler picks up
+#    dist/server/wrangler.json automatically — main/assets above are a fallback)
 # Secrets (bunx wrangler secret put NAME):
 #   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY,
 #   APP_BASE_URL, CRON_SECRET, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET
