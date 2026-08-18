@@ -1,13 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-
-const inputSchema = z.object({
-  subject_id: z.string().uuid().nullable().optional(),
-  subject_name: z.string().trim(),
-  level: z.number().int().optional(),
-  count: z.number().int().optional(),
-});
+import { createFallbackQuestions, generateQuestions } from "./quiz.server";
 
 /**
  * Return quiz questions for a subject. Existing questions are reused; when the
@@ -15,14 +9,23 @@ const inputSchema = z.object({
  */
 export const getSubjectQuiz = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => inputSchema.parse(data))
+  .validator((data) =>
+    z
+      .object({
+        subject_id: z.string().uuid().nullable().optional(),
+        subject_name: z.string().trim(),
+        level: z.number().int().optional(),
+        count: z.number().int().optional(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
     const level = Math.min(Math.max(data.level ?? 1, 1), 3);
     const count = Math.min(Math.max(data.count ?? 8, 3), 12);
     const subjectName = data.subject_name.slice(0, 120) || "Umumiy bilim";
 
     const bank = context.supabase.from("quiz_questions").select("*").eq("level", level).limit(60);
-    const { data: existing } = data.subject_id
+    const { data: existing, error: readError } = data.subject_id
       ? await bank.eq("subject_id", data.subject_id)
       : await bank.eq("subject_name", subjectName);
 
@@ -34,12 +37,11 @@ export const getSubjectQuiz = createServerFn({ method: "POST" })
       explanation: string | null;
     }[];
 
-    if (pool.length < count) {
-      const { generateQuestions } = await import("./quiz.server");
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (!readError && pool.length < count) {
       try {
         const generated = await generateQuestions(subjectName, level, count);
         if (generated.length > 0) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: inserted } = await supabaseAdmin
             .from("quiz_questions")
             .insert(
@@ -58,10 +60,18 @@ export const getSubjectQuiz = createServerFn({ method: "POST" })
           pool = [...pool, ...((inserted ?? []) as typeof pool)];
         }
       } catch (error) {
-        if (pool.length === 0) {
-          throw new Error(error instanceof Error ? error.message : "Savol tuzib bo'lmadi");
-        }
+        console.error("Quiz generation failed; using fallback questions", error);
       }
+    }
+
+    if (pool.length < count) {
+      const fallback = createFallbackQuestions(subjectName, level, count - pool.length).map(
+        (question, index) => ({
+          id: `fallback-${level}-${index}`,
+          ...question,
+        }),
+      );
+      pool = [...pool, ...fallback];
     }
 
     const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, count);
