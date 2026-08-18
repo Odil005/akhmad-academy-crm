@@ -998,6 +998,7 @@ async function runTool(
         "/messages",
         "/reports",
         "/import",
+        "/methodology",
         "/settings",
       ]);
       const path = String(args.path ?? "");
@@ -1005,6 +1006,44 @@ async function runTool(
         ? { result: { opened: path }, navigate: path }
         : { result: { error: "Noto'g'ri sahifa manzili" } };
     }
+    case "list_methodology": {
+      let query = supabase
+        .from("methodology_resources")
+        .select("subject_name, level, title, author, description, resource_url")
+        .eq("is_active", true)
+        .order("subject_name")
+        .order("sort_order")
+        .limit(60);
+      const subject = String(args?.subject_name ?? "").trim();
+      const level = String(args?.level ?? "").trim();
+      if (subject) query = query.ilike("subject_name", `%${subject}%`);
+      if (level) query = query.ilike("level", `%${level}%`);
+      const { data, error } = await query;
+      if (error) return { result: { error: error.message } };
+      return { result: data ?? [] };
+    }
+    case "create_methodology": {
+      const payload = {
+        subject_name: String(args?.subject_name ?? "").trim(),
+        level: String(args?.level ?? "").trim(),
+        title: String(args?.title ?? "").trim(),
+        author: String(args?.author ?? "").trim() || null,
+        description: String(args?.description ?? "").trim() || null,
+        resource_url: String(args?.resource_url ?? "").trim() || null,
+        created_by: actor.userId,
+      };
+      if (!payload.subject_name || !payload.level || !payload.title) {
+        return { result: { error: "Fan, daraja va kitob nomi kerak" } };
+      }
+      const { data, error } = await supabase
+        .from("methodology_resources")
+        .insert(payload)
+        .select("id, subject_name, level, title")
+        .single();
+      if (error) return { result: { error: error.message } };
+      return { result: data, navigate: "/methodology" };
+    }
+
     default:
       return { result: { error: "noma'lum tool" } };
   }
