@@ -24,7 +24,7 @@ export const Route = createFileRoute("/donate")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: DonatePage;
+  component: DonatePage,
 });
 
 function DonatePage() {
