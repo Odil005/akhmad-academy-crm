@@ -2,7 +2,25 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+export type ReceiptRow = {
+  id: string;
+  student_id: string | null;
+  parent_chat_id: string | null;
+  parent_name: string | null;
+  status: string;
+  note: string | null;
+  review_note: string | null;
+  period_month: string;
+  payment_method: string | null;
+  created_at: string;
+  declared_amount: number | null;
+  student_name: string;
+  monthly_fee: number;
+  image_url: string | null;
+};
+
 /** Only administrator and director may see or decide on parent receipts. */
+
 async function requireFinanceStaff(context: { supabase: any; userId: string }) {
   const { data } = await context.supabase
     .from("user_roles")
