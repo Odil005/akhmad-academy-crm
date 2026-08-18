@@ -36,6 +36,7 @@ const MENU_TEACHER = "👨‍🏫 O'qituvchiga yozish";
 const MENU_ANSWERS = "💬 O'qituvchi javoblari";
 const MENU_MEETING = "📅 Uchrashuv so'rash";
 const MENU_PAYMENT = "💳 To'lov holati";
+const MENU_RECEIPT = "🧾 Chek yuborish";
 const MENU_STATS = "📊 Davomat";
 const MENU_AI = "🤖 AI yordamchi";
 const MENU_HOME = "🏠 Bosh menyu";
