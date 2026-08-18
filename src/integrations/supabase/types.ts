@@ -1551,6 +1551,101 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_attempts: {
+        Row: {
+          id: string
+          played_at: string
+          points: number
+          score: number
+          student_id: string
+          subject_id: string | null
+          subject_name: string | null
+          total: number
+        }
+        Insert: {
+          id?: string
+          played_at?: string
+          points?: number
+          score?: number
+          student_id: string
+          subject_id?: string | null
+          subject_name?: string | null
+          total?: number
+        }
+        Update: {
+          id?: string
+          played_at?: string
+          points?: number
+          score?: number
+          student_id?: string
+          subject_id?: string | null
+          subject_name?: string | null
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_questions: {
+        Row: {
+          correct_index: number
+          created_at: string
+          created_by: string | null
+          explanation: string | null
+          id: string
+          level: number
+          options: string[]
+          question: string
+          subject_id: string | null
+          subject_name: string
+        }
+        Insert: {
+          correct_index?: number
+          created_at?: string
+          created_by?: string | null
+          explanation?: string | null
+          id?: string
+          level?: number
+          options: string[]
+          question: string
+          subject_id?: string | null
+          subject_name: string
+        }
+        Update: {
+          correct_index?: number
+          created_at?: string
+          created_by?: string | null
+          explanation?: string | null
+          id?: string
+          level?: number
+          options?: string[]
+          question?: string
+          subject_id?: string | null
+          subject_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           capacity: number
@@ -1820,6 +1915,101 @@ export type Database = {
           },
           {
             foreignKeyName: "student_enrollments_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_goal_steps: {
+        Row: {
+          created_at: string
+          done: boolean
+          done_at: string | null
+          due_date: string | null
+          goal_id: string
+          id: string
+          position: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          done_at?: string | null
+          due_date?: string | null
+          goal_id: string
+          id?: string
+          position?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          done_at?: string | null
+          due_date?: string | null
+          goal_id?: string
+          id?: string
+          position?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_goal_steps_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "student_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_goals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          status: string
+          student_id: string
+          subject_id: string | null
+          target_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          status?: string
+          student_id: string
+          subject_id?: string | null
+          target_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          status?: string
+          student_id?: string
+          subject_id?: string | null
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_goals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_goals_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
@@ -2429,6 +2619,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      video_lessons: {
+        Row: {
+          created_at: string
+          description: string | null
+          group_id: string
+          id: string
+          published: boolean
+          storage_path: string
+          teacher_user_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          group_id: string
+          id?: string
+          published?: boolean
+          storage_path: string
+          teacher_user_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          group_id?: string
+          id?: string
+          published?: boolean
+          storage_path?: string
+          teacher_user_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_lessons_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
