@@ -19,6 +19,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedBehaviorRouteImport } from './routes/_authenticated/behavior'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedCheckinLocationsRouteImport } from './routes/_authenticated/checkin-locations'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated/face-id'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
@@ -124,6 +125,12 @@ const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
   path: '/calls',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCheckinLocationsRoute =
+  AuthenticatedCheckinLocationsRouteImport.update({
+    id: '/checkin-locations',
+    path: '/checkin-locations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -430,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
@@ -494,6 +502,7 @@ export interface FileRoutesByTo {
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
@@ -559,6 +568,7 @@ export interface FileRoutesById {
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/behavior': typeof AuthenticatedBehaviorRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
+  '/_authenticated/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/face-id': typeof AuthenticatedFaceIdRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
@@ -625,6 +635,7 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/behavior'
     | '/calls'
+    | '/checkin-locations'
     | '/dashboard'
     | '/face-id'
     | '/finance'
@@ -689,6 +700,7 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/behavior'
     | '/calls'
+    | '/checkin-locations'
     | '/dashboard'
     | '/face-id'
     | '/finance'
@@ -753,6 +765,7 @@ export interface FileRouteTypes {
     | '/_authenticated/attendance'
     | '/_authenticated/behavior'
     | '/_authenticated/calls'
+    | '/_authenticated/checkin-locations'
     | '/_authenticated/dashboard'
     | '/_authenticated/face-id'
     | '/_authenticated/finance'
@@ -902,6 +915,13 @@ declare module '@tanstack/react-router' {
       path: '/calls'
       fullPath: '/calls'
       preLoaderRoute: typeof AuthenticatedCallsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/checkin-locations': {
+      id: '/_authenticated/checkin-locations'
+      path: '/checkin-locations'
+      fullPath: '/checkin-locations'
+      preLoaderRoute: typeof AuthenticatedCheckinLocationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -1342,6 +1362,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBehaviorRoute: typeof AuthenticatedBehaviorRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
+  AuthenticatedCheckinLocationsRoute: typeof AuthenticatedCheckinLocationsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFaceIdRoute: typeof AuthenticatedFaceIdRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
@@ -1370,6 +1391,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBehaviorRoute: AuthenticatedBehaviorRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
+  AuthenticatedCheckinLocationsRoute: AuthenticatedCheckinLocationsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFaceIdRoute: AuthenticatedFaceIdRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
