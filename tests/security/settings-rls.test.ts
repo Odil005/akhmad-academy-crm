@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll } from "vitest";
-import { pgAnon, requireEnv } from "./setup";
+import { pgAnon, requireEnv, hasLiveBackend } from "./setup";
 
 // Regression test for finding: settings_public_key_scoping
 // Anonymous readers must only see settings rows explicitly flagged
@@ -7,7 +7,7 @@ import { pgAnon, requireEnv } from "./setup";
 // named 'contact_info' or 'homepage_stats' on a future insert) must NOT
 // leak via the public read policy.
 
-describe("settings RLS: public reads require is_public=true", () => {
+describe.skipIf(!hasLiveBackend)("settings RLS: public reads require is_public=true", () => {
   beforeAll(requireEnv);
 
   it("returns only is_public rows for anon", async () => {

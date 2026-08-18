@@ -10,6 +10,15 @@ export const SUPABASE_ANON_KEY =
   process.env.SUPABASE_PUBLISHABLE_KEY ??
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
   "";
+/**
+ * CI (GitHub Actions) runs with placeholder Supabase values and no dev server,
+ * so the integration suites below must be skipped there instead of failing.
+ */
+export const hasLiveBackend =
+  Boolean(SUPABASE_URL && SUPABASE_ANON_KEY) &&
+  !SUPABASE_URL.includes("example.supabase.co") &&
+  !SUPABASE_ANON_KEY.includes("placeholder");
+
 export const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET ?? "";
 
 export function requireEnv(): void {
