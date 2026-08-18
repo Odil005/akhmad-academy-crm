@@ -1,10 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createHash, timingSafeEqual } from "node:crypto";
 import {
   isOwnTelegramContact,
   isPrivateTelegramChat,
   makeTeacherCallback,
   parseTeacherCallback,
 } from "@/features/telegram/domain";
+
+/** Derive a Telegram-safe (hex) webhook secret from the bot token. */
+function deriveWebhookSecret(token: string): string {
+  return createHash("sha256").update(`telegram-webhook:${token}`).digest("hex");
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
 
 // Telegram Bot webhook — parent-facing menu + self-service linking.
 //
@@ -79,10 +91,16 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const expected = process.env.TELEGRAM_WEBHOOK_SECRET;
-        if (!expected) return new Response("Webhook secret not configured", { status: 503 });
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        if (!botToken) return new Response("Bot token not configured", { status: 503 });
+        // Prefer an explicit TELEGRAM_WEBHOOK_SECRET if present and Telegram-safe;
+        // otherwise derive a hex secret from the bot token.
+        const explicit = process.env.TELEGRAM_WEBHOOK_SECRET;
+        const expected = explicit && /^[A-Za-z0-9_-]{1,256}$/.test(explicit)
+          ? explicit
+          : deriveWebhookSecret(botToken);
         const provided = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
-        if (provided !== expected) return new Response("Unauthorized", { status: 401 });
+        if (!safeEqual(provided, expected)) return new Response("Unauthorized", { status: 401 });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
