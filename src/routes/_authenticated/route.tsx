@@ -34,6 +34,9 @@ import {
   Upload,
   MessageSquare,
   DollarSign,
+  Brain,
+  Target,
+
 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import {
@@ -115,6 +118,9 @@ function AuthenticatedLayout() {
       icon: GraduationCap,
       show: isTeacher || roles.includes("student"),
     },
+    { to: "/knowledge-game", label: "Bilim o'yini", icon: Brain, show: true },
+    { to: "/roadmap", label: "Maqsad xaritasi", icon: Target, show: true },
+
     { to: "/dashboard", label: "Boshqaruv", icon: LayoutDashboard, show: true },
     { to: "/students", label: "O'quvchilar", icon: Users, show: isStaff },
     { to: "/groups", label: "Guruhlar", icon: BookOpen, show: canSeeGroups },

@@ -24,11 +24,13 @@ import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
+import { Route as AuthenticatedKnowledgeGameRouteImport } from './routes/_authenticated/knowledge-game'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated/roadmap'
 import { Route as AuthenticatedRoomsRouteImport } from './routes/_authenticated/rooms'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
@@ -146,6 +148,12 @@ const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
   path: '/import',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedKnowledgeGameRoute =
+  AuthenticatedKnowledgeGameRouteImport.update({
+    id: '/knowledge-game',
+    path: '/knowledge-game',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -170,6 +178,11 @@ const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRoadmapRoute = AuthenticatedRoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRoomsRoute = AuthenticatedRoomsRouteImport.update({
@@ -416,11 +429,13 @@ export interface FileRoutesByFullPath {
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/import': typeof AuthenticatedImportRoute
+  '/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/search': typeof AuthenticatedSearchRoute
@@ -477,11 +492,13 @@ export interface FileRoutesByTo {
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/import': typeof AuthenticatedImportRoute
+  '/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/search': typeof AuthenticatedSearchRoute
@@ -539,11 +556,13 @@ export interface FileRoutesById {
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/import': typeof AuthenticatedImportRoute
+  '/_authenticated/knowledge-game': typeof AuthenticatedKnowledgeGameRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
   '/_authenticated/rooms': typeof AuthenticatedRoomsRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
@@ -602,11 +621,13 @@ export interface FileRouteTypes {
     | '/finance'
     | '/groups'
     | '/import'
+    | '/knowledge-game'
     | '/leads'
     | '/marketplace'
     | '/messages'
     | '/payments'
     | '/reports'
+    | '/roadmap'
     | '/rooms'
     | '/schedule'
     | '/search'
@@ -663,11 +684,13 @@ export interface FileRouteTypes {
     | '/finance'
     | '/groups'
     | '/import'
+    | '/knowledge-game'
     | '/leads'
     | '/marketplace'
     | '/messages'
     | '/payments'
     | '/reports'
+    | '/roadmap'
     | '/rooms'
     | '/schedule'
     | '/search'
@@ -724,11 +747,13 @@ export interface FileRouteTypes {
     | '/_authenticated/finance'
     | '/_authenticated/groups'
     | '/_authenticated/import'
+    | '/_authenticated/knowledge-game'
     | '/_authenticated/leads'
     | '/_authenticated/marketplace'
     | '/_authenticated/messages'
     | '/_authenticated/payments'
     | '/_authenticated/reports'
+    | '/_authenticated/roadmap'
     | '/_authenticated/rooms'
     | '/_authenticated/schedule'
     | '/_authenticated/search'
@@ -902,6 +927,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedImportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/knowledge-game': {
+      id: '/_authenticated/knowledge-game'
+      path: '/knowledge-game'
+      fullPath: '/knowledge-game'
+      preLoaderRoute: typeof AuthenticatedKnowledgeGameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/leads': {
       id: '/_authenticated/leads'
       path: '/leads'
@@ -935,6 +967,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/roadmap': {
+      id: '/_authenticated/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof AuthenticatedRoadmapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/rooms': {
@@ -1289,11 +1328,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
+  AuthenticatedKnowledgeGameRoute: typeof AuthenticatedKnowledgeGameRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
   AuthenticatedRoomsRoute: typeof AuthenticatedRoomsRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
@@ -1314,11 +1355,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
+  AuthenticatedKnowledgeGameRoute: AuthenticatedKnowledgeGameRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
   AuthenticatedRoomsRoute: AuthenticatedRoomsRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
