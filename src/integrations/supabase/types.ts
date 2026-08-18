@@ -329,6 +329,57 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_shifts: {
+        Row: {
+          closed_at: string
+          closed_by: string | null
+          counted_card: number
+          counted_cash: number
+          counted_online: number
+          created_at: string
+          difference: number
+          expected_card: number
+          expected_cash: number
+          expected_online: number
+          id: string
+          note: string | null
+          shift_date: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string
+          closed_by?: string | null
+          counted_card?: number
+          counted_cash?: number
+          counted_online?: number
+          created_at?: string
+          difference?: number
+          expected_card?: number
+          expected_cash?: number
+          expected_online?: number
+          id?: string
+          note?: string | null
+          shift_date: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string
+          closed_by?: string | null
+          counted_card?: number
+          counted_cash?: number
+          counted_online?: number
+          created_at?: string
+          difference?: number
+          expected_card?: number
+          expected_cash?: number
+          expected_online?: number
+          id?: string
+          note?: string | null
+          shift_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       checkin_locations: {
         Row: {
           active: boolean
@@ -521,6 +572,45 @@ export type Database = {
           telegram_chat_id?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      discount_rules: {
+        Row: {
+          active: boolean
+          auto_apply: boolean
+          code: string | null
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          reason: string | null
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          auto_apply?: boolean
+          code?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          reason?: string | null
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          active?: boolean
+          auto_apply?: boolean
+          code?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          reason?: string | null
+          updated_at?: string
+          value?: number
         }
         Relationships: []
       }
@@ -1441,6 +1531,98 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "payment_notifications_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_plan_installments: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          paid_at: string | null
+          payment_id: string | null
+          plan_id: string
+          position: number
+          reminder_sent_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date: string
+          id?: string
+          paid_at?: string | null
+          payment_id?: string | null
+          plan_id: string
+          position: number
+          reminder_sent_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          paid_at?: string | null
+          payment_id?: string | null
+          plan_id?: string
+          position?: number
+          reminder_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plan_installments_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_plan_installments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "payment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_plans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          status: string
+          student_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          status?: string
+          student_id: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          status?: string
+          student_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plans_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
@@ -2736,9 +2918,33 @@ export type Database = {
           total_students: number
         }[]
       }
+      cash_shift_expected: {
+        Args: { p_date: string }
+        Returns: {
+          method: string
+          payments_count: number
+          total: number
+        }[]
+      }
       claim_telegram_update: {
         Args: { p_chat_id: string; p_update_id: number; p_update_kind: string }
         Returns: boolean
+      }
+      debtors_overview: {
+        Args: never
+        Returns: {
+          days_overdue: number
+          debt_total: number
+          group_name: string
+          has_plan: boolean
+          last_reminder_at: string
+          oldest_period: string
+          parent_chat_id: string
+          parent_phone: string
+          periods: number
+          student_id: string
+          student_name: string
+        }[]
       }
       finish_telegram_update: {
         Args: { p_error: string; p_success: boolean; p_update_id: number }
