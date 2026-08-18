@@ -1050,10 +1050,23 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               await reply(chat, await paymentSummary(student.id, fullName), studentMenu);
               return true;
             }
+            if (command === STUDENT_WEEK || command === "/week") {
+              await sendStudentWeek(student, chat);
+              return true;
+            }
+            if (command === STUDENT_RESULTS || command === "/results") {
+              await sendStudentResults(student, chat);
+              return true;
+            }
+            if (command === STUDENT_VIDEO || command === "/video") {
+              await sendStudentVideos(student, chat);
+              return true;
+            }
             if (command === STUDENT_PROFILE || command === "/status") {
               await sendStudentProfile(student, chat);
               return true;
             }
+
             if ([STUDENT_HOME, "/menu", "/help", "/start"].includes(command)) {
               await reply(chat, `Xush kelibsiz, ${fullName}!`, studentMenu);
               return true;
