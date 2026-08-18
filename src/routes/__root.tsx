@@ -55,8 +55,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
-              router.invalidate();
-              reset();
+              const url = new URL(window.location.href);
+              url.searchParams.set("refresh", Date.now().toString());
+              window.location.replace(url.toString());
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
@@ -139,9 +140,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="uz">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener("vite:preloadError", function (event) {
+                event.preventDefault();
+                var key = "aa-stale-assets-reload";
+                var previous = Number(sessionStorage.getItem(key) || 0);
+                var now = Date.now();
+                if (now - previous < 10000) return;
+                sessionStorage.setItem(key, String(now));
+                var url = new URL(window.location.href);
+                url.searchParams.set("refresh", String(now));
+                window.location.replace(url.toString());
+              });
+            `,
+          }}
+        />
       </head>
       <body>
         {children}
