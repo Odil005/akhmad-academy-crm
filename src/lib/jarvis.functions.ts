@@ -381,13 +381,46 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "list_methodology",
+      description:
+        "Fan va daraja bo'yicha metodika kitoblari/qo'llanmalarini ko'rish. subject_name yoki level bo'yicha filtr qilish mumkin.",
+      parameters: {
+        type: "object",
+        properties: { subject_name: { type: "string" }, level: { type: "string" } },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_methodology",
+      description:
+        "Metodika kutubxonasiga yangi kitob/qo'llanma qo'shish (fan, daraja, nom, muallif, izoh, havola).",
+      parameters: {
+        type: "object",
+        properties: {
+          subject_name: { type: "string" },
+          level: { type: "string" },
+          title: { type: "string" },
+          author: { type: "string" },
+          description: { type: "string" },
+          resource_url: { type: "string" },
+        },
+        required: ["subject_name", "level", "title"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "open_page",
       description:
-        "CRM'da kerakli bo'limni ochish. path: /dashboard,/students,/groups,/schedule,/attendance,/behavior,/rooms,/payments,/finance,/leads,/messages,/reports,/import,/settings",
+        "CRM'da kerakli bo'limni ochish. path: /dashboard,/students,/groups,/schedule,/attendance,/behavior,/rooms,/payments,/finance,/leads,/messages,/reports,/import,/methodology,/settings",
       parameters: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
     },
   },
 ] as const;
+
 
 type JarvisActor = { userId: string; roles: JarvisRole[]; lastUserMessage: string };
 
