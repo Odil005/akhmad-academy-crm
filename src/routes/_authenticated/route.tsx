@@ -124,6 +124,8 @@ function AuthenticatedLayout() {
     },
     { to: "/knowledge-game", label: "Bilim o'yini", icon: Brain, show: true },
     { to: "/roadmap", label: "Maqsad xaritasi", icon: Target, show: true },
+    { to: "/methodology", label: "Metodika", icon: BookOpen, show: true },
+
 
     { to: "/dashboard", label: "Boshqaruv", icon: LayoutDashboard, show: true },
     { to: "/students", label: "O'quvchilar", icon: Users, show: isStaff },
