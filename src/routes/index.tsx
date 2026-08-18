@@ -587,9 +587,17 @@ function Footer() {
           <Monogram className="h-10 w-10" />
           <span className="font-display text-sm tracking-[0.25em] text-primary">AKHMAD ACADEMY</span>
         </div>
-        <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Akhmad Academy. Barcha huquqlar himoyalangan.
-        </p>
+        <div className="flex flex-col items-center gap-2 md:flex-row md:gap-6">
+          <Link
+            to="/donate"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary transition-opacity hover:opacity-80"
+          >
+            <Heart className="h-3.5 w-3.5" /> Donat qilish
+          </Link>
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Akhmad Academy. Barcha huquqlar himoyalangan.
+          </p>
+        </div>
       </div>
     </footer>
   );
