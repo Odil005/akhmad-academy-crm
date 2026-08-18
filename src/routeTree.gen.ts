@@ -39,6 +39,7 @@ import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authenticated/teacher-balance'
 import { Route as AuthenticatedTeacherKpiRouteImport } from './routes/_authenticated/teacher-kpi'
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
+import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
 import { Route as AuthenticatedVideoLessonsRouteImport } from './routes/_authenticated/video-lessons'
 import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -227,6 +228,11 @@ const AuthenticatedTeacherPanelRoute =
     path: '/teacher-panel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTeachersRoute = AuthenticatedTeachersRouteImport.update({
+  id: '/teachers',
+  path: '/teachers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedVideoLessonsRoute =
   AuthenticatedVideoLessonsRouteImport.update({
     id: '/video-lessons',
@@ -444,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/teachers': typeof AuthenticatedTeachersRoute
   '/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -506,6 +513,7 @@ export interface FileRoutesByTo {
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/teachers': typeof AuthenticatedTeachersRoute
   '/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -571,6 +579,7 @@ export interface FileRoutesById {
   '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/_authenticated/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
+  '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/_authenticated/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -636,6 +645,7 @@ export interface FileRouteTypes {
     | '/teacher-balance'
     | '/teacher-kpi'
     | '/teacher-panel'
+    | '/teachers'
     | '/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
@@ -698,6 +708,7 @@ export interface FileRouteTypes {
     | '/teacher-balance'
     | '/teacher-kpi'
     | '/teacher-panel'
+    | '/teachers'
     | '/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
@@ -762,6 +773,7 @@ export interface FileRouteTypes {
     | '/_authenticated/teacher-balance'
     | '/_authenticated/teacher-kpi'
     | '/_authenticated/teacher-panel'
+    | '/_authenticated/teachers'
     | '/_authenticated/video-lessons'
     | '/receipt/$id'
     | '/.lovable/oauth/consent'
@@ -1030,6 +1042,13 @@ declare module '@tanstack/react-router' {
       path: '/teacher-panel'
       fullPath: '/teacher-panel'
       preLoaderRoute: typeof AuthenticatedTeacherPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/teachers': {
+      id: '/_authenticated/teachers'
+      path: '/teachers'
+      fullPath: '/teachers'
+      preLoaderRoute: typeof AuthenticatedTeachersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/video-lessons': {
@@ -1343,6 +1362,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTeacherBalanceRoute: typeof AuthenticatedTeacherBalanceRoute
   AuthenticatedTeacherKpiRoute: typeof AuthenticatedTeacherKpiRoute
   AuthenticatedTeacherPanelRoute: typeof AuthenticatedTeacherPanelRoute
+  AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
   AuthenticatedVideoLessonsRoute: typeof AuthenticatedVideoLessonsRoute
 }
 
@@ -1370,6 +1390,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTeacherBalanceRoute: AuthenticatedTeacherBalanceRoute,
   AuthenticatedTeacherKpiRoute: AuthenticatedTeacherKpiRoute,
   AuthenticatedTeacherPanelRoute: AuthenticatedTeacherPanelRoute,
+  AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
   AuthenticatedVideoLessonsRoute: AuthenticatedVideoLessonsRoute,
 }
 
