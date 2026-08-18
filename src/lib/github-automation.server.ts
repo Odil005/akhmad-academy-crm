@@ -164,7 +164,7 @@ export async function createGitHubChangeRequest(input: {
     "- TypeScript, lint va testlarni ishga tushiring; xatolarni PR tavsifida ko'rsating.",
     "- Foydalanuvchining boshqa funksiyalarini buzmasdan eng kichik to'liq o'zgarishni qiling.",
     "",
-    "Bu vazifa UNICRM Jarvis orqali autentifikatsiyadan o'tgan administrator tomonidan yuborildi.",
+    "Bu vazifa Akhmad Academy Jarvis orqali autentifikatsiyadan o'tgan administrator tomonidan yuborildi.",
   ].join("\n");
 
   const issuePayload: Record<string, unknown> = {

@@ -5,6 +5,8 @@ import { ArrowLeft, MessageSquare, Pencil, RefreshCcw, Send, Trash2, UserPlus, U
 import { toast } from "sonner";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { TelegramIdField } from "@/components/TelegramIdField";
+import { MethodologyLibrary } from "@/components/MethodologyLibrary";
+
 
 const DAYS_UZ = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
 const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -420,6 +422,17 @@ function StudentProfile() {
           </div>
         )}
       </div>
+
+      {/* Metodika: o'quvchining fanlari bo'yicha */}
+      <MethodologyLibrary
+        compact
+        subjects={enrollments
+          .map((e) => e.group?.subject?.name || e.group?.name || "")
+          .filter(Boolean)}
+        title="Metodika (o'quvchi fanlari bo'yicha)"
+      />
+
+
 
       {assignOpen && (
         <AssignGroupModal

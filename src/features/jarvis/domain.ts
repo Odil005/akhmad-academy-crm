@@ -28,6 +28,7 @@ const MUTATING_TOOLS = new Set([
   "create_group",
   "create_student",
   "create_lead",
+  "create_methodology",
   "assign_student_to_group",
   "assign_teacher_to_group",
   "send_parent_message",
@@ -35,6 +36,7 @@ const MUTATING_TOOLS = new Set([
   "create_github_change_request",
   "update_system_setting",
 ]);
+
 
 export function isJarvisMutatingTool(tool: string): boolean {
   return MUTATING_TOOLS.has(tool);
@@ -99,7 +101,7 @@ export function getLocalJarvisReply(text: string): string | null {
     return "Arzimaydi! Yana nima yordam kerak?";
   }
   if (/(sen kimsan|isming nima|o'zing kimsan|nima qila olasan)/i.test(normalized)) {
-    return "Men Jarvisman — UNICRM ichidagi AI yordamchi. Savollarga javob beraman, tizim holatini tekshiraman, ma'lumotlarni topaman va ruxsat berilgan CRM ishlarini bajaraman.";
+    return "Men Jarvisman — Akhmad Academy CRM ichidagi AI yordamchi. Savollarga javob beraman, tizim holatini tekshiraman, ma'lumotlarni topaman va ruxsat berilgan CRM ishlarini bajaraman.";
   }
   return null;
 }

@@ -57,7 +57,13 @@ const ROUTE_MAP: RouteIntent[] = [
   { to: "/reports", label: "Hisobotlar", keywords: ["hisobot", "report", "otchet"] },
   { to: "/import", label: "Excel import", keywords: ["import", "excel", "yuklash"] },
   { to: "/search", label: "Qidiruv", keywords: ["qidir", "search", "topish"] },
+  {
+    to: "/methodology",
+    label: "Metodika",
+    keywords: ["metodika", "darslik", "kitob", "qo'llanma", "qollanma", "methodology"],
+  },
   { to: "/settings", label: "Sozlamalar", keywords: ["sozlama", "setting", "konfig"] },
+
   {
     to: "/teacher-panel",
     label: "O'qituvchi paneli",

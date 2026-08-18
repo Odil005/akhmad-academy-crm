@@ -4,21 +4,25 @@ type CapacitorConfig = {
   webDir: string;
   server: { url: string; cleartext: boolean };
   android: { allowMixedContent: boolean };
+  ios: { contentInset: string };
 };
 
-// Android wrapper configuration. The native `android/` folder is generated
-// only on the release computer after Vercel deployment is live.
+// Native wrapper configuration for Google Play and the App Store.
+// The native `android/` and `ios/` folders are generated on the release
+// computer after the production domain is live.
 const config: CapacitorConfig = {
-  appId: "uz.unicrm.academy",
-  appName: "UNICRM Academy",
+  appId: "uz.akhmadacademy.crm",
+  appName: "Akhmad Academy",
   webDir: ".output/public",
   server: {
-    // Replace this with the final Vercel domain before generating Android.
-    url: process.env.CAPACITOR_SERVER_URL || "https://your-project.vercel.app",
+    url: process.env.CAPACITOR_SERVER_URL || "https://akhmadacademy.life",
     cleartext: false,
   },
   android: {
     allowMixedContent: false,
+  },
+  ios: {
+    contentInset: "always",
   },
 };
 

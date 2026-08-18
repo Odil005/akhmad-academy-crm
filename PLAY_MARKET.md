@@ -1,34 +1,75 @@
-# Play Market uchun Android ilova
+# Akhmad Academy — Google Play va App Store uchun ilova
 
-UNICRM internetdagi Vercel versiyasiga ulanadigan Android ilova sifatida chiqariladi. Bu usulda tizimning yangi versiyasi Vercel'da yangilanganda ilova ham yangilangan ma'lumotlarni ishlatadi.
+CRM veb-versiya sifatida `https://akhmadacademy.life` domenida ishlaydi. Mobil ilova
+Capacitor wrapper orqali shu domenga ulanadi, shuning uchun tizim yangilanganda
+ilova ham darhol yangilanadi (ilovani qayta yuklash shart emas).
 
-## Bir marta tayyorlash
-
-1. Vercel deploy tugasin va haqiqiy domenni oling: masalan `https://unicrm.vercel.app`.
-2. Kompyuterga Android Studio (Android SDK bilan), JDK 17 va Bun o'rnating.
-3. Loyiha papkasida quyidagi buyruqlarni bering:
+## 1. Umumiy tayyorgarlik
 
 ```bash
-bun add @capacitor/core @capacitor/android
+bun add @capacitor/core @capacitor/android @capacitor/ios
 bun add -d @capacitor/cli
-set CAPACITOR_SERVER_URL=https://sizning-domeningiz.vercel.app
+export CAPACITOR_SERVER_URL=https://akhmadacademy.life
+bun run build
+```
+
+- `appId`: `uz.akhmadacademy.crm` (bir marta e'lon qilingach o'zgarmaydi)
+- `appName`: `Akhmad Academy`
+- Ikonka: `public/logo.png` asosida 512×512 (Play) va 1024×1024 (App Store)
+
+## 2. Android (Google Play)
+
+Kerakli: Android Studio + Android SDK, JDK 17.
+
+```bash
 bunx cap add android
 bunx cap sync android
 bunx cap open android
 ```
 
-4. Android Studio ichida **Build → Generate Signed Bundle / APK → Android App Bundle** ni tanlang.
-5. `app-release.aab` faylini Play Console'ga yuklang.
+Android Studio: **Build → Generate Signed Bundle / APK → Android App Bundle** →
+`app-release.aab` faylini Play Console'ga yuklang.
 
-## Play Console uchun kerak bo'ladiganlar
+Play Console uchun ro'yxat:
+- 512×512 ikonka, 1024×500 feature grafika
+- Kamida 2 ta telefon va 1 ta planshet skrinshoti
+- Maxfiylik siyosati URL: `https://akhmadacademy.life/privacy`
+- Data Safety: o'quvchi ismi, telefon, to'lov holati saqlanadi; faqat o'quv markaz
+  boshqaruvi uchun ishlatiladi, uchinchi shaxsga sotilmaydi
+- Content rating: Everyone / Ta'lim kategoriyasi
 
-- Ilova nomi: UNICRM Academy
-- Paket nomi: `uz.unicrm.academy` (bir marta e'lon qilingach o'zgarmaydi)
-- 512×512 ikonka, kamida 2 ta telefon skrinshoti
-- Maxfiylik siyosati URL'i
-- Data Safety formasi: CRM o'quvchi ma'lumotlarini saqlashi va nima uchun ishlatishini aniq ko'rsating
+## 3. iOS (App Store)
 
-## Muhim
+Kerakli: macOS, Xcode 15+, Apple Developer akkaunt ($99/yil).
 
-- `SUPABASE_SERVICE_ROLE_KEY`, Telegram tokenlari va boshqa sirlarni Android ilovaga yoki GitHub'ga yozmang.
-- Google Play'ga yuborishdan oldin login, video dars, Telegram va o'quvchi ruxsatlarini real test akkauntlar bilan sinang.
+```bash
+bunx cap add ios
+bunx cap sync ios
+bunx cap open ios
+```
+
+Xcode: Signing & Capabilities → Team tanlanadi → **Product → Archive** →
+**Distribute App → App Store Connect**.
+
+App Store Connect uchun ro'yxat:
+- 1024×1024 ikonka (shaffof fon bo'lmasin)
+- 6.7" va 5.5" iPhone skrinshotlari
+- Maxfiylik siyosati URL va App Privacy anketasi
+- Test akkaunt (login/parol) — Apple ko'rib chiqishi uchun **majburiy**
+- Demo video yoki izoh: ilova o'quv markaz xodimlari uchun mo'ljallangan
+
+⚠️ Apple faqat veb-saytni o'ravchi ilovalarni rad etishi mumkin (Guideline 4.2).
+Shuning uchun ilovada native imkoniyatlar yoqilgan bo'lishi kerak:
+push bildirishnoma, kamera (Face ID davomat), geolokatsiya (check-in) — bular
+tizimda mavjud, ko'rib chiqish izohida shularni aniq yozing.
+
+## 4. 20 markazga tarqatishda
+
+Har markaz uchun alohida ilova chiqarish shart emas: bitta ilova ichida markaz
+domeni sozlanadi yoki har markazga `appId` va `CAPACITOR_SERVER_URL` o'zgartirilib
+alohida build qilinadi. Batafsil: `MULTI_CENTER.md`.
+
+## Muhim xavfsizlik qoidasi
+
+Telegram tokeni, cron siri va boshqa maxfiy qiymatlar faqat serverda saqlanadi —
+mobil ilovaga yoki repozitoriyaga yozilmaydi.

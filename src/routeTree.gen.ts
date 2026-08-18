@@ -31,6 +31,7 @@ import { Route as AuthenticatedKnowledgeGameRouteImport } from './routes/_authen
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
+import { Route as AuthenticatedMethodologyRouteImport } from './routes/_authenticated/methodology'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated/roadmap'
@@ -190,6 +191,12 @@ const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMethodologyRoute =
+  AuthenticatedMethodologyRouteImport.update({
+    id: '/methodology',
+    path: '/methodology',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -461,6 +468,7 @@ export interface FileRoutesByFullPath {
   '/leads': typeof AuthenticatedLeadsRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
+  '/methodology': typeof AuthenticatedMethodologyRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
@@ -528,6 +536,7 @@ export interface FileRoutesByTo {
   '/leads': typeof AuthenticatedLeadsRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
+  '/methodology': typeof AuthenticatedMethodologyRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
@@ -596,6 +605,7 @@ export interface FileRoutesById {
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
+  '/_authenticated/methodology': typeof AuthenticatedMethodologyRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
@@ -665,6 +675,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/marketplace'
     | '/messages'
+    | '/methodology'
     | '/payments'
     | '/reports'
     | '/roadmap'
@@ -732,6 +743,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/marketplace'
     | '/messages'
+    | '/methodology'
     | '/payments'
     | '/reports'
     | '/roadmap'
@@ -799,6 +811,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leads'
     | '/_authenticated/marketplace'
     | '/_authenticated/messages'
+    | '/_authenticated/methodology'
     | '/_authenticated/payments'
     | '/_authenticated/reports'
     | '/_authenticated/roadmap'
@@ -1023,6 +1036,13 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof AuthenticatedMessagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/methodology': {
+      id: '/_authenticated/methodology'
+      path: '/methodology'
+      fullPath: '/methodology'
+      preLoaderRoute: typeof AuthenticatedMethodologyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payments': {
@@ -1412,6 +1432,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
+  AuthenticatedMethodologyRoute: typeof AuthenticatedMethodologyRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
@@ -1443,6 +1464,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
+  AuthenticatedMethodologyRoute: AuthenticatedMethodologyRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,

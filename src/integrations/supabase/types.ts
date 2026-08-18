@@ -1235,6 +1235,62 @@ export type Database = {
           },
         ]
       }
+      methodology_resources: {
+        Row: {
+          author: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          level: string
+          resource_url: string | null
+          sort_order: number
+          subject_id: string | null
+          subject_name: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          level: string
+          resource_url?: string | null
+          sort_order?: number
+          subject_id?: string | null
+          subject_name: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string
+          resource_url?: string | null
+          sort_order?: number
+          subject_id?: string | null
+          subject_name?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "methodology_resources_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news: {
         Row: {
           body: string | null
