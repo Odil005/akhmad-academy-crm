@@ -259,7 +259,7 @@ function Hero() {
             </div>
           </div>
 
-          </div>
+
 
           {/* Right image */}
           <div className="relative min-h-[280px] md:min-h-[420px]">
