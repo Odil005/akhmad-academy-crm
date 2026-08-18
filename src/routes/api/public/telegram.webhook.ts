@@ -30,12 +30,23 @@ const MENU_HOME = "🏠 Bosh menyu";
 const STAFF_TODAY = "📅 Bugungi darslar";
 const STAFF_MESSAGES = "💬 Ota-ona xabarlari";
 const STAFF_ATTENDANCE = "✅ Davomat holati";
-const STAFF_REPORT = "📊 Markaz hisoboti";
+const STAFF_REPORT = "📊 Kunlik hisobot";
 const STAFF_STATUS = "🛡 Tizim holati";
 const STAFF_HOME = "🏠 Xodim menyusi";
+const TEACHER_GROUPS = "👥 Guruhlarim";
+const TEACHER_KPI = "📈 Mening KPI";
+const TEACHER_BALANCE = "💰 Balansim";
+const DIR_FINANCE = "💵 Moliya";
+const DIR_DEBTORS = "🔴 Qarzdorlar";
+const DIR_STUDENTS = "👥 O'quvchi va guruhlar";
+const DIR_TEACHERS = "👨‍🏫 O'qituvchilar";
+const DIR_LEADS = "📞 Lidlar";
 const STUDENT_TODAY = "📅 Darslarim";
+const STUDENT_WEEK = "🗓 Haftalik jadval";
 const STUDENT_ATTENDANCE = "✅ Davomatim";
 const STUDENT_PAYMENT = "💳 To'lovim";
+const STUDENT_RESULTS = "🏆 Natijalarim";
+const STUDENT_VIDEO = "🎥 Video darslar";
 const STUDENT_PROFILE = "👤 Profilim";
 const STUDENT_HOME = "🏠 O'quvchi menyusi";
 
@@ -121,26 +132,40 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             },
           };
 
-          const staffMenu = (role: string) => ({
+          const teacherMenu = {
             reply_markup: {
               keyboard: [
-                [
-                  { text: STAFF_TODAY },
-                  { text: role === "teacher" ? STAFF_MESSAGES : STAFF_REPORT },
-                ],
-                [{ text: STAFF_ATTENDANCE }, { text: STAFF_STATUS }],
+                [{ text: STAFF_TODAY }, { text: STAFF_ATTENDANCE }],
+                [{ text: TEACHER_GROUPS }, { text: STAFF_MESSAGES }],
+                [{ text: TEACHER_KPI }, { text: TEACHER_BALANCE }],
                 [{ text: STAFF_HOME }],
               ],
               resize_keyboard: true,
             },
-          });
+          };
+
+          const directorMenu = {
+            reply_markup: {
+              keyboard: [
+                [{ text: STAFF_REPORT }, { text: DIR_FINANCE }],
+                [{ text: DIR_DEBTORS }, { text: DIR_STUDENTS }],
+                [{ text: DIR_TEACHERS }, { text: DIR_LEADS }],
+                [{ text: STAFF_TODAY }, { text: STAFF_STATUS }],
+                [{ text: STAFF_HOME }],
+              ],
+              resize_keyboard: true,
+            },
+          };
+
+          const staffMenu = (role: string) => (role === "teacher" ? teacherMenu : directorMenu);
 
           const studentMenu = {
             reply_markup: {
               keyboard: [
-                [{ text: STUDENT_TODAY }, { text: STUDENT_ATTENDANCE }],
-                [{ text: STUDENT_PAYMENT }, { text: STUDENT_PROFILE }],
-                [{ text: STUDENT_HOME }],
+                [{ text: STUDENT_TODAY }, { text: STUDENT_WEEK }],
+                [{ text: STUDENT_ATTENDANCE }, { text: STUDENT_PAYMENT }],
+                [{ text: STUDENT_RESULTS }, { text: STUDENT_VIDEO }],
+                [{ text: STUDENT_PROFILE }, { text: STUDENT_HOME }],
               ],
               resize_keyboard: true,
             },
@@ -500,6 +525,510 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             );
           };
 
+          const money = (value: unknown) =>
+            `${Number(value ?? 0).toLocaleString("uz-UZ")} so'm`;
+
+          const WEEK_NAMES = [
+            "",
+            "Dushanba",
+            "Seshanba",
+            "Chorshanba",
+            "Payshanba",
+            "Juma",
+            "Shanba",
+            "Yakshanba",
+          ];
+
+          /** All active group ids for a student (main group + enrollments). */
+          const studentGroupIds = async (student: LinkedStudent): Promise<string[]> => {
+            const { data } = await supabaseAdmin
+              .from("student_enrollments")
+              .select("group_id")
+              .eq("student_id", student.id)
+              .in("status", ["active", "trial"])
+              .is("ended_at", null);
+            return Array.from(
+              new Set(
+                [student.group_id, ...(data ?? []).map((row) => row.group_id)].filter(Boolean),
+              ),
+            ) as string[];
+          };
+
+          const sendStudentWeek = async (student: LinkedStudent, chat: number) => {
+            const groupIds = await studentGroupIds(student);
+            if (!groupIds.length) {
+              await reply(chat, "Siz hali faol guruhga biriktirilmagansiz.", studentMenu);
+              return;
+            }
+            const { data } = await supabaseAdmin
+              .from("lessons")
+              .select(
+                "day_of_week, start_time, end_time, group:groups(name), subject:subjects(name), room:rooms(name)",
+              )
+              .eq("is_active", true)
+              .in("group_id", groupIds)
+              .order("day_of_week")
+              .order("start_time")
+              .limit(80);
+            const rows = (data ?? []) as Array<{
+              day_of_week: number;
+              start_time: string;
+              end_time: string;
+              group: { name: string } | null;
+              subject: { name: string } | null;
+              room: { name: string } | null;
+            }>;
+            if (!rows.length) {
+              await reply(chat, "🗓 Haftalik jadval hali kiritilmagan.", studentMenu);
+              return;
+            }
+            const byDay = new Map<number, string[]>();
+            for (const row of rows) {
+              const line = `  • ${row.start_time.slice(0, 5)}–${row.end_time.slice(0, 5)} ${row.subject?.name ?? "Fan"}${row.room?.name ? ` · ${row.room.name}` : ""}`;
+              byDay.set(row.day_of_week, [...(byDay.get(row.day_of_week) ?? []), line]);
+            }
+            const text = Array.from(byDay.entries())
+              .sort((a, b) => a[0] - b[0])
+              .map(([day, lines]) => `${WEEK_NAMES[day] ?? day}\n${lines.join("\n")}`)
+              .join("\n\n");
+            await reply(chat, `🗓 Haftalik jadval\n\n${text}`, studentMenu);
+          };
+
+          const sendStudentResults = async (student: LinkedStudent, chat: number) => {
+            const [grades, behavior] = await Promise.all([
+              supabaseAdmin
+                .from("grades")
+                .select("score, max_score, kind, graded_at")
+                .eq("student_id", student.id)
+                .order("graded_at", { ascending: false })
+                .limit(10),
+              supabaseAdmin
+                .from("behavior_evaluations")
+                .select("rating, comment, lesson_date")
+                .eq("student_id", student.id)
+                .order("lesson_date", { ascending: false })
+                .limit(5),
+            ]);
+            const gradeRows = grades.data ?? [];
+            const behaviorRows = behavior.data ?? [];
+            if (!gradeRows.length && !behaviorRows.length) {
+              await reply(chat, "🏆 Hozircha baho va fikr kiritilmagan.", studentMenu);
+              return;
+            }
+            const percents = gradeRows
+              .map((row) =>
+                Number(row.max_score) > 0
+                  ? (Number(row.score) / Number(row.max_score)) * 100
+                  : null,
+              )
+              .filter((value): value is number => value !== null);
+            const avg = percents.length
+              ? Math.round(percents.reduce((sum, value) => sum + value, 0) / percents.length)
+              : null;
+            const parts = [`🏆 Natijalarim`];
+            if (avg !== null) parts.push(`O'rtacha ko'rsatkich: ${avg}%`);
+            if (gradeRows.length) {
+              parts.push(
+                `\n📝 Oxirgi baholar:\n${gradeRows
+                  .map(
+                    (row) =>
+                      `• ${String(row.graded_at).slice(0, 10)} — ${row.score}/${row.max_score}${row.kind ? ` (${row.kind})` : ""}`,
+                  )
+                  .join("\n")}`,
+              );
+            }
+            if (behaviorRows.length) {
+              parts.push(
+                `\n💬 O'qituvchi fikri:\n${behaviorRows
+                  .map(
+                    (row) =>
+                      `• ${String(row.lesson_date).slice(0, 10)} — ${row.rating}${row.comment ? `: ${row.comment}` : ""}`,
+                  )
+                  .join("\n")}`,
+              );
+            }
+            await reply(chat, parts.join("\n"), studentMenu);
+          };
+
+          const sendStudentVideos = async (student: LinkedStudent, chat: number) => {
+            const groupIds = await studentGroupIds(student);
+            if (!groupIds.length) {
+              await reply(chat, "🎥 Guruh biriktirilmagani uchun video dars yo'q.", studentMenu);
+              return;
+            }
+            const { data } = await supabaseAdmin
+              .from("video_lessons")
+              .select("title, description, created_at, group:groups(name)")
+              .eq("published", true)
+              .in("group_id", groupIds)
+              .order("created_at", { ascending: false })
+              .limit(10);
+            const rows = (data ?? []) as Array<{
+              title: string;
+              description: string | null;
+              created_at: string;
+              group: { name: string } | null;
+            }>;
+            if (!rows.length) {
+              await reply(chat, "🎥 Hozircha video dars yuklanmagan.", studentMenu);
+              return;
+            }
+            await reply(
+              chat,
+              `🎥 Video darslar (${rows.length})\n\n${rows
+                .map(
+                  (row) =>
+                    `• ${row.title}${row.group?.name ? ` — ${row.group.name}` : ""}\n  ${String(row.created_at).slice(0, 10)}${row.description ? `\n  ${row.description}` : ""}`,
+                )
+                .join("\n")}\n\nVideoni ko'rish uchun o'quvchi ilovasidagi "Video darslar" bo'limiga kiring.`,
+              studentMenu,
+            );
+          };
+
+          /** Group ids the teacher owns (as group teacher or lesson teacher). */
+          const teacherGroupIds = async (userId: string): Promise<string[]> => {
+            const [owned, lessons] = await Promise.all([
+              supabaseAdmin.from("groups").select("id").eq("teacher_id", userId).limit(100),
+              supabaseAdmin
+                .from("lessons")
+                .select("group_id")
+                .eq("teacher_user_id", userId)
+                .limit(300),
+            ]);
+            return Array.from(
+              new Set(
+                [
+                  ...(owned.data ?? []).map((row) => row.id),
+                  ...(lessons.data ?? []).map((row) => row.group_id),
+                ].filter(Boolean),
+              ),
+            ) as string[];
+          };
+
+          const sendTeacherGroups = async (staff: LinkedStaff, chat: number) => {
+            const groupIds = await teacherGroupIds(staff.user_id);
+            if (!groupIds.length) {
+              await reply(chat, "👥 Sizga hali guruh biriktirilmagan.", teacherMenu);
+              return;
+            }
+            const [groups, students] = await Promise.all([
+              supabaseAdmin
+                .from("groups")
+                .select("id, name, subject:subjects(name)")
+                .in("id", groupIds)
+                .limit(50),
+              supabaseAdmin
+                .from("students")
+                .select("first_name, last_name, full_name, group_id")
+                .in("group_id", groupIds)
+                .eq("status_enum", "active")
+                .limit(500),
+            ]);
+            const groupRows = (groups.data ?? []) as Array<{
+              id: string;
+              name: string;
+              subject: { name: string } | null;
+            }>;
+            const studentRows = students.data ?? [];
+            const text = groupRows
+              .map((group) => {
+                const list = studentRows.filter((row) => row.group_id === group.id);
+                const names = list
+                  .slice(0, 25)
+                  .map(
+                    (row, index) =>
+                      `  ${index + 1}. ${row.full_name || `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() || "O'quvchi"}`,
+                  )
+                  .join("\n");
+                return `👥 ${group.name}${group.subject?.name ? ` — ${group.subject.name}` : ""} (${list.length} o'quvchi)\n${names || "  O'quvchi yo'q"}`;
+              })
+              .join("\n\n");
+            await reply(chat, `Mening guruhlarim (${groupRows.length})\n\n${text}`, teacherMenu);
+          };
+
+          const sendTeacherKpi = async (staff: LinkedStaff, chat: number) => {
+            const groupIds = await teacherGroupIds(staff.user_id);
+            const monthStart = new Date();
+            monthStart.setUTCDate(1);
+            const since = monthStart.toISOString().slice(0, 10);
+            const [lessons, studentCount, attendance] = await Promise.all([
+              supabaseAdmin
+                .from("lessons")
+                .select("id", { count: "exact", head: true })
+                .eq("teacher_user_id", staff.user_id)
+                .eq("is_active", true),
+              groupIds.length
+                ? supabaseAdmin
+                    .from("students")
+                    .select("id", { count: "exact", head: true })
+                    .in("group_id", groupIds)
+                    .eq("status_enum", "active")
+                : Promise.resolve({ count: 0 }),
+              supabaseAdmin
+                .from("attendance")
+                .select("status")
+                .gte("date", since)
+                .in("status", ["present", "late", "absent"])
+                .eq("marked_by", staff.user_id)
+                .limit(5000),
+            ]);
+            const marks = (attendance as { data?: Array<{ status: string }> }).data ?? [];
+            const ok = marks.filter((row) => row.status !== "absent").length;
+            const rate = marks.length ? Math.round((ok / marks.length) * 100) : null;
+            await reply(
+              chat,
+              `📈 Mening KPI\n\nHaftalik faol darslar: ${lessons.count ?? 0}\nFaol o'quvchilar: ${(studentCount as { count?: number }).count ?? 0}\nGuruhlar: ${groupIds.length}\nOy boshidan kiritilgan davomat: ${marks.length}${rate !== null ? `\nDarsga kelish darajasi: ${rate}%` : ""}`,
+              teacherMenu,
+            );
+          };
+
+          const sendTeacherBalance = async (staff: LinkedStaff, chat: number) => {
+            const { data } = await supabaseAdmin
+              .from("teacher_balance")
+              .select("period_month, salary, bonus, penalty, kpi_score, percent_earning, note")
+              .eq("teacher_user_id", staff.user_id)
+              .eq("visible_to_teacher", true)
+              .order("period_month", { ascending: false })
+              .limit(3);
+            const rows = data ?? [];
+            if (!rows.length) {
+              await reply(
+                chat,
+                "💰 Hozircha oylik hisob-kitob e'lon qilinmagan.",
+                teacherMenu,
+              );
+              return;
+            }
+            await reply(
+              chat,
+              `💰 Balansim\n\n${rows
+                .map((row) => {
+                  const total =
+                    Number(row.salary ?? 0) +
+                    Number(row.bonus ?? 0) +
+                    Number(row.percent_earning ?? 0) -
+                    Number(row.penalty ?? 0);
+                  return `• ${String(row.period_month).slice(0, 7)}\n  Oylik: ${money(row.salary)}\n  Bonus: ${money(row.bonus)}\n  Ulush: ${money(row.percent_earning)}\n  Jarima: ${money(row.penalty)}\n  Jami: ${money(total)}${row.kpi_score ? `\n  KPI: ${row.kpi_score}` : ""}${row.note ? `\n  ${row.note}` : ""}`;
+                })
+                .join("\n\n")}`,
+              teacherMenu,
+            );
+          };
+
+          const sendDirectorFinance = async (chat: number) => {
+            const { date } = tashkentDay();
+            const monthStart = `${date.slice(0, 7)}-01`;
+            const [monthPaid, todayPaid, pending, shift] = await Promise.all([
+              supabaseAdmin
+                .from("payments")
+                .select("amount, total_amount")
+                .eq("status", "paid")
+                .gte("paid_at", `${monthStart}T00:00:00Z`)
+                .limit(10_000),
+              supabaseAdmin
+                .from("payments")
+                .select("amount, total_amount")
+                .eq("status", "paid")
+                .gte("paid_at", `${date}T00:00:00Z`)
+                .limit(2000),
+              supabaseAdmin
+                .from("payments")
+                .select("amount, total_amount")
+                .eq("status", "pending")
+                .limit(10_000),
+              supabaseAdmin
+                .from("cash_shifts")
+                .select("shift_date, difference, closed_at")
+                .order("shift_date", { ascending: false })
+                .limit(1),
+            ]);
+            const sum = (rows: Array<{ amount: unknown; total_amount: unknown }> | null) =>
+              (rows ?? []).reduce(
+                (acc, row) => acc + Number(row.total_amount || row.amount || 0),
+                0,
+              );
+            const lastShift = shift.data?.[0];
+            await reply(
+              chat,
+              `💵 Moliya\n\nBugungi tushum: ${money(sum(todayPaid.data))}\nOylik tushum: ${money(sum(monthPaid.data))}\nKutilayotgan to'lov: ${money(sum(pending.data))}\n\n🧾 Oxirgi kassa smenasi: ${
+                lastShift
+                  ? `${lastShift.shift_date} — ${lastShift.closed_at ? "yopilgan" : "ochiq"}${
+                      lastShift.difference ? `, farq: ${money(lastShift.difference)}` : ""
+                    }`
+                  : "ma'lumot yo'q"
+              }`,
+              directorMenu,
+            );
+          };
+
+          const sendDirectorDebtors = async (chat: number) => {
+            const { data, error } = await supabaseAdmin.rpc("debtors_overview");
+            if (error || !data) {
+              await reply(chat, "🔴 Qarzdorlik ma'lumotini olish imkoni bo'lmadi.", directorMenu);
+              return;
+            }
+            const rows = data as Array<{
+              student_name: string;
+              group_name: string | null;
+              debt_total: number;
+              periods: number;
+              days_overdue: number;
+            }>;
+            if (!rows.length) {
+              await reply(chat, "✅ Qarzdor o'quvchi yo'q.", directorMenu);
+              return;
+            }
+            const total = rows.reduce((sum, row) => sum + Number(row.debt_total ?? 0), 0);
+            await reply(
+              chat,
+              `🔴 Qarzdorlar: ${rows.length}\nUmumiy qarz: ${money(total)}\n\nEng katta 15 ta:\n${rows
+                .slice(0, 15)
+                .map(
+                  (row, index) =>
+                    `${index + 1}. ${row.student_name}${row.group_name ? ` (${row.group_name})` : ""} — ${money(row.debt_total)} · ${row.periods} oy`,
+                )
+                .join("\n")}`,
+              directorMenu,
+            );
+          };
+
+          const sendDirectorStudents = async (chat: number) => {
+            const [total, active, trial, frozen, groups, subjects] = await Promise.all([
+              supabaseAdmin.from("students").select("id", { count: "exact", head: true }),
+              supabaseAdmin
+                .from("students")
+                .select("id", { count: "exact", head: true })
+                .eq("status_enum", "active"),
+              supabaseAdmin
+                .from("students")
+                .select("id", { count: "exact", head: true })
+                .eq("status_enum", "trial"),
+              supabaseAdmin
+                .from("students")
+                .select("id", { count: "exact", head: true })
+                .eq("status_enum", "frozen"),
+              supabaseAdmin.from("groups").select("id, name, subject:subjects(name)").limit(200),
+              supabaseAdmin
+                .from("students")
+                .select("group_id")
+                .eq("status_enum", "active")
+                .limit(5000),
+            ]);
+            const groupRows = (groups.data ?? []) as Array<{
+              id: string;
+              name: string;
+              subject: { name: string } | null;
+            }>;
+            const counts = new Map<string, number>();
+            for (const row of subjects.data ?? []) {
+              const group = groupRows.find((item) => item.id === row.group_id);
+              const key = group?.subject?.name ?? "Fan belgilanmagan";
+              counts.set(key, (counts.get(key) ?? 0) + 1);
+            }
+            const bySubject = Array.from(counts.entries())
+              .sort((a, b) => b[1] - a[1])
+              .map(([name, count]) => `• ${name}: ${count} o'quvchi`)
+              .join("\n");
+            await reply(
+              chat,
+              `👥 O'quvchi va guruhlar\n\nJami: ${total.count ?? 0}\nFaol: ${active.count ?? 0}\nSinov: ${trial.count ?? 0}\nMuzlatilgan: ${frozen.count ?? 0}\nGuruhlar: ${groupRows.length}\n\n📚 Fanlar bo'yicha:\n${bySubject || "• Ma'lumot yo'q"}`,
+              directorMenu,
+            );
+          };
+
+          const sendDirectorTeachers = async (chat: number) => {
+            const { date, weekday } = tashkentDay();
+            const [lessons, teachers] = await Promise.all([
+              supabaseAdmin
+                .from("lessons")
+                .select("id, teacher_user_id, end_time, group:groups(name)")
+                .eq("is_active", true)
+                .eq("day_of_week", weekday)
+                .limit(200),
+              supabaseAdmin
+                .from("profiles")
+                .select("id, full_name")
+                .limit(500),
+            ]);
+            const lessonRows = (lessons.data ?? []) as Array<{
+              id: string;
+              teacher_user_id: string | null;
+              end_time: string;
+              group: { name: string } | null;
+            }>;
+            if (!lessonRows.length) {
+              await reply(chat, `👨‍🏫 ${date}: bugun dars yo'q.`, directorMenu);
+              return;
+            }
+            const { data: attendanceRows } = await supabaseAdmin
+              .from("attendance")
+              .select("lesson_id")
+              .eq("date", date)
+              .in(
+                "lesson_id",
+                lessonRows.map((row) => row.id),
+              );
+            const marked = new Set((attendanceRows ?? []).map((row) => row.lesson_id));
+            const nowTime = new Intl.DateTimeFormat("en-GB", {
+              timeZone: "Asia/Tashkent",
+              hour: "2-digit",
+              minute: "2-digit",
+              hourCycle: "h23",
+            }).format(new Date());
+            const nameOf = (id: string | null) =>
+              (teachers.data ?? []).find((row) => row.id === id)?.full_name || "O'qituvchi";
+            const missing = lessonRows.filter(
+              (row) => row.end_time.slice(0, 5) < nowTime && !marked.has(row.id),
+            );
+            await reply(
+              chat,
+              `👨‍🏫 O'qituvchilar — ${date}\n\nBugungi darslar: ${lessonRows.length}\nDavomat kiritilgan: ${marked.size}\nKiritilmagan: ${missing.length}\n\n${
+                missing.length
+                  ? `🟠 Muammoli:\n${missing
+                      .slice(0, 15)
+                      .map(
+                        (row) =>
+                          `• ${nameOf(row.teacher_user_id)} — ${row.group?.name ?? "Guruh"} (${row.end_time.slice(0, 5)})`,
+                      )
+                      .join("\n")}`
+                  : "✅ Barcha tugagan darslar davomati kiritilgan."
+              }`,
+              directorMenu,
+            );
+          };
+
+          const sendDirectorLeads = async (chat: number) => {
+            const { data } = await supabaseAdmin
+              .from("leads")
+              .select("name, phone, course, status, created_at")
+              .order("created_at", { ascending: false })
+              .limit(200);
+            const rows = data ?? [];
+            if (!rows.length) {
+              await reply(chat, "📞 Hozircha lid yo'q.", directorMenu);
+              return;
+            }
+            const converted = rows.filter((row) =>
+              ["converted", "enrolled", "won"].includes(String(row.status)),
+            ).length;
+            const fresh = rows.filter((row) => String(row.status) === "new");
+            await reply(
+              chat,
+              `📞 Lidlar\n\nJami (oxirgi 200): ${rows.length}\nYangi: ${fresh.length}\nKonversiya: ${Math.round((converted / rows.length) * 100)}%\n\n🆕 Oxirgi yangi murojaatlar:\n${
+                fresh
+                  .slice(0, 10)
+                  .map(
+                    (row) =>
+                      `• ${row.name ?? "Noma'lum"} — ${row.phone ?? "-"}${row.course ? ` · ${row.course}` : ""}`,
+                  )
+                  .join("\n") || "• yo'q"
+              }`,
+              directorMenu,
+            );
+          };
+
+
+
           const handleStudentCommand = async (
             student: LinkedStudent,
             chat: number,
@@ -521,10 +1050,23 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               await reply(chat, await paymentSummary(student.id, fullName), studentMenu);
               return true;
             }
+            if (command === STUDENT_WEEK || command === "/week") {
+              await sendStudentWeek(student, chat);
+              return true;
+            }
+            if (command === STUDENT_RESULTS || command === "/results") {
+              await sendStudentResults(student, chat);
+              return true;
+            }
+            if (command === STUDENT_VIDEO || command === "/video") {
+              await sendStudentVideos(student, chat);
+              return true;
+            }
             if (command === STUDENT_PROFILE || command === "/status") {
               await sendStudentProfile(student, chat);
               return true;
             }
+
             if ([STUDENT_HOME, "/menu", "/help", "/start"].includes(command)) {
               await reply(chat, `Xush kelibsiz, ${fullName}!`, studentMenu);
               return true;
@@ -552,6 +1094,41 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             if (command === STAFF_REPORT || command === "/report") {
               await sendStaffReport(staff, chat);
               return true;
+            }
+            if (staff.role === "teacher") {
+              if (command === TEACHER_GROUPS || command === "/groups") {
+                await sendTeacherGroups(staff, chat);
+                return true;
+              }
+              if (command === TEACHER_KPI || command === "/kpi") {
+                await sendTeacherKpi(staff, chat);
+                return true;
+              }
+              if (command === TEACHER_BALANCE || command === "/balance") {
+                await sendTeacherBalance(staff, chat);
+                return true;
+              }
+            } else {
+              if (command === DIR_FINANCE || command === "/finance") {
+                await sendDirectorFinance(chat);
+                return true;
+              }
+              if (command === DIR_DEBTORS || command === "/debtors") {
+                await sendDirectorDebtors(chat);
+                return true;
+              }
+              if (command === DIR_STUDENTS || command === "/students") {
+                await sendDirectorStudents(chat);
+                return true;
+              }
+              if (command === DIR_TEACHERS || command === "/teachers") {
+                await sendDirectorTeachers(chat);
+                return true;
+              }
+              if (command === DIR_LEADS || command === "/leads") {
+                await sendDirectorLeads(chat);
+                return true;
+              }
             }
             if ([STAFF_HOME, "/menu", "/help", "/start"].includes(command)) {
               await reply(
