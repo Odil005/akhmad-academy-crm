@@ -34,6 +34,7 @@ import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedMethodologyRouteImport } from './routes/_authenticated/methodology'
+import { Route as AuthenticatedPaymentReceiptsRouteImport } from './routes/_authenticated/payment-receipts'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated/roadmap'
@@ -208,6 +209,12 @@ const AuthenticatedMethodologyRoute =
   AuthenticatedMethodologyRouteImport.update({
     id: '/methodology',
     path: '/methodology',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPaymentReceiptsRoute =
+  AuthenticatedPaymentReceiptsRouteImport.update({
+    id: '/payment-receipts',
+    path: '/payment-receipts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
@@ -490,6 +497,7 @@ export interface FileRoutesByFullPath {
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/methodology': typeof AuthenticatedMethodologyRoute
+  '/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
@@ -561,6 +569,7 @@ export interface FileRoutesByTo {
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/methodology': typeof AuthenticatedMethodologyRoute
+  '/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
@@ -633,6 +642,7 @@ export interface FileRoutesById {
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/methodology': typeof AuthenticatedMethodologyRoute
+  '/_authenticated/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
@@ -706,6 +716,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/messages'
     | '/methodology'
+    | '/payment-receipts'
     | '/payments'
     | '/reports'
     | '/roadmap'
@@ -777,6 +788,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/messages'
     | '/methodology'
+    | '/payment-receipts'
     | '/payments'
     | '/reports'
     | '/roadmap'
@@ -848,6 +860,7 @@ export interface FileRouteTypes {
     | '/_authenticated/marketplace'
     | '/_authenticated/messages'
     | '/_authenticated/methodology'
+    | '/_authenticated/payment-receipts'
     | '/_authenticated/payments'
     | '/_authenticated/reports'
     | '/_authenticated/roadmap'
@@ -1095,6 +1108,13 @@ declare module '@tanstack/react-router' {
       path: '/methodology'
       fullPath: '/methodology'
       preLoaderRoute: typeof AuthenticatedMethodologyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payment-receipts': {
+      id: '/_authenticated/payment-receipts'
+      path: '/payment-receipts'
+      fullPath: '/payment-receipts'
+      preLoaderRoute: typeof AuthenticatedPaymentReceiptsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payments': {
@@ -1495,6 +1515,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedMethodologyRoute: typeof AuthenticatedMethodologyRoute
+  AuthenticatedPaymentReceiptsRoute: typeof AuthenticatedPaymentReceiptsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
@@ -1528,6 +1549,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedMethodologyRoute: AuthenticatedMethodologyRoute,
+  AuthenticatedPaymentReceiptsRoute: AuthenticatedPaymentReceiptsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
