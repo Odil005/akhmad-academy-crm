@@ -46,6 +46,7 @@ export type Database = {
       }
       attendance: {
         Row: {
+          center_id: string | null
           created_at: string
           date: string
           id: string
@@ -57,6 +58,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           date: string
           id?: string
@@ -68,6 +70,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           date?: string
           id?: string
@@ -79,6 +82,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "attendance_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "attendance_lesson_id_fkey"
             columns: ["lesson_id"]
@@ -130,6 +140,7 @@ export type Database = {
       }
       behavior_evaluations: {
         Row: {
+          center_id: string | null
           comment: string | null
           created_at: string
           group_id: string | null
@@ -141,6 +152,7 @@ export type Database = {
           telegram_sent: boolean
         }
         Insert: {
+          center_id?: string | null
           comment?: string | null
           created_at?: string
           group_id?: string | null
@@ -152,6 +164,7 @@ export type Database = {
           telegram_sent?: boolean
         }
         Update: {
+          center_id?: string | null
           comment?: string | null
           created_at?: string
           group_id?: string | null
@@ -163,6 +176,13 @@ export type Database = {
           telegram_sent?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "behavior_evaluations_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "behavior_evaluations_group_id_fkey"
             columns: ["group_id"]
@@ -248,6 +268,7 @@ export type Database = {
       cash_accounts: {
         Row: {
           balance: number
+          center_id: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -258,6 +279,7 @@ export type Database = {
         }
         Insert: {
           balance?: number
+          center_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -268,6 +290,7 @@ export type Database = {
         }
         Update: {
           balance?: number
+          center_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -276,7 +299,15 @@ export type Database = {
           type?: Database["public"]["Enums"]["cash_account_type"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cash_accounts_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cash_register_settings: {
         Row: {
@@ -331,6 +362,7 @@ export type Database = {
       }
       cash_shifts: {
         Row: {
+          center_id: string | null
           closed_at: string
           closed_by: string | null
           counted_card: number
@@ -347,6 +379,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           closed_at?: string
           closed_by?: string | null
           counted_card?: number
@@ -363,6 +396,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           closed_at?: string
           closed_by?: string | null
           counted_card?: number
@@ -376,6 +410,220 @@ export type Database = {
           id?: string
           note?: string | null
           shift_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_shifts_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      center_invoices: {
+        Row: {
+          amount: number
+          center_id: string
+          created_at: string
+          due_date: string
+          id: string
+          note: string | null
+          paid_at: string | null
+          period_month: string
+          provider: string | null
+          provider_tx_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          center_id: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          period_month: string
+          provider?: string | null
+          provider_tx_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          center_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          period_month?: string
+          provider?: string | null
+          provider_tx_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "center_invoices_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      center_payments: {
+        Row: {
+          amount: number
+          center_id: string
+          created_at: string
+          id: string
+          invoice_id: string | null
+          provider: string
+          provider_tx_id: string | null
+          raw: Json | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          center_id: string
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          provider?: string
+          provider_tx_id?: string | null
+          raw?: Json | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          center_id?: string
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          provider?: string
+          provider_tx_id?: string | null
+          raw?: Json | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "center_payments_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "center_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "center_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      center_subscriptions: {
+        Row: {
+          center_id: string
+          created_at: string
+          current_period_end: string
+          grace_days: number
+          id: string
+          monthly_price: number
+          plan_id: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          center_id: string
+          created_at?: string
+          current_period_end?: string
+          grace_days?: number
+          id?: string
+          monthly_price?: number
+          plan_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          center_id?: string
+          created_at?: string
+          current_period_end?: string
+          grace_days?: number
+          id?: string
+          monthly_price?: number
+          plan_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "center_subscriptions_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: true
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "center_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      centers: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          slug: string | null
+          status: string
+          student_limit: number
+          telegram_chat_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          slug?: string | null
+          status?: string
+          student_limit?: number
+          telegram_chat_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          slug?: string | null
+          status?: string
+          student_limit?: number
+          telegram_chat_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -619,6 +867,7 @@ export type Database = {
           amount: number
           cash_account_id: string | null
           category: string
+          center_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -632,6 +881,7 @@ export type Database = {
           amount: number
           cash_account_id?: string | null
           category: string
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -645,6 +895,7 @@ export type Database = {
           amount?: number
           cash_account_id?: string | null
           category?: string
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -660,6 +911,13 @@ export type Database = {
             columns: ["cash_account_id"]
             isOneToOne: false
             referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
             referencedColumns: ["id"]
           },
         ]
@@ -728,6 +986,7 @@ export type Database = {
       }
       grades: {
         Row: {
+          center_id: string | null
           comment: string | null
           created_at: string
           graded_at: string
@@ -742,6 +1001,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           comment?: string | null
           created_at?: string
           graded_at?: string
@@ -756,6 +1016,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           comment?: string | null
           created_at?: string
           graded_at?: string
@@ -770,6 +1031,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "grades_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "grades_lesson_id_fkey"
             columns: ["lesson_id"]
@@ -795,6 +1063,7 @@ export type Database = {
       }
       groups: {
         Row: {
+          center_id: string | null
           created_at: string
           id: string
           monthly_fee: number
@@ -804,6 +1073,7 @@ export type Database = {
           teacher_id: string | null
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           id?: string
           monthly_fee?: number
@@ -813,6 +1083,7 @@ export type Database = {
           teacher_id?: string | null
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           id?: string
           monthly_fee?: number
@@ -822,6 +1093,13 @@ export type Database = {
           teacher_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "groups_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "groups_subject_id_fkey"
             columns: ["subject_id"]
@@ -862,6 +1140,7 @@ export type Database = {
       }
       guide_videos: {
         Row: {
+          center_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -875,6 +1154,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -888,6 +1168,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -900,7 +1181,15 @@ export type Database = {
           title?: string
           video_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guide_videos_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       homepage_courses: {
         Row: {
@@ -1074,6 +1363,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          center_id: string | null
           course: string | null
           created_at: string
           id: string
@@ -1085,6 +1375,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           course?: string | null
           created_at?: string
           id?: string
@@ -1096,6 +1387,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           course?: string | null
           created_at?: string
           id?: string
@@ -1106,10 +1398,19 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lessons: {
         Row: {
+          center_id: string | null
           created_at: string
           day_of_week: number
           end_time: string
@@ -1124,6 +1425,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           day_of_week: number
           end_time: string
@@ -1138,6 +1440,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           day_of_week?: number
           end_time?: string
@@ -1152,6 +1455,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lessons_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lessons_group_id_fkey"
             columns: ["group_id"]
@@ -1204,6 +1514,7 @@ export type Database = {
       }
       marketplace_orders: {
         Row: {
+          center_id: string | null
           created_at: string
           id: string
           note: string | null
@@ -1216,6 +1527,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           id?: string
           note?: string | null
@@ -1228,6 +1540,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           id?: string
           note?: string | null
@@ -1240,6 +1553,13 @@ export type Database = {
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "marketplace_orders_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "marketplace_orders_product_id_fkey"
             columns: ["product_id"]
@@ -1259,6 +1579,7 @@ export type Database = {
       marketplace_products: {
         Row: {
           category_id: string | null
+          center_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -1272,6 +1593,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          center_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1285,6 +1607,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          center_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1304,11 +1627,19 @@ export type Database = {
             referencedRelation: "marketplace_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "marketplace_products_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
         ]
       }
       methodology_resources: {
         Row: {
           author: string | null
+          center_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -1324,6 +1655,7 @@ export type Database = {
         }
         Insert: {
           author?: string | null
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1339,6 +1671,7 @@ export type Database = {
         }
         Update: {
           author?: string | null
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1353,6 +1686,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "methodology_resources_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "methodology_resources_subject_id_fkey"
             columns: ["subject_id"]
@@ -1795,6 +2135,7 @@ export type Database = {
       }
       payment_receipts: {
         Row: {
+          center_id: string | null
           created_at: string
           declared_amount: number | null
           id: string
@@ -1814,6 +2155,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           declared_amount?: number | null
           id?: string
@@ -1833,6 +2175,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           declared_amount?: number | null
           id?: string
@@ -1852,6 +2195,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_receipts_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_receipts_payment_id_fkey"
             columns: ["payment_id"]
@@ -1874,6 +2224,7 @@ export type Database = {
           branch_id: string | null
           cash_account_id: string | null
           cashier_id: string | null
+          center_id: string | null
           course_id: string | null
           created_at: string
           discount_amount: number
@@ -1897,6 +2248,7 @@ export type Database = {
           branch_id?: string | null
           cash_account_id?: string | null
           cashier_id?: string | null
+          center_id?: string | null
           course_id?: string | null
           created_at?: string
           discount_amount?: number
@@ -1920,6 +2272,7 @@ export type Database = {
           branch_id?: string | null
           cash_account_id?: string | null
           cashier_id?: string | null
+          center_id?: string | null
           course_id?: string | null
           created_at?: string
           discount_amount?: number
@@ -1947,6 +2300,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "payments_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payments_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
@@ -1961,6 +2321,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      plans: {
+        Row: {
+          code: string
+          created_at: string
+          features: Json
+          id: string
+          is_active: boolean
+          monthly_price: number
+          name: string
+          student_limit: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name: string
+          student_limit?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name?: string
+          student_limit?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_owners: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -2060,6 +2471,7 @@ export type Database = {
       }
       quiz_questions: {
         Row: {
+          center_id: string | null
           correct_index: number
           created_at: string
           created_by: string | null
@@ -2072,6 +2484,7 @@ export type Database = {
           subject_name: string
         }
         Insert: {
+          center_id?: string | null
           correct_index?: number
           created_at?: string
           created_by?: string | null
@@ -2084,6 +2497,7 @@ export type Database = {
           subject_name: string
         }
         Update: {
+          center_id?: string | null
           correct_index?: number
           created_at?: string
           created_by?: string | null
@@ -2097,6 +2511,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "quiz_questions_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "quiz_questions_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
@@ -2108,6 +2529,7 @@ export type Database = {
       rooms: {
         Row: {
           capacity: number
+          center_id: string | null
           created_at: string
           floor: string | null
           id: string
@@ -2118,6 +2540,7 @@ export type Database = {
         }
         Insert: {
           capacity?: number
+          center_id?: string | null
           created_at?: string
           floor?: string | null
           id?: string
@@ -2128,6 +2551,7 @@ export type Database = {
         }
         Update: {
           capacity?: number
+          center_id?: string | null
           created_at?: string
           floor?: string | null
           id?: string
@@ -2136,7 +2560,15 @@ export type Database = {
           notes?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rooms_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       settings: {
         Row: {
@@ -2316,6 +2748,7 @@ export type Database = {
       }
       student_enrollments: {
         Row: {
+          center_id: string | null
           created_at: string
           ended_at: string | null
           group_id: string
@@ -2330,6 +2763,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           ended_at?: string | null
           group_id: string
@@ -2344,6 +2778,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           ended_at?: string | null
           group_id?: string
@@ -2358,6 +2793,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "student_enrollments_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "student_enrollments_group_id_fkey"
             columns: ["group_id"]
@@ -2424,6 +2866,7 @@ export type Database = {
       }
       student_goals: {
         Row: {
+          center_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -2436,6 +2879,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -2448,6 +2892,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -2460,6 +2905,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "student_goals_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "student_goals_student_id_fkey"
             columns: ["student_id"]
@@ -2518,6 +2970,7 @@ export type Database = {
         Row: {
           academic_year: string | null
           birth_date: string | null
+          center_id: string | null
           enrolled_at: string
           first_name: string | null
           full_name: string | null
@@ -2548,6 +3001,7 @@ export type Database = {
         Insert: {
           academic_year?: string | null
           birth_date?: string | null
+          center_id?: string | null
           enrolled_at?: string
           first_name?: string | null
           full_name?: string | null
@@ -2578,6 +3032,7 @@ export type Database = {
         Update: {
           academic_year?: string | null
           birth_date?: string | null
+          center_id?: string | null
           enrolled_at?: string
           first_name?: string | null
           full_name?: string | null
@@ -2607,6 +3062,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "students_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "students_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
@@ -2624,28 +3086,40 @@ export type Database = {
       }
       subjects: {
         Row: {
+          center_id: string | null
           created_at: string
           description: string | null
           id: string
           name: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
           name: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subjects_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teacher_balance: {
         Row: {
           bonus: number
+          center_id: string | null
           created_at: string
           id: string
           kpi_score: number
@@ -2662,6 +3136,7 @@ export type Database = {
         }
         Insert: {
           bonus?: number
+          center_id?: string | null
           created_at?: string
           id?: string
           kpi_score?: number
@@ -2678,6 +3153,7 @@ export type Database = {
         }
         Update: {
           bonus?: number
+          center_id?: string | null
           created_at?: string
           id?: string
           kpi_score?: number
@@ -2692,7 +3168,15 @@ export type Database = {
           updated_at?: string
           visible_to_teacher?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teacher_balance_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teacher_checkins: {
         Row: {
@@ -2994,6 +3478,7 @@ export type Database = {
           amount: number
           cash_account_id: string | null
           category: string
+          center_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -3010,6 +3495,7 @@ export type Database = {
           amount: number
           cash_account_id?: string | null
           category: string
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -3026,6 +3512,7 @@ export type Database = {
           amount?: number
           cash_account_id?: string | null
           category?: string
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -3044,6 +3531,13 @@ export type Database = {
             columns: ["cash_account_id"]
             isOneToOne: false
             referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
             referencedColumns: ["id"]
           },
           {
@@ -3076,6 +3570,32 @@ export type Database = {
           },
         ]
       }
+      user_centers: {
+        Row: {
+          center_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          center_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          center_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_centers_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3099,6 +3619,7 @@ export type Database = {
       }
       video_lessons: {
         Row: {
+          center_id: string | null
           created_at: string
           description: string | null
           group_id: string
@@ -3110,6 +3631,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           description?: string | null
           group_id: string
@@ -3121,6 +3643,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           description?: string | null
           group_id?: string
@@ -3132,6 +3655,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "video_lessons_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "video_lessons_group_id_fkey"
             columns: ["group_id"]
