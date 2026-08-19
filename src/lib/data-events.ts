@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Cross-page data change bus.
@@ -39,12 +39,17 @@ export function emitDataChanged(topic: DataTopic) {
 
 /** Re-run `handler` whenever `topic` changes anywhere in the app. */
 export function useDataEvent(topic: DataTopic, handler: () => void) {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+
   useEffect(() => {
     getChannel();
     const listener = (event: Event) => {
-      if ((event as CustomEvent<{ topic?: DataTopic }>).detail?.topic === topic) handler();
+      if ((event as CustomEvent<{ topic?: DataTopic }>).detail?.topic === topic) {
+        handlerRef.current();
+      }
     };
     window.addEventListener(EVENT_NAME, listener);
     return () => window.removeEventListener(EVENT_NAME, listener);
-  }, [topic, handler]);
+  }, [topic]);
 }
