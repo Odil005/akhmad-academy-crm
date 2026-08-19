@@ -1134,7 +1134,7 @@ export const jarvisChat = createServerFn({ method: "POST" })
     if (!provider) {
       return {
         reply:
-          "Jarvisning AI kaliti hali serverga ulanmagan. Administrator Sozlamalar → Telegram / SMS bo'limida Jarvis AI holatini ko'rishi mumkin. Vercel Environment Variables ichiga OPENAI_API_KEY qo'shilgach erkin suhbat, ovoz va CRM vositalari to'liq ishlaydi. Hozircha “Xabar bormi?” va “Tizimni tekshir” kabi mahalliy buyruqlar ishlaydi.",
+          "Jarvisning AI kaliti hali serverga ulanmagan. Administrator Sozlamalar → Telegram / SMS bo'limida Jarvis AI holatini ko'rishi mumkin. Loyiha maxfiy kalitlariga OPENAI_API_KEY qo'shilgach erkin suhbat, ovoz va CRM vositalari to'liq ishlaydi. Hozircha “Xabar bormi?” va “Tizimni tekshir” kabi mahalliy buyruqlar ishlaydi.",
         navigate: roles.includes("admin") ? "/settings/integrations" : undefined,
       };
     }
