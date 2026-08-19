@@ -282,13 +282,32 @@ function GitHubAutomationCard() {
         )}
       </div>
 
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">
-        Vercel Environment Variables ichiga <code>GITHUB_JARVIS_TOKEN</code> kiriting. Token faqat
-        tanlangan repository uchun Actions, Contents, Issues va Pull requests yozish huquqiga ega
-        bo'lsin. So'ng Jarvisga masalan: <b>“Dashboardga yangi grafik qo'sh”</b> deb yozing. Jarvis
-        GitHub vazifasini yaratadi, kod alohida branch va pull requestda tayyorlanadi; main
-        avtomatik birlashtirilmaydi.
-      </p>
+      <div className="mt-3 space-y-2 text-xs leading-5 text-muted-foreground">
+        <p>
+          Bu ulanish ixtiyoriy: Jarvisning CRM ishlari tokensiz ham to'liq ishlaydi. GitHub
+          avtomatizatsiyasi kerak bo'lsa, <code>GITHUB_JARVIS_TOKEN</code> maxfiy kalitini loyiha
+          sozlamalaridagi <b>Secrets</b> bo'limiga qo'shing (server o'zi o'qiydi — hech qanday joyga
+          ko'chirib yozish shart emas).
+        </p>
+        <ol className="ml-4 list-decimal space-y-1">
+          <li>
+            GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → yangi token.
+          </li>
+          <li>
+            Faqat kerakli repository tanlanadi; ruxsatlar: <b>Contents</b>, <b>Issues</b>,{" "}
+            <b>Pull requests</b> (Read and write) va <b>Actions</b> (Read).
+          </li>
+          <li>
+            Tokenni <code>GITHUB_JARVIS_TOKEN</code> nomi bilan saqlang, so'ng shu yerdagi
+            “Ulanishni tekshirish” tugmasini bosing.
+          </li>
+        </ol>
+        <p>
+          So'ng Jarvisga masalan: <b>“Dashboardga yangi grafik qo'sh”</b> deb yozing. Jarvis GitHub
+          vazifasini yaratadi, kod alohida branch va pull requestda tayyorlanadi; main avtomatik
+          birlashtirilmaydi.
+        </p>
+      </div>
 
       <button
         type="button"
