@@ -1198,7 +1198,7 @@ SUHBATDOSH REJIMI YONIQ: foydalanuvchi hozir shunchaki gaplashmoqchi. Iliq, sabr
               model: provider.chatModel,
               instructions: system.content,
               input: responseInput,
-              tools: responseTools,
+              tools: companion ? [] : responseTools,
               max_output_tokens: 1600,
               reasoning: { effort: "low" },
               text: { verbosity: "medium" },
@@ -1263,7 +1263,7 @@ SUHBATDOSH REJIMI YONIQ: foydalanuvchi hozir shunchaki gaplashmoqchi. Iliq, sabr
             body: JSON.stringify({
               model: provider.chatModel,
               messages: convo,
-              tools: TOOLS,
+              tools: companion ? [] : TOOLS,
               max_tokens: 900,
               temperature: 0.55,
             }),
