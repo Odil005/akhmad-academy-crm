@@ -712,6 +712,7 @@ function NewLessonModal({
     setForm((f) => ({ ...f, group_id: data.id }));
     setNewGroup({ name: "", monthly_fee: 400000 });
     setShowNewGroup(false);
+    emitDataChanged("groups");
   };
 
   const conflictRows = useMemo(
