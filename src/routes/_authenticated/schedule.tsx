@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDataEvent } from "@/lib/data-events";
 import {
   Activity,
   CalendarDays,
@@ -164,6 +165,8 @@ function SchedulePage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useDataEvent("groups", load);
 
   useEffect(() => {
     let cancelled = false;

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useState } from "react";
+import { useDataEvent } from "@/lib/data-events";
 import { Plus, Trash2, X, RefreshCw, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { createManagedUser } from "@/lib/user-admin.functions";
@@ -108,13 +109,16 @@ function StudentsPage() {
     void load();
   }, [load]);
 
-  useEffect(() => {
-    supabase
-      .from("groups")
-      .select("id, name")
-      .order("name")
-      .then(({ data }) => setGroups(data ?? []));
+  const loadGroups = useCallback(async () => {
+    const { data } = await supabase.from("groups").select("id, name").order("name");
+    setGroups(data ?? []);
   }, []);
+
+  useEffect(() => {
+    void loadGroups();
+  }, [loadGroups]);
+
+  useDataEvent("groups", loadGroups);
 
   const filtered = students;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));

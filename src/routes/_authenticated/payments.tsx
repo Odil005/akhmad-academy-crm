@@ -71,6 +71,10 @@ function PaymentsPage() {
     setLoading(false);
   };
 
+  useDataEvent("groups", () => {
+    void load();
+  });
+
   useEffect(() => {
     load();
     getCashierContext().then((x) => setIsDirector(!!x.isDirector)).catch(() => setIsDirector(false));
