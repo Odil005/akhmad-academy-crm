@@ -3,7 +3,19 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { contextualSuggestions, findHowTo, formatHowTo } from "@/lib/guide-help";
 import { useTour } from "@/components/tour/TourProvider";
-import { Bot, Mic, MicOff, RotateCcw, Send, X, Loader2, Volume2, VolumeX } from "lucide-react";
+import {
+  Bot,
+  Mic,
+  MicOff,
+  RotateCcw,
+  Send,
+  X,
+  Loader2,
+  Volume2,
+  VolumeX,
+  Coffee,
+  Briefcase,
+} from "lucide-react";
 import { jarvisChat, jarvisTranscribe, jarvisSpeak } from "@/lib/jarvis.functions";
 
 type RouteIntent = { to: string; label: string; keywords: string[] };
@@ -90,6 +102,13 @@ function detectRoute(text: string): RouteIntent | null {
 type MsgAction = { label: string; to: string; tourTarget?: string };
 type Msg = { role: "user" | "assistant"; content: string; action?: MsgAction };
 
+const COMPANION_SUGGESTIONS = [
+  "Bugun kayfiyatim tushkun",
+  "Menga dalda ber",
+  "Qiziqarli fakt aytib ber",
+  "Ishdan charchadim, gaplashamizmi?",
+];
+
 const CHAT_STORAGE_KEY = "unicrm:jarvis:conversation";
 const WELCOME_MESSAGE: Msg = {
   role: "assistant",
@@ -104,7 +123,11 @@ export function Jarvis() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { role, startAtTarget, start } = useTour();
-  const suggestions = useMemo(() => contextualSuggestions(pathname, role), [pathname, role]);
+  const [mode, setMode] = useState<"work" | "companion">("work");
+  const suggestions = useMemo(
+    () => (mode === "companion" ? COMPANION_SUGGESTIONS : contextualSuggestions(pathname, role)),
+    [mode, pathname, role],
+  );
 
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([WELCOME_MESSAGE]);
@@ -216,8 +239,9 @@ export function Jarvis() {
     const next = [...msgs, { role: "user" as const, content: q }];
     setMsgs(next);
 
+    // Suhbatdosh rejimida navigatsiya va qo'llanma javoblari o'chiriladi.
     // O'rgatuvchi rejim: "qanday qilaman?" savoliga darhol qadamli javob.
-    const howTo = findHowTo(q, role);
+    const howTo = mode === "companion" ? null : findHowTo(q, role);
     if (howTo) {
       const reply = formatHowTo(howTo);
       setMsgs((m) => [
@@ -233,7 +257,7 @@ export function Jarvis() {
     }
 
     // Instant navigation — skip AI round-trip when the intent is clear.
-    const intent = detectRoute(q);
+    const intent = mode === "companion" ? null : detectRoute(q);
     const needsAnswer = /(bormi|qancha|necha|kim|qanday|tekshir|tahlil|yubor|tuzat)/i.test(q);
     if (intent && !needsAnswer) {
       const reply = `🧭 "${intent.label}" bo'limi ochildi.`;
@@ -251,7 +275,7 @@ export function Jarvis() {
     setBusy(true);
     try {
       const r = await chat({
-        data: { messages: next.map((m) => ({ role: m.role, content: m.content })) },
+        data: { messages: next.map((m) => ({ role: m.role, content: m.content })), mode },
       });
       const reply = r.reply || "Javobni olishda uzilish bo'ldi. Iltimos, bir marta qayta yuboring.";
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
@@ -360,9 +384,26 @@ export function Jarvis() {
             <div className="min-w-0 flex-1">
               <div className="text-sm font-bold">Jarvis</div>
               <div className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
-                Tayyor · O'rgatuvchi va boshqaruv yordamchisi
+                {mode === "companion"
+                  ? "Suhbatdosh rejimi · erkin muloqot"
+                  : "Tayyor · O'rgatuvchi va boshqaruv yordamchisi"}
               </div>
             </div>
+            <button
+              onClick={() => setMode(mode === "companion" ? "work" : "companion")}
+              className={`rounded-lg border p-1.5 ${
+                mode === "companion"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border hover:bg-muted"
+              }`}
+              title={mode === "companion" ? "Ish rejimiga qaytish" : "Suhbatdosh rejimi"}
+            >
+              {mode === "companion" ? (
+                <Coffee className="h-4 w-4" />
+              ) : (
+                <Briefcase className="h-4 w-4" />
+              )}
+            </button>
             <button
               onClick={clearConversation}
               disabled={busy}

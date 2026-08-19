@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { emitDataChanged, useDataEvent } from "@/lib/data-events";
 import {
   Activity,
   CalendarDays,
@@ -164,6 +165,8 @@ function SchedulePage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useDataEvent("groups", load);
 
   useEffect(() => {
     let cancelled = false;
@@ -709,6 +712,7 @@ function NewLessonModal({
     setForm((f) => ({ ...f, group_id: data.id }));
     setNewGroup({ name: "", monthly_fee: 400000 });
     setShowNewGroup(false);
+    emitDataChanged("groups");
   };
 
   const conflictRows = useMemo(

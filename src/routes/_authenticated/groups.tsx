@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { TelegramIdButton } from "@/components/TelegramIdButton";
+import { emitDataChanged, useDataEvent } from "@/lib/data-events";
 
 type Teacher = { id: string; full_name: string | null; teacher_level: string | null };
 type Subject = { id: string; name: string };
@@ -90,6 +91,9 @@ function GroupsPage() {
     load();
   }, [load]);
 
+  // A group created anywhere in the app (or another tab) shows up here at once.
+  useDataEvent("groups", load);
+
   const remove = async (id: string) => {
     if (
       !confirm(
@@ -100,6 +104,7 @@ function GroupsPage() {
     const { error } = await supabase.from("groups").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Guruh o'chirildi");
+    emitDataChanged("groups");
     load();
   };
 
@@ -519,6 +524,7 @@ function GroupModal({
       return;
     }
     toast.success(initial ? "Yangilandi" : "Guruh qo'shildi");
+    emitDataChanged("groups");
     onDone();
   };
 
@@ -564,6 +570,7 @@ function GroupModal({
                     [...p, data as Subject].sort((a, b) => a.name.localeCompare(b.name)),
                   );
                   setForm((f) => ({ ...f, subject_id: (data as Subject).id }));
+                  emitDataChanged("subjects");
                   toast.success("Fan qo'shildi");
                 }}
                 className="text-xs font-semibold text-primary hover:underline"

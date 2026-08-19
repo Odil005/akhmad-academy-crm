@@ -1051,8 +1051,9 @@ async function runTool(
 
 export const jarvisChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => d as { messages: ChatMsg[] })
+  .inputValidator((d: unknown) => d as { messages: ChatMsg[]; mode?: "work" | "companion" })
   .handler(async ({ data, context }) => {
+    const companion = data.mode === "companion";
     const lastUser = [...data.messages].reverse().find((m) => m.role === "user")?.content ?? "";
 
     const { data: roleRows, error: roleError } = await context.supabase
@@ -1065,7 +1066,8 @@ export const jarvisChat = createServerFn({ method: "POST" })
       throw new Response("Jarvis faqat xodimlar uchun", { status: 403 });
     }
 
-    const directIntent = getDirectJarvisIntent(lastUser);
+    // Suhbatdosh rejimida CRM buyruqlari va sahifa ochish o'chiriladi — faqat erkin suhbat.
+    const directIntent = companion ? null : getDirectJarvisIntent(lastUser);
     const actor: JarvisActor = { userId: context.userId, roles, lastUserMessage: lastUser };
     if (directIntent === "unread_messages") {
       const out = await runTool(context.supabase, "unread_parent_messages", {}, actor);
@@ -1123,7 +1125,7 @@ export const jarvisChat = createServerFn({ method: "POST" })
       };
     }
 
-    const localReply = getLocalJarvisReply(lastUser);
+    const localReply = companion ? null : getLocalJarvisReply(lastUser);
     if (localReply) return { reply: localReply };
 
     const { jarvisSafetyIdentifier, resolveJarvisAIProvider } =
@@ -1132,7 +1134,7 @@ export const jarvisChat = createServerFn({ method: "POST" })
     if (!provider) {
       return {
         reply:
-          "Jarvisning AI kaliti hali serverga ulanmagan. Administrator Sozlamalar → Telegram / SMS bo'limida Jarvis AI holatini ko'rishi mumkin. Vercel Environment Variables ichiga OPENAI_API_KEY qo'shilgach erkin suhbat, ovoz va CRM vositalari to'liq ishlaydi. Hozircha “Xabar bormi?” va “Tizimni tekshir” kabi mahalliy buyruqlar ishlaydi.",
+          "Jarvisning AI kaliti hali serverga ulanmagan. Administrator Sozlamalar → Telegram / SMS bo'limida Jarvis AI holatini ko'rishi mumkin. Loyiha maxfiy kalitlariga OPENAI_API_KEY qo'shilgach erkin suhbat, ovoz va CRM vositalari to'liq ishlaydi. Hozircha “Xabar bormi?” va “Tizimni tekshir” kabi mahalliy buyruqlar ishlaydi.",
         navigate: roles.includes("admin") ? "/settings/integrations" : undefined,
       };
     }
@@ -1154,7 +1156,13 @@ Tizim sozlamalarini faqat admin aniq so'raganda list_system_settings va update_s
 
 FOYDALANUVCHI ROLLARI: ${roles.join(", ")}
 
-HOLAT: ${JSON.stringify(ctx)}`,
+HOLAT: ${JSON.stringify(ctx)}${
+        companion
+          ? `
+
+SUHBATDOSH REJIMI YONIQ: foydalanuvchi hozir shunchaki gaplashmoqchi. Iliq, sabrli va insoniy suhbatdosh bo'l: uning kayfiyatini so'ra, fikrini eshit, kerak bo'lsa dalda ber, hazil va qiziqarli mavzularga ham qo'shil. Hech qanday tool ishlatma, sahifa ochma, hisobot yoki raqam keltirma. Faqat foydalanuvchi o'zi aniq ish so'rasa, "ish rejimiga o'tamizmi?" deb bir marta taklif qil. Tibbiy, huquqiy yoki xavfli mavzularda mutaxassisga murojaat qilishni maslahat ber. Javoblar qisqa va tabiiy bo'lsin (1-4 gap).`
+          : ""
+      }`,
     };
 
     // Preserve conversational continuity while keeping latency and token use bounded.
@@ -1190,7 +1198,7 @@ HOLAT: ${JSON.stringify(ctx)}`,
               model: provider.chatModel,
               instructions: system.content,
               input: responseInput,
-              tools: responseTools,
+              tools: companion ? [] : responseTools,
               max_output_tokens: 1600,
               reasoning: { effort: "low" },
               text: { verbosity: "medium" },
@@ -1255,7 +1263,7 @@ HOLAT: ${JSON.stringify(ctx)}`,
             body: JSON.stringify({
               model: provider.chatModel,
               messages: convo,
-              tools: TOOLS,
+              tools: companion ? [] : TOOLS,
               max_tokens: 900,
               temperature: 0.55,
             }),
