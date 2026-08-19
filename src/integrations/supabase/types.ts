@@ -380,6 +380,212 @@ export type Database = {
         }
         Relationships: []
       }
+      center_invoices: {
+        Row: {
+          amount: number
+          center_id: string
+          created_at: string
+          due_date: string
+          id: string
+          note: string | null
+          paid_at: string | null
+          period_month: string
+          provider: string | null
+          provider_tx_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          center_id: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          period_month: string
+          provider?: string | null
+          provider_tx_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          center_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          period_month?: string
+          provider?: string | null
+          provider_tx_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "center_invoices_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      center_payments: {
+        Row: {
+          amount: number
+          center_id: string
+          created_at: string
+          id: string
+          invoice_id: string | null
+          provider: string
+          provider_tx_id: string | null
+          raw: Json | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          center_id: string
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          provider?: string
+          provider_tx_id?: string | null
+          raw?: Json | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          center_id?: string
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          provider?: string
+          provider_tx_id?: string | null
+          raw?: Json | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "center_payments_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "center_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "center_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      center_subscriptions: {
+        Row: {
+          center_id: string
+          created_at: string
+          current_period_end: string
+          grace_days: number
+          id: string
+          monthly_price: number
+          plan_id: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          center_id: string
+          created_at?: string
+          current_period_end?: string
+          grace_days?: number
+          id?: string
+          monthly_price?: number
+          plan_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          center_id?: string
+          created_at?: string
+          current_period_end?: string
+          grace_days?: number
+          id?: string
+          monthly_price?: number
+          plan_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "center_subscriptions_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: true
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "center_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      centers: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          slug: string | null
+          status: string
+          student_limit: number
+          telegram_chat_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          slug?: string | null
+          status?: string
+          student_limit?: number
+          telegram_chat_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          slug?: string | null
+          status?: string
+          student_limit?: number
+          telegram_chat_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       checkin_locations: {
         Row: {
           active: boolean
@@ -1962,6 +2168,57 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          code: string
+          created_at: string
+          features: Json
+          id: string
+          is_active: boolean
+          monthly_price: number
+          name: string
+          student_limit: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name: string
+          student_limit?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name?: string
+          student_limit?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_owners: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3072,6 +3329,32 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_centers: {
+        Row: {
+          center_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          center_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          center_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_centers_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
             referencedColumns: ["id"]
           },
         ]
