@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useDataEvent } from "@/lib/data-events";
+import { emitDataChanged, useDataEvent } from "@/lib/data-events";
 import {
   Activity,
   CalendarDays,
