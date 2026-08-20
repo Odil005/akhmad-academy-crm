@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BootstrapRouteImport } from './routes/bootstrap'
 import { Route as DonateRouteImport } from './routes/donate'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as UniRouteImport } from './routes/uni'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
@@ -109,6 +110,11 @@ const DonateRoute = DonateRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UniRoute = UniRouteImport.update({
+  id: '/uni',
+  path: '/uni',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93ListToolsRoute =
@@ -484,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/bootstrap': typeof BootstrapRoute
   '/donate': typeof DonateRoute
   '/mcp': typeof McpRoute
+  '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
@@ -557,6 +564,7 @@ export interface FileRoutesByTo {
   '/bootstrap': typeof BootstrapRoute
   '/donate': typeof DonateRoute
   '/mcp': typeof McpRoute
+  '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
@@ -631,6 +639,7 @@ export interface FileRoutesById {
   '/bootstrap': typeof BootstrapRoute
   '/donate': typeof DonateRoute
   '/mcp': typeof McpRoute
+  '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
@@ -706,6 +715,7 @@ export interface FileRouteTypes {
     | '/bootstrap'
     | '/donate'
     | '/mcp'
+    | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/attendance'
@@ -779,6 +789,7 @@ export interface FileRouteTypes {
     | '/bootstrap'
     | '/donate'
     | '/mcp'
+    | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/attendance'
@@ -852,6 +863,7 @@ export interface FileRouteTypes {
     | '/bootstrap'
     | '/donate'
     | '/mcp'
+    | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/attendance'
@@ -927,6 +939,7 @@ export interface RootRouteChildren {
   BootstrapRoute: typeof BootstrapRoute
   DonateRoute: typeof DonateRoute
   McpRoute: typeof McpRoute
+  UniRoute: typeof UniRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ReceiptIdRoute: typeof ReceiptIdRoute
@@ -987,6 +1000,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uni': {
+      id: '/uni'
+      path: '/uni'
+      fullPath: '/uni'
+      preLoaderRoute: typeof UniRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -1596,6 +1616,7 @@ const rootRouteChildren: RootRouteChildren = {
   BootstrapRoute: BootstrapRoute,
   DonateRoute: DonateRoute,
   McpRoute: McpRoute,
+  UniRoute: UniRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
