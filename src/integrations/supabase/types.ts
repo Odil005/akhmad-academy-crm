@@ -422,6 +422,65 @@ export type Database = {
           },
         ]
       }
+      center_applications: {
+        Row: {
+          center_name: string
+          city: string | null
+          contact_name: string
+          created_at: string
+          created_center_id: string | null
+          id: string
+          note: string | null
+          phone: string
+          plan_code: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          students_estimate: number | null
+          updated_at: string
+        }
+        Insert: {
+          center_name: string
+          city?: string | null
+          contact_name: string
+          created_at?: string
+          created_center_id?: string | null
+          id?: string
+          note?: string | null
+          phone: string
+          plan_code?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          students_estimate?: number | null
+          updated_at?: string
+        }
+        Update: {
+          center_name?: string
+          city?: string | null
+          contact_name?: string
+          created_at?: string
+          created_center_id?: string | null
+          id?: string
+          note?: string | null
+          phone?: string
+          plan_code?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          students_estimate?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "center_applications_created_center_id_fkey"
+            columns: ["created_center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       center_invoices: {
         Row: {
           amount: number
