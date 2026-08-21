@@ -93,7 +93,13 @@ serveringizda/CI'da ta'sir qiladi.
 ```
 GET /api/public/health/live    -> 200
 GET /api/public/health/ready   -> 200 {"status":"ready"}
+GET /api/public/health/config  -> 200 {"status":"ok","can_create_users":true}
 ```
 
 `ready` 503 qaytarsa — server env'da `SUPABASE_URL` yoki
 `SUPABASE_PUBLISHABLE_KEY` yo'q.
+
+`config` 503 qaytarsa — `missing` ro'yxatidagi kalitlarni Worker secret sifatida
+qo'shing. `can_create_users: false` bo'lsa o'quvchi/o'qituvchi qo'shish ishlamaydi.
+Bu endpoint hech qanday kalit qiymatini ko'rsatmaydi, faqat true/false.
+
