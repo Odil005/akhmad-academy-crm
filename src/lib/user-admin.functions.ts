@@ -20,7 +20,12 @@ const CreateUserSchema = z.object({
   parent_telegram_chat_id: z.string().optional().nullable(),
 });
 
+/** Serverda SUPABASE_* kalitlari yo'q bo'lsa ko'rsatiladigan tushunarli xabar. */
+const SERVER_CONFIG_ERROR =
+  "Server sozlamasi to'liq emas: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY va SUPABASE_SERVICE_ROLE_KEY qo'shilishi kerak. /api/public/health/config sahifasi qaysi kalit yo'qligini ko'rsatadi.";
+
 async function rolesOf(supabase: any, userId: string): Promise<AppRole[]> {
+
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
   return ((data ?? []) as Array<{ role: string }>)
     .map((row) => row.role)
