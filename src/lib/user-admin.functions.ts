@@ -62,7 +62,17 @@ export const createManagedUser = createServerFn({ method: "POST" })
       return { ok: false, error: "Admin faqat o'quvchi va o'qituvchi loginlarini yarata oladi." };
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let supabaseAdmin: Awaited<
+      typeof import("@/integrations/supabase/client.server")
+    >["supabaseAdmin"];
+    try {
+      ({ supabaseAdmin } = await import("@/integrations/supabase/client.server"));
+      // Kalitlar yo'q bo'lsa mijoz yaratilganda xato beradi.
+      void supabaseAdmin.auth;
+    } catch {
+      return { ok: false, error: SERVER_CONFIG_ERROR };
+    }
+
 
     const email = usernameToEmail(username);
 
