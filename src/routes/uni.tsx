@@ -203,7 +203,7 @@ function UniLanding() {
                   {active && (
                     <Link
                       to="/auth"
-                      search={{ center: center.slug ?? center.id }}
+
                       className="mt-4 block rounded-xl bg-primary px-4 py-2 text-center text-sm font-bold text-primary-foreground"
                     >
                       Tizimga kirish

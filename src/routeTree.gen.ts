@@ -76,6 +76,7 @@ import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes
 import { Route as ApiPublicCronParentDigestRouteImport } from './routes/api/public/cron.parent-digest'
 import { Route as ApiPublicCronReceiptQueueRouteImport } from './routes/api/public/cron.receipt-queue'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron.reminders'
+import { Route as ApiPublicHealthConfigRouteImport } from './routes/api/public/health.config'
 import { Route as ApiPublicHealthLiveRouteImport } from './routes/api/public/health.live'
 import { Route as ApiPublicHealthReadyRouteImport } from './routes/api/public/health.ready'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
@@ -449,6 +450,11 @@ const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
   path: '/api/public/cron/reminders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHealthConfigRoute = ApiPublicHealthConfigRouteImport.update({
+  id: '/api/public/health/config',
+  path: '/api/public/health/config',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHealthLiveRoute = ApiPublicHealthLiveRouteImport.update({
   id: '/api/public/health/live',
   path: '/api/public/health/live',
@@ -551,6 +557,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
@@ -624,6 +631,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
@@ -700,6 +708,7 @@ export interface FileRoutesById {
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
@@ -776,6 +785,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
+    | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
     | '/api/public/telegram/webhook'
@@ -849,6 +859,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
+    | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
     | '/api/public/telegram/webhook'
@@ -924,6 +935,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
+    | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
     | '/api/public/telegram/webhook'
@@ -950,6 +962,7 @@ export interface RootRouteChildren {
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
   ApiPublicCronReceiptQueueRoute: typeof ApiPublicCronReceiptQueueRoute
   ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
+  ApiPublicHealthConfigRoute: typeof ApiPublicHealthConfigRoute
   ApiPublicHealthLiveRoute: typeof ApiPublicHealthLiveRoute
   ApiPublicHealthReadyRoute: typeof ApiPublicHealthReadyRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
@@ -1429,6 +1442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health/config': {
+      id: '/api/public/health/config'
+      path: '/api/public/health/config'
+      fullPath: '/api/public/health/config'
+      preLoaderRoute: typeof ApiPublicHealthConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health/live': {
       id: '/api/public/health/live'
       path: '/api/public/health/live'
@@ -1629,6 +1649,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronParentDigestRoute: ApiPublicCronParentDigestRoute,
   ApiPublicCronReceiptQueueRoute: ApiPublicCronReceiptQueueRoute,
   ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
+  ApiPublicHealthConfigRoute: ApiPublicHealthConfigRoute,
   ApiPublicHealthLiveRoute: ApiPublicHealthLiveRoute,
   ApiPublicHealthReadyRoute: ApiPublicHealthReadyRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,

@@ -45,12 +45,29 @@ bunx wrangler deploy
 ```
 
 `wrangler.toml` tayyor: `nodejs_compat` yoqilgan, static fayllar `.output/public`,
-entry `.output/server/index.mjs`. Secretlarni
-`bunx wrangler secret put SUPABASE_URL` ko'rinishida kiriting. `VITE_*` qiymatlari
-build paytida `.env` yoki CI env ichida bo'lishi shart.
+entry `.output/server/index.mjs`.
+
+**Muhim (o'quvchi/o'qituvchi qo'shish shu kalitlarga bog'liq).** Login yaratish
+serverda `SUPABASE_SERVICE_ROLE_KEY` bilan ishlaydi. Bu kalit Worker'da bo'lmasa
+"Server sozlamasi to'liq emas" xabari chiqadi. Uchta runtime secret'ni kiriting:
+
+```bash
+bunx wrangler secret put SUPABASE_URL
+bunx wrangler secret put SUPABASE_PUBLISHABLE_KEY
+bunx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+```
+
+Yoki Cloudflare Dashboard > Workers & Pages > (loyiha) > Settings >
+Variables and Secrets > **Add** > type **Secret**. Qo'shgandan keyin qayta deploy
+qiling (Workers Builds bo'lsa "Retry deployment").
+
+`VITE_SUPABASE_URL` va `VITE_SUPABASE_PUBLISHABLE_KEY` — build vaqtidagi
+qiymatlar (secret emas): Workers Builds sozlamalarida yoki CI env'da bo'lishi
+shart, aks holda client bundle bo'sh konfiguratsiya bilan quriladi.
 
 Cron uchun `wrangler.toml` ga `[triggers] crons = [...]` qo'shib
 `/api/public/cron/*` yo'llarini `Authorization: Bearer $CRON_SECRET` bilan chaqiring.
+
 
 ## 3. Render (Node web service)
 
@@ -76,7 +93,13 @@ serveringizda/CI'da ta'sir qiladi.
 ```
 GET /api/public/health/live    -> 200
 GET /api/public/health/ready   -> 200 {"status":"ready"}
+GET /api/public/health/config  -> 200 {"status":"ok","can_create_users":true}
 ```
 
 `ready` 503 qaytarsa — server env'da `SUPABASE_URL` yoki
 `SUPABASE_PUBLISHABLE_KEY` yo'q.
+
+`config` 503 qaytarsa — `missing` ro'yxatidagi kalitlarni Worker secret sifatida
+qo'shing. `can_create_users: false` bo'lsa o'quvchi/o'qituvchi qo'shish ishlamaydi.
+Bu endpoint hech qanday kalit qiymatini ko'rsatmaydi, faqat true/false.
+
