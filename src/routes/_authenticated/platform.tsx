@@ -376,14 +376,6 @@ function PlatformPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() =>
-                      create.mutate(undefined, {
-                        onSuccess: () => undefined,
-                      })
-                    }
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() =>
                       addCenter({
                         data: {
                           name: a.center_name,
