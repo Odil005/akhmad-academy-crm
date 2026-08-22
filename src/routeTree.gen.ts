@@ -38,6 +38,7 @@ import { Route as AuthenticatedMethodologyRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPaymentReceiptsRouteImport } from './routes/_authenticated/payment-receipts'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
+import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated/roadmap'
 import { Route as AuthenticatedRoomsRouteImport } from './routes/_authenticated/rooms'
@@ -233,6 +234,11 @@ const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
 const AuthenticatedPayrollRoute = AuthenticatedPayrollRouteImport.update({
   id: '/payroll',
   path: '/payroll',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
@@ -519,6 +525,7 @@ export interface FileRoutesByFullPath {
   '/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/payroll': typeof AuthenticatedPayrollRoute
+  '/platform': typeof AuthenticatedPlatformRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
@@ -594,6 +601,7 @@ export interface FileRoutesByTo {
   '/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/payroll': typeof AuthenticatedPayrollRoute
+  '/platform': typeof AuthenticatedPlatformRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
@@ -670,6 +678,7 @@ export interface FileRoutesById {
   '/_authenticated/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
+  '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
   '/_authenticated/rooms': typeof AuthenticatedRoomsRoute
@@ -747,6 +756,7 @@ export interface FileRouteTypes {
     | '/payment-receipts'
     | '/payments'
     | '/payroll'
+    | '/platform'
     | '/reports'
     | '/roadmap'
     | '/rooms'
@@ -822,6 +832,7 @@ export interface FileRouteTypes {
     | '/payment-receipts'
     | '/payments'
     | '/payroll'
+    | '/platform'
     | '/reports'
     | '/roadmap'
     | '/rooms'
@@ -897,6 +908,7 @@ export interface FileRouteTypes {
     | '/_authenticated/payment-receipts'
     | '/_authenticated/payments'
     | '/_authenticated/payroll'
+    | '/_authenticated/platform'
     | '/_authenticated/reports'
     | '/_authenticated/roadmap'
     | '/_authenticated/rooms'
@@ -1174,6 +1186,13 @@ declare module '@tanstack/react-router' {
       path: '/payroll'
       fullPath: '/payroll'
       preLoaderRoute: typeof AuthenticatedPayrollRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform': {
+      id: '/_authenticated/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof AuthenticatedPlatformRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/reports': {
@@ -1577,6 +1596,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPaymentReceiptsRoute: typeof AuthenticatedPaymentReceiptsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
+  AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
   AuthenticatedRoomsRoute: typeof AuthenticatedRoomsRoute
@@ -1612,6 +1632,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPaymentReceiptsRoute: AuthenticatedPaymentReceiptsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
+  AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
   AuthenticatedRoomsRoute: AuthenticatedRoomsRoute,
