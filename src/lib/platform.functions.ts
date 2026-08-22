@@ -313,3 +313,108 @@ export const recordCenterPayment = createServerFn({ method: "POST" })
 
     return { payment_id: payment.id as string };
   });
+
+/** Director/admin: own center subscription + invoices ("Abonent" bo'limi). */
+export const getMyCenterBilling = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: roles } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    const roleList = ((roles ?? []) as { role: string }[]).map((r) => r.role);
+    if (!roleList.includes("director") && !roleList.includes("admin")) {
+      throw new Error("Bu bo'lim faqat direktor va administrator uchun");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: link } = await supabaseAdmin
+      .from("user_centers")
+      .select("center_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    let centerId = link?.center_id ?? null;
+    if (!centerId) {
+      const { data: first } = await supabaseAdmin
+        .from("centers")
+        .select("id")
+        .order("created_at")
+        .limit(1)
+        .maybeSingle();
+      centerId = first?.id ?? null;
+    }
+    if (!centerId) return null;
+
+    const [{ data: center }, { data: sub }, { data: invoices }, { data: plans }, students] =
+      await Promise.all([
+        supabaseAdmin.from("centers").select("*").eq("id", centerId).maybeSingle(),
+        supabaseAdmin.from("center_subscriptions").select("*").eq("center_id", centerId).maybeSingle(),
+        supabaseAdmin
+          .from("center_invoices")
+          .select("*")
+          .eq("center_id", centerId)
+          .order("period_month", { ascending: false })
+          .limit(24),
+        supabaseAdmin.from("plans").select("*").eq("is_active", true).order("monthly_price"),
+        supabaseAdmin
+          .from("students")
+          .select("id", { count: "exact", head: true })
+          .eq("center_id", centerId),
+      ]);
+
+    const invoiceRows = (invoices ?? []) as any[];
+    return {
+      center: center as any,
+      subscription: (sub ?? null) as any,
+      invoices: invoiceRows,
+      plans: (plans ?? []) as any[],
+      students: students.count ?? 0,
+      debt: invoiceRows
+        .filter((i) => i.status !== "paid")
+        .reduce((sum, i) => sum + Number(i.amount ?? 0), 0),
+    };
+  });
+
+/** Owner: generate the current month invoice for a center (manual trigger). */
+export const generateCenterInvoice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ center_id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const admin = await requirePlatformOwner(context);
+    const { data: sub } = await admin
+      .from("center_subscriptions")
+      .select("monthly_price")
+      .eq("center_id", data.center_id)
+      .maybeSingle();
+
+    const now = new Date();
+    const period = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      .toISOString()
+      .slice(0, 10);
+    const due = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 10))
+      .toISOString()
+      .slice(0, 10);
+
+    const { data: existing } = await admin
+      .from("center_invoices")
+      .select("id")
+      .eq("center_id", data.center_id)
+      .eq("period_month", period)
+      .maybeSingle();
+    if (existing) return { invoice_id: existing.id as string, created: false };
+
+    const { data: inv, error } = await admin
+      .from("center_invoices")
+      .insert({
+        center_id: data.center_id,
+        period_month: period,
+        due_date: due,
+        amount: Number(sub?.monthly_price ?? 0),
+        status: "pending",
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { invoice_id: inv.id as string, created: true };
+  });
