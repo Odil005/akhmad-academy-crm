@@ -44,6 +44,7 @@ import {
   Lock,
 
 
+  Building2,
 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import {
@@ -168,6 +169,7 @@ function AuthenticatedLayout() {
     { to: "/marketplace", label: "Marketplace", icon: ShoppingBag, show: true },
     { to: "/reports", label: "Hisobotlar", icon: BarChart3, show: isDirector },
     { to: "/import", label: "Excel import", icon: Upload, show: isStaff },
+    { to: "/platform", label: "UNI CRM platforma", icon: Building2, show: isDirector },
     { to: "/settings", label: "Sozlamalar", icon: Settings, show: isStaff },
   ];
 
