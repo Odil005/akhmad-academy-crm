@@ -123,7 +123,7 @@ export const getSetupStatus = createServerFn({ method: "GET" })
       {
         key: "director_report",
         title: "Direktor kunlik hisoboti",
-        hint: "Hisobot 20:00 da yuboriladi — qabul qiluvchi Telegram chat_id kerak.",
+        hint: "Hisobot 21:00 da yuboriladi — qabul qiluvchi Telegram chat_id kerak.",
         done: recipients > 0,
         count: recipients,
         to: "/settings/director-report",

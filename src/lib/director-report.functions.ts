@@ -4,7 +4,7 @@ import { z } from "zod";
 
 /**
  * Staff-only: send a verification message to one director-report recipient.
- * Confirms the stored chat id actually reachable by the bot before 20:00 cron.
+ * Confirms the stored chat id actually reachable by the bot before 21:00 cron.
  */
 export const sendDirectorReportTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -31,7 +31,7 @@ export const sendDirectorReportTest = createServerFn({ method: "POST" })
     const { sendTelegramText } = await import("@/lib/telegram.server");
     const result = await sendTelegramText(
       rec.telegram_chat_id,
-      `✅ Akhmad Academy: kunlik direktor hisoboti uchun ulanish tasdiqlandi.\nQabul qiluvchi: ${rec.full_name}\nHisobot har kuni 20:00 (Toshkent) da shu chatga keladi.`,
+      `✅ Akhmad Academy: kunlik direktor hisoboti uchun ulanish tasdiqlandi.\nQabul qiluvchi: ${rec.full_name}\nHisobot har kuni 21:00 (Toshkent) da shu chatga keladi.`,
     );
     if (result.ok) return { ok: true as const };
     const error = result.error;
