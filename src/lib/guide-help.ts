@@ -131,7 +131,7 @@ export const HOW_TOS: HowTo[] = [
       "«Hisobotlar» bo'limiga o'ting.",
       "Davrni tanlang (kunlik, haftalik, oylik).",
       "Kerakli ko'rsatkichni ochib tahlil qiling.",
-      "Kunlik hisobot har kuni 20:00 da direktor Telegramiga avtomatik tushadi.",
+      "Kunlik hisobot har kuni 21:00 da direktor Telegramiga avtomatik tushadi.",
     ],
     to: "/reports",
     tourTarget: "nav-/reports",

@@ -16,7 +16,7 @@ Har bir markaz uchun bajariladigan qadamlar:
 4. Sirlar kiritiladi: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `CRON_SECRET`.
    Har markaz uchun **alohida Telegram bot** yaratilishi shart.
 5. Direktor logini `Sozlamalar → Foydalanuvchi loginlari` bo'limida yaratiladi.
-6. Kunlik hisobot 20:00 uchun `cron.daily-report` endpointi markaz domeniga ulanadi.
+6. Kunlik hisobot 21:00 uchun `cron.daily-report` endpointi markaz domeniga ulanadi.
 
 Narxlash uchun tayyor model: har markaz oyiga abonent to'lovi + bir martalik sozlash.
 

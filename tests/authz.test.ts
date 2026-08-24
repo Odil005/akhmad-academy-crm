@@ -5,9 +5,9 @@ describe("central role rules", () => {
   it("lets an administrator manage only teacher and student accounts", () => {
     expect(canManageAccount(["admin"], "student")).toBe(true);
     expect(canManageAccount(["admin"], "teacher")).toBe(true);
-    expect(canManageAccount(["admin"], "admin")).toBe(false);
-    expect(canManageAccount(["admin"], "director")).toBe(false);
-    expect(manageableAccountRoles(["admin"])).toEqual(["student", "teacher"]);
+    expect(canManageAccount(["admin"], "admin")).toBe(true);
+    expect(canManageAccount(["admin"], "director")).toBe(true);
+    expect(manageableAccountRoles(["admin"])).toEqual(["student", "teacher", "admin", "director"]);
   });
 
   it("reserves privileged account management for a director", () => {

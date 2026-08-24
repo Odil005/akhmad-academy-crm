@@ -17,14 +17,13 @@ export function isStaff(roles: readonly string[]) {
   return isDirector(roles) || isAdmin(roles);
 }
 
-/** Admin manages day-to-day users; only a director may manage privileged accounts. */
+/** Staff (admin or director) may manage all account roles, including director logins. */
 export function canManageAccount(roles: readonly string[], targetRole: AppRole) {
-  if (isDirector(roles)) return true;
-  return isAdmin(roles) && (targetRole === "student" || targetRole === "teacher");
+  return isStaff(roles) && APP_ROLES.includes(targetRole);
 }
 
 export function manageableAccountRoles(roles: readonly string[]): AppRole[] {
-  return isDirector(roles) ? [...APP_ROLES] : isAdmin(roles) ? ["student", "teacher"] : [];
+  return isStaff(roles) ? [...APP_ROLES] : [];
 }
 
 export function canManageSchedule(roles: readonly string[]) {

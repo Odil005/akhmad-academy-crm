@@ -89,7 +89,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
     {
       target: "nav-/reports",
       title: "Hisobotlar",
-      body: "Oylik va kunlik hisobotlar. Kunlik hisobot har kuni 20:00 da Telegramingizga avtomatik tushadi.",
+      body: "Oylik va kunlik hisobotlar. Kunlik hisobot har kuni 21:00 da Telegramingizga avtomatik tushadi.",
       to: "/reports",
     },
     {
