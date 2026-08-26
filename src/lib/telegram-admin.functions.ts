@@ -34,18 +34,34 @@ export const setTelegramWebhook = createServerFn({ method: "POST" })
       throw new Response("Forbidden", { status: 403 });
     }
 
-    const baseUrl = normalizeTelegramAppBaseUrl(process.env.APP_BASE_URL ?? "");
+    const requestOrigin = await (async () => {
+      try {
+        const { getRequestUrl } = await import("@tanstack/react-start/server");
+        return normalizeTelegramAppBaseUrl(new URL(getRequestUrl()).origin);
+      } catch {
+        return null;
+      }
+    })();
+
+    const baseUrl =
+      normalizeTelegramAppBaseUrl(process.env.APP_BASE_URL ?? "") ?? requestOrigin;
     if (!baseUrl) {
-      throw new Response("APP_BASE_URL Vercel domeni bilan HTTPS ko'rinishida sozlanmagan", {
+      throw new Response("Publik HTTPS domen aniqlanmadi. APP_BASE_URL ni sozlang", {
         status: 400,
       });
     }
-    const secret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? "";
-    if (!isValidTelegramWebhookSecret(secret)) {
-      throw new Response("TELEGRAM_WEBHOOK_SECRET noto'g'ri: faqat harf, raqam, _ va - ishlating", {
-        status: 400,
-      });
+    const explicitSecret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? "";
+    const sanitized = explicitSecret.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 256);
+    const { deriveTelegramWebhookSecret } = await import("@/lib/telegram.server");
+    const secret = isValidTelegramWebhookSecret(explicitSecret)
+      ? explicitSecret
+      : isValidTelegramWebhookSecret(sanitized)
+        ? sanitized
+        : deriveTelegramWebhookSecret();
+    if (!secret) {
+      throw new Response("TELEGRAM_BOT_TOKEN sozlanmagan", { status: 400 });
     }
+
 
     const { callTelegram } = await import("@/lib/telegram.server");
     const webhookUrl = `${baseUrl}/api/public/telegram/webhook`;

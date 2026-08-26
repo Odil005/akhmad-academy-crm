@@ -39,6 +39,7 @@ const MENU_PAYMENT = "💳 To'lov holati";
 const MENU_RECEIPT = "🧾 Chek yuborish";
 const MENU_STATS = "📊 Davomat";
 const MENU_AI = "🤖 AI yordamchi";
+const MENU_LOGIN = "🔐 Student app kirish";
 const MENU_HOME = "🏠 Bosh menyu";
 const STAFF_TODAY = "📅 Bugungi darslar";
 const STAFF_MESSAGES = "💬 Ota-ona xabarlari";
@@ -97,14 +98,19 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
       POST: async ({ request }) => {
         const botToken = process.env.TELEGRAM_BOT_TOKEN;
         if (!botToken) return new Response("Bot token not configured", { status: 503 });
-        // Prefer an explicit TELEGRAM_WEBHOOK_SECRET if present and Telegram-safe;
-        // otherwise derive a hex secret from the bot token.
-        const explicit = process.env.TELEGRAM_WEBHOOK_SECRET;
-        const expected = explicit && /^[A-Za-z0-9_-]{1,256}$/.test(explicit)
-          ? explicit
-          : deriveWebhookSecret(botToken);
+        // Accept either an explicit TELEGRAM_WEBHOOK_SECRET (raw or sanitized to
+        // Telegram-safe characters) or the hex secret derived from the bot token.
+        const explicit = (process.env.TELEGRAM_WEBHOOK_SECRET ?? "").trim();
+        const candidates = [
+          explicit,
+          explicit.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 256),
+          deriveWebhookSecret(botToken),
+        ].filter((value) => value.length >= 1);
         const provided = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
-        if (!safeEqual(provided, expected)) return new Response("Unauthorized", { status: 401 });
+        if (!candidates.some((candidate) => safeEqual(provided, candidate))) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -148,7 +154,8 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
                 [{ text: MENU_PAYMENT }, { text: MENU_RECEIPT }],
                 [{ text: MENU_STATS }, { text: MENU_TEACHER }],
                 [{ text: MENU_ANSWERS }, { text: MENU_MEETING }],
-                [{ text: MENU_AI }, { text: MENU_HOME }],
+                [{ text: MENU_AI }, { text: MENU_LOGIN }],
+                [{ text: MENU_HOME }],
               ],
               resize_keyboard: true,
             },
@@ -1839,6 +1846,8 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           if (text === MENU_MEETING) return pickStudent("meeting", "Qaysi farzand uchun?");
           if (text === MENU_PAYMENT) return pickStudent("payment", "Qaysi farzand uchun?");
           if (text === MENU_STATS) return pickStudent("stats", "Qaysi farzand uchun?");
+          if (text === MENU_LOGIN)
+            return pickStudent("login", "Qaysi farzand uchun login kerak?");
           if (text === MENU_AI)
             return pickStudent("ai_prompt", "Qaysi farzand haqida so'ramoqchisiz?");
 
@@ -1867,6 +1876,110 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           ) {
             const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
             const fullName = `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim();
+
+            // Parent requests the student-app login. Passwords are never stored in
+            // plaintext, so we (re)issue a fresh access code for the student account.
+            if (action === "login") {
+              const { generateUsername, generateAccessCode, usernameToEmail } = await import(
+                "@/lib/credentials"
+              );
+              const code = generateAccessCode(8);
+              const { data: cred } = await supabaseAdmin
+                .from("student_credentials")
+                .select("username, auth_user_id")
+                .eq("student_id", student.id)
+                .maybeSingle();
+
+              if (cred?.auth_user_id) {
+                const { error } = await supabaseAdmin.auth.admin.updateUserById(cred.auth_user_id, {
+                  password: code,
+                });
+                if (error) {
+                  await reply(chat, "⚠️ Login yangilanmadi. Administrator bilan bog'laning.", mainMenu);
+                  return new Response("ok");
+                }
+                await supabaseAdmin
+                  .from("student_credentials")
+                  .update({ access_code: "***", updated_at: new Date().toISOString() })
+                  .eq("student_id", student.id);
+                await reply(
+                  chat,
+                  [
+                    "🔐 Student app kirish ma'lumotlari",
+                    "",
+                    `O'quvchi: ${fullName || "O'quvchi"}`,
+                    `Login: ${cred.username}`,
+                    `Parol: ${code}`,
+                    "",
+                    "Bu parol faqat sizga ko'rinadi. Kirgach parolni administrator orqali o'zgartirishingiz mumkin.",
+                  ].join("\n"),
+                  mainMenu,
+                );
+                return new Response("ok");
+              }
+
+              // No account yet — create one for this student.
+              let username = generateUsername(
+                student.first_name ?? "student",
+                student.last_name ?? "",
+                String(chat),
+              );
+              for (let attempt = 0; attempt < 5; attempt += 1) {
+                const { data: taken } = await supabaseAdmin
+                  .from("student_credentials")
+                  .select("id")
+                  .eq("username", username)
+                  .maybeSingle();
+                if (!taken) break;
+                username = `${username}${Math.floor(Math.random() * 90 + 10)}`;
+              }
+              const { data: created, error: createErr } =
+                await supabaseAdmin.auth.admin.createUser({
+                  email: usernameToEmail(username),
+                  password: code,
+                  email_confirm: true,
+                  user_metadata: { full_name: fullName || username },
+                });
+              if (createErr || !created?.user) {
+                await reply(
+                  chat,
+                  "⚠️ Hisob yaratilmadi. Administrator sizga login beradi.",
+                  mainMenu,
+                );
+                return new Response("ok");
+              }
+              const authUserId = created.user.id;
+              await supabaseAdmin
+                .from("profiles")
+                .upsert({ id: authUserId, full_name: fullName || username });
+              await supabaseAdmin.from("user_roles").delete().eq("user_id", authUserId);
+              await supabaseAdmin.from("user_roles").insert({ user_id: authUserId, role: "student" });
+              await supabaseAdmin
+                .from("students")
+                .update({ profile_id: authUserId })
+                .eq("id", student.id);
+              await supabaseAdmin.from("student_credentials").insert({
+                student_id: student.id,
+                username,
+                access_code: "***",
+                auth_user_id: authUserId,
+              });
+              await reply(
+                chat,
+                [
+                  "🔐 Student app hisobi yaratildi",
+                  "",
+                  `O'quvchi: ${fullName || "O'quvchi"}`,
+                  `Login: ${username}`,
+                  `Parol: ${code}`,
+                  "",
+                  "Bu ma'lumotni boshqalarga yubormang.",
+                ].join("\n"),
+                mainMenu,
+              );
+              return new Response("ok");
+            }
+
 
             if (action === "ai_prompt") {
               const marker = `${ZWJ}ai|${student.id}${ZWJ}`;
