@@ -39,6 +39,7 @@ const MENU_PAYMENT = "💳 To'lov holati";
 const MENU_RECEIPT = "🧾 Chek yuborish";
 const MENU_STATS = "📊 Davomat";
 const MENU_AI = "🤖 AI yordamchi";
+const MENU_LOGIN = "🔐 Student app kirish";
 const MENU_HOME = "🏠 Bosh menyu";
 const STAFF_TODAY = "📅 Bugungi darslar";
 const STAFF_MESSAGES = "💬 Ota-ona xabarlari";
@@ -153,7 +154,8 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
                 [{ text: MENU_PAYMENT }, { text: MENU_RECEIPT }],
                 [{ text: MENU_STATS }, { text: MENU_TEACHER }],
                 [{ text: MENU_ANSWERS }, { text: MENU_MEETING }],
-                [{ text: MENU_AI }, { text: MENU_HOME }],
+                [{ text: MENU_AI }, { text: MENU_LOGIN }],
+                [{ text: MENU_HOME }],
               ],
               resize_keyboard: true,
             },
@@ -1844,6 +1846,8 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           if (text === MENU_MEETING) return pickStudent("meeting", "Qaysi farzand uchun?");
           if (text === MENU_PAYMENT) return pickStudent("payment", "Qaysi farzand uchun?");
           if (text === MENU_STATS) return pickStudent("stats", "Qaysi farzand uchun?");
+          if (text === MENU_LOGIN)
+            return pickStudent("login", "Qaysi farzand uchun login kerak?");
           if (text === MENU_AI)
             return pickStudent("ai_prompt", "Qaysi farzand haqida so'ramoqchisiz?");
 
