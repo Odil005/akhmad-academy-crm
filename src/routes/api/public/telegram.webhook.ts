@@ -97,14 +97,19 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
       POST: async ({ request }) => {
         const botToken = process.env.TELEGRAM_BOT_TOKEN;
         if (!botToken) return new Response("Bot token not configured", { status: 503 });
-        // Prefer an explicit TELEGRAM_WEBHOOK_SECRET if present and Telegram-safe;
-        // otherwise derive a hex secret from the bot token.
-        const explicit = process.env.TELEGRAM_WEBHOOK_SECRET;
-        const expected = explicit && /^[A-Za-z0-9_-]{1,256}$/.test(explicit)
-          ? explicit
-          : deriveWebhookSecret(botToken);
+        // Accept either an explicit TELEGRAM_WEBHOOK_SECRET (raw or sanitized to
+        // Telegram-safe characters) or the hex secret derived from the bot token.
+        const explicit = (process.env.TELEGRAM_WEBHOOK_SECRET ?? "").trim();
+        const candidates = [
+          explicit,
+          explicit.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 256),
+          deriveWebhookSecret(botToken),
+        ].filter((value) => value.length >= 1);
         const provided = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
-        if (!safeEqual(provided, expected)) return new Response("Unauthorized", { status: 401 });
+        if (!candidates.some((candidate) => safeEqual(provided, candidate))) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

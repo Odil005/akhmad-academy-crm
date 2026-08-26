@@ -1,4 +1,6 @@
+import { createHash } from "crypto";
 import { splitTelegramMessage } from "../features/telegram/domain";
+
 
 const TELEGRAM_API = "https://api.telegram.org";
 
@@ -17,6 +19,16 @@ export function getTelegramBotToken(): string | null {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   return token || null;
 }
+
+/** Telegram-safe fallback webhook secret derived from the bot token. */
+export function deriveTelegramWebhookSecret(): string | null {
+  const token = getTelegramBotToken();
+  if (!token) return null;
+  // sha256 hex is always Telegram-safe (A-Z a-z 0-9).
+  return createHash("sha256").update(`telegram-webhook:${token}`).digest("hex");
+
+}
+
 
 export async function hashTelegramLinkToken(token: string): Promise<string> {
   const bytes = new TextEncoder().encode(token);
