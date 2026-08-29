@@ -260,7 +260,7 @@ export const resetAccessCode = createServerFn({ method: "POST" })
     return { ok: true, access_code: data.new_code };
   });
 
-// Delete a managed user (director only). Removes auth user + credentials + roles.
+// Delete a managed user. Director/admin (o'z ruxsat doirasida) o'chira oladi.
 export const deleteManagedUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
@@ -277,16 +277,32 @@ export const deleteManagedUser = createServerFn({ method: "POST" })
       return { ok: false, error: "O'zingizni o'chira olmaysiz." };
     }
     const callerRoles = await rolesOf(supabase, userId);
-    if (!isDirector(callerRoles)) {
-      return { ok: false, error: "Faqat direktor o'chira oladi." };
+    if (!isStaff(callerRoles)) {
+      return { ok: false, error: "Bu amal uchun ruxsat yo'q." };
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let supabaseAdmin: Awaited<
+      typeof import("@/integrations/supabase/client.server")
+    >["supabaseAdmin"];
+    try {
+      ({ supabaseAdmin } = await import("@/integrations/supabase/client.server"));
+      void supabaseAdmin.auth;
+    } catch {
+      return { ok: false, error: SERVER_CONFIG_ERROR };
+    }
 
-    const targetRoles = await targetRolesOf(supabaseAdmin, data.user_id);
+    let targetRoles: AppRole[];
+    try {
+      targetRoles = await targetRolesOf(supabaseAdmin, data.user_id);
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : "Rol topilmadi." };
+    }
     // Prevent deleting another director; it protects the highest role from accidents.
     if (targetRoles.includes("director")) {
       return { ok: false, error: "Direktorni o'chirib bo'lmaydi." };
+    }
+    if (targetRoles.some((role) => !canManageAccount(callerRoles, role))) {
+      return { ok: false, error: "Admin faqat o'quvchi va o'qituvchi loginlarini o'chira oladi." };
     }
 
     // Delete every credential record that matches the target's actual roles.
@@ -296,19 +312,67 @@ export const deleteManagedUser = createServerFn({ method: "POST" })
     }
     if (targetRoles.includes("teacher")) {
       await supabaseAdmin.from("teacher_credentials").delete().eq("teacher_user_id", data.user_id);
+      // Guruh/dars/ro'yxatlar tarixi saqlanadi, faqat bog'lanish bo'shatiladi.
+      await supabaseAdmin
+        .from("groups")
+        .update({ teacher_id: null })
+        .eq("teacher_id", data.user_id);
+      await supabaseAdmin
+        .from("lessons")
+        .update({ teacher_user_id: null })
+        .eq("teacher_user_id", data.user_id);
+      await supabaseAdmin
+        .from("student_enrollments")
+        .update({ teacher_user_id: null })
+        .eq("teacher_user_id", data.user_id);
     }
     if (targetRoles.includes("admin")) {
       await supabaseAdmin.from("admin_credentials").delete().eq("admin_user_id", data.user_id);
     }
 
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
-    await supabaseAdmin.from("profiles").delete().eq("id", data.user_id);
+    // "created_by / updated_by" bog'lanishlari NO ACTION — ular bo'shatilmasa
+    // auth foydalanuvchisini o'chirish FK xatosi bilan to'xtaydi.
+    const authorLinks: Array<[string, string]> = [
+      ["teacher_credentials", "created_by"],
+      ["student_credentials", "created_by"],
+      ["admin_credentials", "created_by"],
+      ["teacher_salary_payments", "created_by"],
+      ["news", "created_by"],
+      ["calls", "created_by"],
+      ["settings", "updated_by"],
+    ];
+    for (const [table, column] of authorLinks) {
+      await supabaseAdmin
+        .from(table as never)
+        .update({ [column]: null } as never)
+        .eq(column, data.user_id);
+    }
+
+    const { error: rolesError } = await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", data.user_id);
+    if (rolesError) return { ok: false, error: `Rollarni o'chirib bo'lmadi: ${rolesError.message}` };
+
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .delete()
+      .eq("id", data.user_id);
+    if (profileError) {
+      return { ok: false, error: `Profilni o'chirib bo'lmadi: ${profileError.message}` };
+    }
 
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.user_id);
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      return {
+        ok: false,
+        error: `Loginni o'chirib bo'lmadi: ${error.message}. Bu foydalanuvchi boshqa yozuvlarga bog'langan bo'lishi mumkin.`,
+      };
+    }
 
     return { ok: true };
   });
+
 
 /**
  * Director loginlari ro'yxati. `director_credentials` faqat egasi uchun o'qiladigan
