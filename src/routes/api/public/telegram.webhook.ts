@@ -1525,9 +1525,68 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
                 await reply(chatId, "Bosh menyu:", mainMenu);
                 return new Response("ok");
               }
+              // Pre-authorized staff by Telegram username (set by admin in Settings)
+              const uname = msg?.chat?.username ?? msg?.from?.username;
+              if (uname) {
+                const { data: preAuth } = await supabaseAdmin
+                  .from("profiles")
+                  .select("id, full_name, telegram_username")
+                  .ilike("telegram_username", `@${uname}`)
+                  .maybeSingle();
+                if (preAuth) {
+                  const { data: roles } = await supabaseAdmin
+                    .from("user_roles")
+                    .select("role")
+                    .eq("user_id", preAuth.id);
+                  const staffRole = (roles ?? []).map((r) => r.role).find((r) =>
+                    ["director", "admin", "teacher"].includes(r as string),
+                  ) as string | undefined;
+                  if (staffRole) {
+                    await supabaseAdmin.from("staff_telegram_links").upsert(
+                      {
+                        user_id: preAuth.id,
+                        role: staffRole,
+                        full_name: preAuth.full_name ?? "Xodim",
+                        telegram_chat_id: String(chatId),
+                        notifications_enabled: true,
+                        updated_at: new Date().toISOString(),
+                      },
+                      { onConflict: "user_id" },
+                    );
+                    await supabaseAdmin
+                      .from("profiles")
+                      .update({
+                        telegram_chat_id: String(chatId),
+                        telegram_username: `@${uname}`,
+                        telegram_verified_at: new Date().toISOString(),
+                        telegram_last_checked_at: new Date().toISOString(),
+                        telegram_last_error: null,
+                      })
+                      .eq("id", preAuth.id);
+                    if (staffRole === "director" || staffRole === "admin") {
+                      await supabaseAdmin.from("director_report_recipients").upsert(
+                        {
+                          user_id: preAuth.id,
+                          full_name: preAuth.full_name ?? "Direktor",
+                          telegram_chat_id: String(chatId),
+                          is_active: true,
+                        },
+                        { onConflict: "telegram_chat_id" },
+                      );
+                    }
+                    await reply(
+                      chatId,
+                      `✅ Telegram ulanди (${staffRole}). Chat ID: ${chatId}\nHar kuni 21:00 da kunlik hisobot shu chatga keladi.`,
+                      staffMenu(staffRole),
+                    );
+                    return new Response("ok");
+                  }
+                }
+              }
               await askContact(chatId);
               return new Response("ok");
             }
+
             const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
               arg,
             );
