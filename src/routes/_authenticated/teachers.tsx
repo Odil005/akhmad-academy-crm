@@ -312,15 +312,30 @@ function TeachersPage() {
                       <div className="flex items-center gap-2">
                         <TelegramIdButton kind="teacher" id={row.user_id} name={row.full_name} compact />
                         {canManage && (
-                          <button
-                            onClick={() => setEditing(row)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-xs font-semibold hover:border-primary"
-                          >
-                            <KeyRound className="h-3.5 w-3.5" /> Login/parol
-                          </button>
+                          <>
+                            <button
+                              onClick={() => setEditing(row)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-xs font-semibold hover:border-primary"
+                            >
+                              <KeyRound className="h-3.5 w-3.5" /> Login/parol
+                            </button>
+                            <button
+                              onClick={() => void removeTeacher(row)}
+                              disabled={deletingId === row.user_id}
+                              className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-destructive hover:border-destructive disabled:opacity-60"
+                            >
+                              {deletingId === row.user_id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}{" "}
+                              O'chirish
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
