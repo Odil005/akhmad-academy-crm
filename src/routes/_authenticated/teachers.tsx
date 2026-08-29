@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { GraduationCap, KeyRound, Loader2, Plus, RefreshCw, Search, Users, X } from "lucide-react";
+import { GraduationCap, KeyRound, Loader2, Plus, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TelegramIdButton } from "@/components/TelegramIdButton";
 import { NewTeacherModal } from "@/components/NewTeacherModal";
-import { updateManagedLogin } from "@/lib/user-admin.functions";
+import { updateManagedLogin, deleteManagedUser } from "@/lib/user-admin.functions";
 import { isStaff as hasStaffRole } from "@/lib/authz";
 
 export const Route = createFileRoute("/_authenticated/teachers")({
@@ -66,6 +66,8 @@ function TeachersPage() {
   const [query, setQuery] = useState("");
   const [newTeacherOpen, setNewTeacherOpen] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const removeUser = useServerFn(deleteManagedUser);
 
   const load = useCallback(async (manual = false) => {
     manual ? setRefreshing(true) : setLoading(true);
@@ -165,6 +167,26 @@ function TeachersPage() {
       return;
     }
     toast.success("O'qituvchi darajasi yangilandi");
+  };
+
+  const removeTeacher = async (row: Row) => {
+    if (!confirm(`"${row.full_name}" o'qituvchi va uning logini butunlay o'chiriladi. Davom etamizmi?`))
+      return;
+    setDeletingId(row.user_id);
+    try {
+      const res = await removeUser({ data: { user_id: row.user_id, role: "teacher" } });
+      if (!res.ok) {
+        toast.error(res.error ?? "O'chirib bo'lmadi");
+        return;
+      }
+      toast.success("O'qituvchi o'chirildi");
+      setRows((current) => current.filter((r) => r.user_id !== row.user_id));
+      void load(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Xatolik");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
