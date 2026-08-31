@@ -67,7 +67,7 @@ const STUDENT_HOME = "🏠 O'quvchi menyusi";
 type Contact = { phone_number: string; first_name?: string; last_name?: string; user_id?: number };
 type Msg = {
   chat?: { id: number; type?: string; first_name?: string; last_name?: string; username?: string };
-  from?: { id: number };
+  from?: { id: number; username?: string; first_name?: string };
   text?: string;
   caption?: string;
   contact?: Contact;
