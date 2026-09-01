@@ -16,7 +16,6 @@ import {
   isJarvisSafeSettingKey,
   sanitizeJarvisSettingValues,
 } from "@/features/jarvis/settings";
-import { sendTelegramText } from "@/lib/telegram.server";
 
 type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
@@ -859,6 +858,7 @@ async function runTool(
         `📌 ${reason}`,
         `💬 ${message}`,
       ].join("\n");
+      const { sendTelegramText } = await import("@/lib/telegram.server");
       const sent = await sendTelegramText(student.parent_telegram_chat_id, outgoing);
       await supabaseAdmin
         .from("parent_notifications")

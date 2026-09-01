@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendTelegramText } from "@/lib/telegram.server";
+// Server-only modules are imported inside the handler so nothing server-side
+// can leak into the client bundle (Cloudflare worker boundary).
 
 const ACTIVITY_LABEL: Record<string, string> = {
   qoniqarsiz: "E'tibor kerak",
@@ -14,6 +14,8 @@ export const notifyBehaviorParentNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((value: unknown) => value as { evaluationId: string })
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { sendTelegramText } = await import("@/lib/telegram.server");
     const { data: roleRows, error: roleError } = await context.supabase
       .from("user_roles")
       .select("role")

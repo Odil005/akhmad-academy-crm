@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 // SIP provider webhook — call events (ringing/answered/hangup/recording).
 // Verifies HMAC signature using sip_config.webhook_secret.

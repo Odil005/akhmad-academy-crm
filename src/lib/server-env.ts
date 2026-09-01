@@ -46,7 +46,19 @@ export function ensureSupabaseServerEnv(): void {
 }
 
 /** Single entry point used by the server entry on every request. */
-export function normalizeServerEnv(hostEnv?: unknown): void {
+export function normalizeServerEnv(hostEnv?: unknown, requestUrl?: string): void {
   adoptHostEnv(hostEnv);
   ensureSupabaseServerEnv();
+
+  // Public base URL: hosts rarely set it, but Telegram/webhook/receipt links
+  // need an absolute HTTPS origin. Derive it from the incoming request.
+  const env = processEnv();
+  if (env && !env.APP_BASE_URL && requestUrl) {
+    try {
+      const origin = new URL(requestUrl).origin;
+      if (origin.startsWith("https://")) env.APP_BASE_URL = origin;
+    } catch {
+      /* ignore malformed request URLs */
+    }
+  }
 }

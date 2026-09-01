@@ -50,7 +50,7 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       // Cloudflare passes secrets on `env`; server functions read process.env.
-      normalizeServerEnv(env);
+      normalizeServerEnv(env, request.url);
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
