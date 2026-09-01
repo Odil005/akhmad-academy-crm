@@ -16,7 +16,6 @@ import {
   isJarvisSafeSettingKey,
   sanitizeJarvisSettingValues,
 } from "@/features/jarvis/settings";
-import { sendTelegramText } from "@/lib/telegram.server";
 
 type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
