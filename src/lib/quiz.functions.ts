@@ -19,6 +19,7 @@ export const getSubjectQuiz = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
+    const { createFallbackQuestions, generateQuestions } = await import("./quiz.server");
     const level = Math.min(Math.max(data.level ?? 1, 1), 3);
     const count = Math.min(Math.max(data.count ?? 8, 3), 12);
     const subjectName = data.subject_name.slice(0, 120) || "Umumiy bilim";
