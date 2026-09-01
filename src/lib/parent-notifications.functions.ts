@@ -14,6 +14,8 @@ export const notifyBehaviorParentNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((value: unknown) => value as { evaluationId: string })
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { sendTelegramText } = await import("@/lib/telegram.server");
     const { data: roleRows, error: roleError } = await context.supabase
       .from("user_roles")
       .select("role")
