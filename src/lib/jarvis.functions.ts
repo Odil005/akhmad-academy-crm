@@ -858,6 +858,7 @@ async function runTool(
         `📌 ${reason}`,
         `💬 ${message}`,
       ].join("\n");
+      const { sendTelegramText } = await import("@/lib/telegram.server");
       const sent = await sendTelegramText(student.parent_telegram_chat_id, outgoing);
       await supabaseAdmin
         .from("parent_notifications")
