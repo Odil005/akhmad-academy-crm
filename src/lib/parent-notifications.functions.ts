@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendTelegramText } from "@/lib/telegram.server";
+// Server-only modules are imported inside the handler so nothing server-side
+// can leak into the client bundle (Cloudflare worker boundary).
 
 const ACTIVITY_LABEL: Record<string, string> = {
   qoniqarsiz: "E'tibor kerak",
