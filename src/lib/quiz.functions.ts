@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { createFallbackQuestions, generateQuestions } from "./quiz.server";
 
 /**
  * Return quiz questions for a subject. Existing questions are reused; when the
