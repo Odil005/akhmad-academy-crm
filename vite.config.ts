@@ -27,6 +27,11 @@ export default defineConfig({
     define: {
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(publicBackendUrl),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(publicBackendKey),
+      // The generated browser client keeps process.env fallbacks for SSR.
+      // Define the two public values as well so Cloudflare's client build can
+      // never ship an unresolved process.env lookup.
+      "process.env.SUPABASE_URL": JSON.stringify(publicBackendUrl),
+      "process.env.SUPABASE_PUBLISHABLE_KEY": JSON.stringify(publicBackendKey),
     },
   },
 

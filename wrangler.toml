@@ -3,6 +3,12 @@ main = "dist/server/index.mjs"
 compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Public backend coordinates are safe to expose and must be available to both
+# SSR and browser builds. Privileged credentials remain Cloudflare secrets.
+[vars]
+SUPABASE_URL = "https://bsuvywszdkqaetbyrfqk.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzdXZ5d3N6ZGtxYWV0YnlyZnFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MzcxNzgsImV4cCI6MjEwMDAxMzE3OH0.Bo-aXzNniUAdh24ProFFcpXxlrik-7Od0Q0tW23TTC0"
+
 [assets]
 directory = "dist/client"
 binding = "ASSETS"
