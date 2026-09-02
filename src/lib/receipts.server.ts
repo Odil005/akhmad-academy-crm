@@ -130,12 +130,12 @@ export function parentDecisionText(
 ) {
   return approved
     ? [
-        "✅ To'lovingiz tasdiqlandi",
+        "✅ To'lovingiz qabul qilindi. Tashakkur!",
         `O'quvchi: ${data.studentName}`,
         `Summa: ${money(data.amount)} so'm`,
         data.note ? `Izoh: ${data.note}` : null,
         "",
-        "Rahmat! Kvitansiya CRM tizimida saqlandi.",
+        "To'lov CRM tizimida hisobga olindi. Farzandingiz muvaffaqiyatlari haqida xabar berib turamiz.",
       ]
         .filter(Boolean)
         .join("\n")
