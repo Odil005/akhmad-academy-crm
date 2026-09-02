@@ -48,12 +48,11 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
   const [discountReason, setDiscountReason] = useState("");
   const [method, setMethod] = useState<(typeof METHODS)[number]["v"]>("cash");
   const [cashAccountId, setCashAccountId] = useState<string>("");
-  const [fiscalize, setFiscalize] = useState(true);
   const [notify, setNotify] = useState(true);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ paymentId: string; fiscalError: string | null; notifStatus: string | null } | null>(null);
+  const [result, setResult] = useState<{ paymentId: string; notifStatus: string | null } | null>(null);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [idemKey] = useState(() => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`));
 
@@ -126,7 +125,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
           discount_reason: discount > 0 ? (discountReason || null) : null,
           payment_method: method,
           cash_account_id: cashAccountId || null,
-          fiscalize,
+          fiscalize: false,
           notify_parent: notify,
           idempotency_key: idemKey,
         },
@@ -134,7 +133,6 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
       const r = res as any;
       setResult({
         paymentId: r.payment.id,
-        fiscalError: r.fiscalError ?? null,
         notifStatus: r.notification?.status ?? null,
       });
       const { getPublicReceipt } = await import("@/lib/payments.functions");
@@ -159,7 +157,6 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
         {result ? (
           <SuccessPanel
             paymentId={result.paymentId}
-            fiscalError={result.fiscalError}
             notifStatus={result.notifStatus}
             receipt={receipt}
             onClose={onClose}
@@ -271,7 +268,6 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
             </div>
 
             <div className="space-y-2">
-              <Toggle checked={fiscalize} onChange={setFiscalize} label="Fiskal chek chiqarish" />
               <Toggle checked={notify} onChange={setNotify} label="Ota-onaga Telegram orqali yuborish" />
             </div>
 
@@ -288,7 +284,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
               <button onClick={submit} disabled={submitting || !student}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60">
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                To'lovni tasdiqlash va chek chiqarish
+                To'lovni tasdiqlash
               </button>
             </div>
           </div>
@@ -326,11 +322,10 @@ function HealthStrip({ ctx }: { ctx: Ctx | null }) {
   if (!ctx) return <div className="h-9 animate-pulse rounded-lg bg-secondary/50" />;
   const items = [
     { ok: ctx.printer.type !== "none", label: ctx.printer.type === "none" ? "Printer sozlanmagan" : "Printer tayyor" },
-    { ok: ctx.fiscal.real && ctx.fiscal.shiftOpen, label: ctx.fiscal.real ? (ctx.fiscal.shiftOpen ? "Virtual kassa faol" : "Kassa smenasi yopiq") : `Test rejim — ${ctx.fiscal.reason ?? "fiskal emas"}` },
     { ok: ctx.telegram.configured, label: ctx.telegram.configured ? "Telegram bot faol" : "Telegram bot sozlanmagan" },
   ];
   return (
-    <div className="grid gap-2 sm:grid-cols-3">
+    <div className="grid gap-2 sm:grid-cols-2">
       {items.map((i) => (
         <div key={i.label} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold ${i.ok ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" : "border-destructive/40 bg-destructive/10 text-destructive"}`}>
           {i.ok ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <XCircle className="h-4 w-4 shrink-0" />}
@@ -341,12 +336,11 @@ function HealthStrip({ ctx }: { ctx: Ctx | null }) {
   );
 }
 
-function SuccessPanel({ paymentId, fiscalError, notifStatus, receipt, onClose }: {
-  paymentId: string; fiscalError: string | null; notifStatus: string | null; receipt: ReceiptData | null; onClose: () => void;
+function SuccessPanel({ paymentId, notifStatus, receipt, onClose }: {
+  paymentId: string; notifStatus: string | null; receipt: ReceiptData | null; onClose: () => void;
 }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const isFiscal = receipt?.receipt && !receipt.receipt.test_mode && receipt.payment.fiscal_status === "fiscalized";
 
   const resend = async () => {
     setBusy(true); setMsg(null);
@@ -357,21 +351,10 @@ function SuccessPanel({ paymentId, fiscalError, notifStatus, receipt, onClose }:
 
   return (
     <div className="space-y-4 px-5 py-5">
-      {fiscalError ? (
-        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-          <div className="font-bold">Virtual kassa bilan aloqa o'rnatilmadi</div>
-          <div className="mt-1 text-xs">To'lov saqlandi, lekin fiskal chek yaratilmadi. To'lovlar ro'yxatidan «Qayta fiskallashtirish» tugmasini bosing.</div>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-700">
-          <div className="font-bold">To'lov qabul qilindi</div>
-          {isFiscal ? (
-            <div className="mt-1 text-xs">Fiskal chek yaratildi. Ota-ona QR-kodni Soliq ilovasida ro'yxatdan o'tkazsa 1% keshbek oladi.</div>
-          ) : (
-            <div className="mt-1 text-xs">Test rejim: chek fiskal emas.</div>
-          )}
-        </div>
-      )}
+      <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-700">
+        <div className="font-bold">To'lov qabul qilindi</div>
+        <div className="mt-1 text-xs">Chek tizimda saqlandi va ota-onaga Telegram orqali yuborildi.</div>
+      </div>
 
       {notifStatus && notifStatus !== "sent" && (
         <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-700">

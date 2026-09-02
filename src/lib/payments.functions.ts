@@ -38,12 +38,8 @@ function buildParentMessage(p: {
   receiptUrl: string;
   real: boolean;
 }) {
-  const head = p.real
-    ? "✅ <b>To'lov qabul qilindi</b>"
-    : "✅ <b>To'lov qabul qilindi</b>\n⚠️ <i>TEST CHEK — FISKAL EMAS</i>";
-  const tail = p.real
-    ? `\n\n🧾 Fiskal chek: ${p.receiptUrl}\n\nChekdagi QR-kodni <b>Soliq</b> mobil ilovasida skaner qiling.\n💸 1% keshbek uchun QR-kodni Soliq ilovasida belgilangan muddat ichida ro'yxatdan o'tkazing.`
-    : `\n\n🧾 Chek: ${p.receiptUrl}`;
+  const head = "✅ <b>To'lovingiz qabul qilindi. Tashakkur!</b>";
+  const tail = `\n\n🧾 Chek: ${p.receiptUrl}`;
   return `${head}\n\n👤 O'quvchi: ${p.student}\n📚 Kurs: ${p.course}\n📅 To'lov davri: ${p.period}\n💰 Summa: ${fmt(p.amount)} so'm\n💳 To'lov turi: ${p.method}\n🗓 Sana: ${p.date}${tail}`;
 }
 
@@ -127,7 +123,7 @@ const CreateInput = z.object({
   discount_reason: z.string().max(300).nullable().optional(),
   payment_method: z.enum(["cash", "card", "qr", "transfer"]),
   cash_account_id: z.string().uuid().nullable().optional(),
-  fiscalize: z.boolean().default(true),
+  fiscalize: z.boolean().default(false),
   notify_parent: z.boolean().default(true),
   idempotency_key: z.string().min(8).max(120),
 });
@@ -331,7 +327,7 @@ export const createPaymentWithReceipt = createServerFn({ method: "POST" })
     }
 
     // 3. notify parent — only after a receipt actually exists
-    if (data.notify_parent && !fiscalError && data.fiscalize) {
+    if (data.notify_parent) {
       await enqueueAndSend(supabaseAdmin, payment.id, {
         chatId: student.parent_notifications_enabled ? student.parent_telegram_chat_id : null,
         student: studentName,

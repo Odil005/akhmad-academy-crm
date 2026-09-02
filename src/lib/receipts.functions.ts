@@ -187,11 +187,12 @@ export const reviewPaymentReceipt = createServerFn({ method: "POST" })
     if (updateError) throw new Error(updateError.message);
 
     let notified = false;
-    if (receipt.parent_chat_id) {
+    const parentChatId = receipt.parent_chat_id ?? student?.parent_telegram_chat_id ?? null;
+    if (parentChatId) {
       const { parentDecisionText } = await import("@/lib/receipts.server");
       const { sendTelegramText } = await import("@/lib/telegram.server");
       const result = await sendTelegramText(
-        receipt.parent_chat_id,
+        String(parentChatId),
         parentDecisionText(data.decision === "approve", {
           studentName,
           amount,

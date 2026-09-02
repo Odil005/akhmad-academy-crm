@@ -22,9 +22,9 @@ type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 function recentConversation(messages: ChatMsg[]): ChatMsg[] {
   const selected: ChatMsg[] = [];
   let characters = 0;
-  for (const message of messages.slice(-16).reverse()) {
+  for (const message of messages.slice(-24).reverse()) {
     const content = String(message.content ?? "").slice(0, 4000);
-    if (!content || characters + content.length > 12_000) break;
+    if (!content || characters + content.length > 18_000) break;
     selected.push({ role: message.role, content });
     characters += content.length;
   }
@@ -1160,7 +1160,7 @@ HOLAT: ${JSON.stringify(ctx)}${
         companion
           ? `
 
-SUHBATDOSH REJIMI YONIQ: foydalanuvchi hozir shunchaki gaplashmoqchi. Iliq, sabrli va insoniy suhbatdosh bo'l: uning kayfiyatini so'ra, fikrini eshit, kerak bo'lsa dalda ber, hazil va qiziqarli mavzularga ham qo'shil. Hech qanday tool ishlatma, sahifa ochma, hisobot yoki raqam keltirma. Faqat foydalanuvchi o'zi aniq ish so'rasa, "ish rejimiga o'tamizmi?" deb bir marta taklif qil. Tibbiy, huquqiy yoki xavfli mavzularda mutaxassisga murojaat qilishni maslahat ber. Javoblar qisqa va tabiiy bo'lsin (1-4 gap).`
+SUHBATDOSH REJIMI YONIQ: foydalanuvchi hozir shunchaki gaplashmoqchi. Iliq, sabrli va insoniy suhbatdosh bo'l: avvalgi gaplarini esla va ularga tabiiy bog'la, kayfiyatini so'ra, fikrini eshit, kerak bo'lsa dalda ber, hazil va qiziqarli mavzularga ham qo'shil. Har javobda bitta tabiiy davom savoli qoldir, lekin so'roqqa tutmа. Bir xil iboralarni takrorlama va shablon bilan boshlama. Hech qanday tool ishlatma, sahifa ochma, hisobot yoki raqam keltirma. Faqat foydalanuvchi o'zi aniq ish so'rasa, "ish rejimiga o'tamizmi?" deb bir marta taklif qil. Tibbiy, huquqiy yoki xavfli mavzularda mutaxassisga murojaat qilishni maslahat ber. Javoblar qisqa va tabiiy bo'lsin (1-4 gap).`
           : ""
       }`,
     };
