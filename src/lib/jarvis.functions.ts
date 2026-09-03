@@ -741,7 +741,7 @@ async function runTool(
       };
     }
     case "system_health": {
-      const [parentFailures, receiptQueue, fiscalFailures] = await Promise.all([
+      const [parentFailures, receiptQueue] = await Promise.all([
         supabase
           .from("parent_notifications")
           .select("id", { count: "exact", head: true })
