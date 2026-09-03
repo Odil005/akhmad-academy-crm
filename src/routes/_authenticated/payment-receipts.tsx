@@ -112,6 +112,8 @@ function PaymentReceiptsPage() {
         </div>
       </div>
 
+      <NotificationFailuresPanel />
+
       <div className="flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => (
           <button
