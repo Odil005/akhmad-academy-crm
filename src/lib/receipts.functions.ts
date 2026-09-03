@@ -204,3 +204,86 @@ export const reviewPaymentReceipt = createServerFn({ method: "POST" })
 
     return { payment_id: paymentId, notified };
   });
+
+export type NotificationFailure = {
+  id: string;
+  source: "queue" | "parent";
+  kind: string;
+  status: string;
+  attempts: number;
+  error: string | null;
+  student_name: string;
+  created_at: string;
+};
+
+/** Failed / stuck parent notifications so staff see which message never arrived. */
+export const listNotificationFailures = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<NotificationFailure[]> => {
+    await requireFinanceStaff(context);
+    const { supabase } = context;
+
+    const [queue, parents] = await Promise.all([
+      supabase
+        .from("notification_queue")
+        .select("id, status, attempts, last_error, created_at, payment_id")
+        .in("status", ["pending", "failed"])
+        .gte("attempts", 1)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("parent_notifications")
+        .select("id, kind, status, error, created_at, student:students(full_name, first_name, last_name)")
+        .in("status", ["failed", "error"])
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+
+    const rows: NotificationFailure[] = [];
+    for (const row of (queue.data ?? []) as any[]) {
+      rows.push({
+        id: row.id,
+        source: "queue",
+        kind: "To'lov cheki",
+        status: row.status,
+        attempts: Number(row.attempts ?? 0),
+        error: row.last_error ?? null,
+        student_name: row.payment_id ? `To'lov ${String(row.payment_id).slice(0, 8)}` : "—",
+        created_at: row.created_at,
+      });
+    }
+    for (const row of (parents.data ?? []) as any[]) {
+      const s = row.student as { full_name?: string; first_name?: string; last_name?: string } | null;
+      rows.push({
+        id: row.id,
+        source: "parent",
+        kind: row.kind ?? "Ota-ona xabari",
+        status: row.status,
+        attempts: 0,
+        error: row.error ?? null,
+        student_name:
+          s?.full_name || [s?.first_name, s?.last_name].filter(Boolean).join(" ") || "—",
+        created_at: row.created_at,
+      });
+    }
+    rows.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return rows;
+  });
+
+/** Re-queue one failed notification so the cron retries it. */
+export const retryNotificationFailure = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ id: z.string().uuid(), source: z.enum(["queue", "parent"]) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await requireFinanceStaff(context);
+    const table = data.source === "queue" ? "notification_queue" : "parent_notifications";
+    const patch =
+      data.source === "queue"
+        ? { status: "pending", attempts: 0, last_error: null }
+        : { status: "pending", error: null };
+    const { error } = await context.supabase.from(table).update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
