@@ -2,7 +2,7 @@ export type SystemAlertSeverity = "critical" | "warning";
 
 export type SystemAlert = {
   id: string;
-  kind: "attendance" | "telegram" | "receipt" | "fiscal" | "system";
+  kind: "attendance" | "telegram" | "receipt" | "system";
   severity: SystemAlertSeverity;
   title: string;
   detail: string;

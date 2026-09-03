@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { isCronRequestAuthorized, unauthorizedCronResponse } from "@/lib/cron-auth.server";
 
 /**
- * Retry pending fiscal-receipt notifications (notification_queue).
+ * Retry pending payment-receipt notifications (notification_queue).
  * Secured with CRON_SECRET; call every few minutes.
  */
 export const Route = createFileRoute("/api/public/cron/receipt-queue")({

@@ -1079,9 +1079,9 @@ export const jarvisChat = createServerFn({ method: "POST" })
       const out = await runTool(context.supabase, "system_health", {}, actor);
       const health = out.result;
       return health?.healthy
-        ? { reply: "Tizim tekshirildi: xabar va fiskal navbatlarda nosozlik topilmadi." }
+        ? { reply: "Tizim tekshirildi: xabar navbatlarida nosozlik topilmadi." }
         : {
-            reply: `Nosozlik topildi: Telegram ${health?.failed_parent_telegram ?? 0} ta, chek navbati ${health?.delayed_receipts ?? 0} ta, fiskal chek ${health?.failed_fiscal_receipts ?? 0} ta. Tuzatish uchun “Tizim navbatlarini tuzat” deb yozing.`,
+            reply: `Nosozlik topildi: Telegram ${health?.failed_parent_telegram ?? 0} ta, chek navbati ${health?.delayed_receipts ?? 0} ta. Tuzatish uchun “Tizim navbatlarini tuzat” deb yozing.`,
             navigate: out.navigate,
           };
     }
