@@ -40,23 +40,9 @@ const METHOD_LABEL: Record<string, string> = {
 
 const fmt = (n: number | null | undefined) => Number(n ?? 0).toLocaleString("uz-UZ");
 
-function Qr({ value }: { value: string }) {
-  const [src, setSrc] = useState<string | null>(null);
-  useEffect(() => {
-    let alive = true;
-    QRCode.toDataURL(value, { margin: 0, width: 320, errorCorrectionLevel: "M" })
-      .then((d) => { if (alive) setSrc(d); })
-      .catch(() => { if (alive) setSrc(null); });
-    return () => { alive = false; };
-  }, [value]);
-  if (!src) return null;
-  return <img src={src} alt="Fiskal QR-kod" className="receipt-qr" width={140} height={140} />;
-}
-
 /** 80 mm thermal receipt layout. Wrapped in `.receipt-80` for print CSS. */
 export function ReceiptView({ data }: { data: ReceiptData }) {
   const { payment, receipt, org } = data;
-  const isFiscal = payment.fiscal_status === "fiscalized" && !!receipt && !receipt.test_mode;
   const date = new Date(receipt?.created_at ?? payment.paid_at ?? payment.created_at);
   const total = Number(payment.total_amount || payment.amount);
   const vatPercent = Number(org?.vat_percent ?? 12);
