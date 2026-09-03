@@ -751,20 +751,12 @@ async function runTool(
           .select("id", { count: "exact", head: true })
           .eq("status", "pending")
           .gte("attempts", 3),
-        supabase
-          .from("payments")
-          .select("id", { count: "exact", head: true })
-          .eq("fiscal_status", "fiscal_failed"),
       ]);
       return {
         result: {
-          healthy:
-            (parentFailures.count ?? 0) === 0 &&
-            (receiptQueue.count ?? 0) === 0 &&
-            (fiscalFailures.count ?? 0) === 0,
+          healthy: (parentFailures.count ?? 0) === 0 && (receiptQueue.count ?? 0) === 0,
           failed_parent_telegram: parentFailures.count ?? 0,
           delayed_receipts: receiptQueue.count ?? 0,
-          failed_fiscal_receipts: fiscalFailures.count ?? 0,
         },
         navigate: "/settings/integrations",
       };
