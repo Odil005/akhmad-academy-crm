@@ -2,9 +2,14 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, FileImage, Loader2, ReceiptText, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileImage, Loader2, ReceiptText, RefreshCw, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { listPaymentReceipts, reviewPaymentReceipt } from "@/lib/receipts.functions";
+import {
+  listNotificationFailures,
+  listPaymentReceipts,
+  retryNotificationFailure,
+  reviewPaymentReceipt,
+} from "@/lib/receipts.functions";
 
 export const Route = createFileRoute("/_authenticated/payment-receipts")({
   beforeLoad: ({ context }) => {
@@ -264,5 +269,65 @@ function PaymentReceiptsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+/** Shows parent notifications that never reached Telegram, with a retry action. */
+function NotificationFailuresPanel() {
+  const queryClient = useQueryClient();
+  const fetchFailures = useServerFn(listNotificationFailures);
+  const retry = useServerFn(retryNotificationFailure);
+
+  const { data } = useQuery({
+    queryKey: ["notification-failures"],
+    queryFn: () => fetchFailures({ data: {} as never }),
+    staleTime: 60_000,
+  });
+
+  const again = useMutation({
+    mutationFn: (input: { id: string; source: "queue" | "parent" }) =>
+      retry({ data: input }),
+    onSuccess: () => {
+      toast.success("Xabar qayta navbatga qo'yildi");
+      queryClient.invalidateQueries({ queryKey: ["notification-failures"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const rows = data ?? [];
+  if (rows.length === 0) return null;
+
+  return (
+    <section className="rounded-2xl border border-amber-500/40 bg-amber-500/5 p-4">
+      <h2 className="flex items-center gap-2 text-sm font-bold text-amber-600">
+        <AlertTriangle className="h-4 w-4" /> Yetib bormagan xabarlar ({rows.length})
+      </h2>
+      <ul className="mt-3 space-y-2">
+        {rows.map((row) => (
+          <li
+            key={`${row.source}-${row.id}`}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2"
+          >
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold">
+                {row.student_name} · {row.kind}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">
+                {row.error ?? "Telegram chat ID yoki bot sozlamasini tekshiring"}
+                {row.attempts > 0 ? ` · ${row.attempts} urinish` : ""}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => again.mutate({ id: row.id, source: row.source })}
+              disabled={again.isPending}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/10 disabled:opacity-60"
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> Qayta yuborish
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
