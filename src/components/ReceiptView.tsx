@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import QRCode from "qrcode";
 
 export type ReceiptData = {
   payment: {
@@ -42,23 +40,9 @@ const METHOD_LABEL: Record<string, string> = {
 
 const fmt = (n: number | null | undefined) => Number(n ?? 0).toLocaleString("uz-UZ");
 
-function Qr({ value }: { value: string }) {
-  const [src, setSrc] = useState<string | null>(null);
-  useEffect(() => {
-    let alive = true;
-    QRCode.toDataURL(value, { margin: 0, width: 320, errorCorrectionLevel: "M" })
-      .then((d) => { if (alive) setSrc(d); })
-      .catch(() => { if (alive) setSrc(null); });
-    return () => { alive = false; };
-  }, [value]);
-  if (!src) return null;
-  return <img src={src} alt="Fiskal QR-kod" className="receipt-qr" width={140} height={140} />;
-}
-
 /** 80 mm thermal receipt layout. Wrapped in `.receipt-80` for print CSS. */
 export function ReceiptView({ data }: { data: ReceiptData }) {
   const { payment, receipt, org } = data;
-  const isFiscal = payment.fiscal_status === "fiscalized" && !!receipt && !receipt.test_mode;
   const date = new Date(receipt?.created_at ?? payment.paid_at ?? payment.created_at);
   const total = Number(payment.total_amount || payment.amount);
   const vatPercent = Number(org?.vat_percent ?? 12);
@@ -73,11 +57,6 @@ export function ReceiptView({ data }: { data: ReceiptData }) {
         {org?.branch_address && <div className="text-[10px]">{org.branch_address}</div>}
       </div>
 
-      {!isFiscal && (
-        <div className="my-2 border border-black p-1 text-center text-[11px] font-bold">
-          {receipt?.test_mode ? "TEST CHEK — FISKAL EMAS" : "FISKAL CHEK EMAS"}
-        </div>
-      )}
 
       <div className="my-2 border-t border-dashed border-black" />
 
@@ -102,25 +81,10 @@ export function ReceiptView({ data }: { data: ReceiptData }) {
 
       <Row k="Kassa" v={receipt?.cashbox_id ?? "—"} />
       <Row k="Kassir" v={data.cashierName} />
-      {receipt?.fiscal_sign && (
-        <div className="mt-1 break-all text-center text-[11px] font-bold">
-          Fiskal belgi: {receipt.fiscal_sign}
-        </div>
-      )}
+      <div className="mt-2 text-center text-[10px]">
+        To'lov qabul qilindi. Chekni saqlab qo'yishingiz mumkin.
+      </div>
 
-      {isFiscal && receipt?.fiscal_qr_data ? (
-        <div className="mt-2 flex flex-col items-center gap-1">
-          <Qr value={receipt.fiscal_qr_data} />
-          <div className="text-center text-[10px]">
-            QR-kodni <b>Soliq</b> ilovasida skaner qiling — 1% keshbek uchun belgilangan
-            muddat ichida ro'yxatdan o'tkazing.
-          </div>
-        </div>
-      ) : (
-        <div className="mt-2 text-center text-[10px]">
-          Rasmiy fiskal QR-kod mavjud emas.
-        </div>
-      )}
 
       <div className="mt-3 text-center text-[10px]">Rahmat! Akhmad Academy</div>
     </div>

@@ -289,7 +289,7 @@ const TOOLS = [
     function: {
       name: "system_health",
       description:
-        "Telegram, xabar navbati va fiskal chek bo'yicha tizim nosozliklarini tekshirish.",
+        "Telegram va xabar navbati bo'yicha tizim nosozliklarini tekshirish.",
       parameters: { type: "object", properties: {} },
     },
   },
@@ -741,7 +741,7 @@ async function runTool(
       };
     }
     case "system_health": {
-      const [parentFailures, receiptQueue, fiscalFailures] = await Promise.all([
+      const [parentFailures, receiptQueue] = await Promise.all([
         supabase
           .from("parent_notifications")
           .select("id", { count: "exact", head: true })
@@ -751,20 +751,12 @@ async function runTool(
           .select("id", { count: "exact", head: true })
           .eq("status", "pending")
           .gte("attempts", 3),
-        supabase
-          .from("payments")
-          .select("id", { count: "exact", head: true })
-          .eq("fiscal_status", "fiscal_failed"),
       ]);
       return {
         result: {
-          healthy:
-            (parentFailures.count ?? 0) === 0 &&
-            (receiptQueue.count ?? 0) === 0 &&
-            (fiscalFailures.count ?? 0) === 0,
+          healthy: (parentFailures.count ?? 0) === 0 && (receiptQueue.count ?? 0) === 0,
           failed_parent_telegram: parentFailures.count ?? 0,
           delayed_receipts: receiptQueue.count ?? 0,
-          failed_fiscal_receipts: fiscalFailures.count ?? 0,
         },
         navigate: "/settings/integrations",
       };
@@ -1087,9 +1079,9 @@ export const jarvisChat = createServerFn({ method: "POST" })
       const out = await runTool(context.supabase, "system_health", {}, actor);
       const health = out.result;
       return health?.healthy
-        ? { reply: "Tizim tekshirildi: xabar va fiskal navbatlarda nosozlik topilmadi." }
+        ? { reply: "Tizim tekshirildi: xabar navbatlarida nosozlik topilmadi." }
         : {
-            reply: `Nosozlik topildi: Telegram ${health?.failed_parent_telegram ?? 0} ta, chek navbati ${health?.delayed_receipts ?? 0} ta, fiskal chek ${health?.failed_fiscal_receipts ?? 0} ta. Tuzatish uchun “Tizim navbatlarini tuzat” deb yozing.`,
+            reply: `Nosozlik topildi: Telegram ${health?.failed_parent_telegram ?? 0} ta, chek navbati ${health?.delayed_receipts ?? 0} ta. Tuzatish uchun “Tizim navbatlarini tuzat” deb yozing.`,
             navigate: out.navigate,
           };
     }

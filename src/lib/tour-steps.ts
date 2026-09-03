@@ -60,7 +60,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
     {
       target: "nav-/payments",
       title: "To'lovlar",
-      body: "To'lov qabul qilasiz, fiskal chek chiqarasiz va to'lov tarixini ko'rasiz.",
+      body: "To'lov qabul qilasiz, chekni ota-onaga yuborasiz va to'lov tarixini ko'rasiz.",
       to: "/payments",
     },
     {

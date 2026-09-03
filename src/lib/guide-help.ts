@@ -49,7 +49,7 @@ export const HOW_TOS: HowTo[] = [
       "«To'lovlar» bo'limiga o'ting.",
       "«To'lov qabul qilish» tugmasini bosing va o'quvchini tanlang.",
       "Summani, to'lov turini (naqd/karta) va oyni belgilang.",
-      "Saqlagach fiskal chek chiqadi — chop etish yoki Telegramga yuborish mumkin.",
+      "Saqlagach chek yaratiladi — chop etish yoki Telegramga yuborish mumkin.",
     ],
     to: "/payments",
     tourTarget: "nav-/payments",

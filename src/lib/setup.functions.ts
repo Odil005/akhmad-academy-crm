@@ -54,15 +54,6 @@ export const getSetupStatus = createServerFn({ method: "GET" })
       count("sip_config", (q: any) => q.eq("is_active", true)),
     ]);
 
-    const { data: cashReg } = await supabaseAdmin
-      .from("cash_register_settings")
-      .select("enabled, provider_name, cashbox_id")
-      .order("created_at")
-      .limit(1)
-      .maybeSingle();
-
-    const fiscalReady = !!cashReg?.enabled && cashReg.provider_name !== "mock" && !!cashReg.cashbox_id;
-
     const steps: SetupStep[] = [
       {
         key: "cash_accounts",
@@ -127,15 +118,6 @@ export const getSetupStatus = createServerFn({ method: "GET" })
         done: recipients > 0,
         count: recipients,
         to: "/settings/director-report",
-      },
-      {
-        key: "fiscal",
-        title: "Virtual kassa (fiskal chek)",
-        hint: "Haqiqiy fiskal chek uchun provayder va kassa ID sozlanishi kerak.",
-        done: fiscalReady,
-        count: fiscalReady ? 1 : 0,
-        to: "/settings/cash-register",
-        optional: true,
       },
       {
         key: "sip",

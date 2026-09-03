@@ -33,16 +33,6 @@ type QueueRow = {
   created_at: string;
 };
 
-type FiscalPaymentRow = {
-  id: string;
-  created_at: string;
-  student: {
-    full_name: string | null;
-    first_name: string | null;
-    last_name: string | null;
-  } | null;
-};
-
 function tashkentClock() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Tashkent",
@@ -98,7 +88,7 @@ export const getSystemAlerts = createServerFn({ method: "GET" })
     const sevenDaysAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString();
 
-    const [lessonResult, parentResult, queueResult, fiscalResult] = await Promise.all([
+    const [lessonResult, parentResult, queueResult] = await Promise.all([
       supabaseAdmin
         .from("lessons")
         .select("id, group_id, end_time, group:groups(name)")
@@ -119,20 +109,12 @@ export const getSystemAlerts = createServerFn({ method: "GET" })
         .gte("created_at", sevenDaysAgo)
         .order("created_at", { ascending: false })
         .limit(200),
-      supabaseAdmin
-        .from("payments")
-        .select("id, created_at, student:students(full_name, first_name, last_name)")
-        .eq("fiscal_status", "fiscal_failed")
-        .gte("created_at", thirtyDaysAgo)
-        .order("created_at", { ascending: false })
-        .limit(50),
     ]);
 
     const firstError = [
       lessonResult.error,
       parentResult.error,
       queueResult.error,
-      fiscalResult.error,
     ].find(Boolean);
     if (firstError) throw new Error(firstError.message);
 
@@ -252,21 +234,6 @@ export const getSystemAlerts = createServerFn({ method: "GET" })
       });
     }
 
-    const failedFiscal = (fiscalResult.data ?? []) as unknown as FiscalPaymentRow[];
-    if (failedFiscal.length) {
-      const latest = failedFiscal[0]!;
-      alerts.push({
-        id: "fiscal:failed",
-        kind: "fiscal",
-        severity: "critical",
-        title: `Fiskal chek xatosi (${failedFiscal.length})`,
-        detail: `${studentName(latest.student)} uchun fiskal chek yaratilmagan`,
-        count: failedFiscal.length,
-        actionLabel: "Xatoni tuzatish",
-        actionPath: "/payments",
-        createdAt: latest.created_at,
-      });
-    }
 
     alerts.sort((left, right) => {
       if (left.severity !== right.severity) return left.severity === "critical" ? -1 : 1;
