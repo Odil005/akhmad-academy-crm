@@ -278,12 +278,16 @@ export const retryNotificationFailure = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireFinanceStaff(context);
-    const table = data.source === "queue" ? "notification_queue" : "parent_notifications";
-    const patch =
+    const { error } =
       data.source === "queue"
-        ? { status: "pending", attempts: 0, last_error: null }
-        : { status: "pending", error: null };
-    const { error } = await context.supabase.from(table).update(patch).eq("id", data.id);
+        ? await context.supabase
+            .from("notification_queue")
+            .update({ status: "pending", attempts: 0, last_error: null })
+            .eq("id", data.id)
+        : await context.supabase
+            .from("parent_notifications")
+            .update({ status: "pending", error: null })
+            .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
