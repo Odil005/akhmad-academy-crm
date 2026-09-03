@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import QRCode from "qrcode";
 
 export type ReceiptData = {
   payment: {
