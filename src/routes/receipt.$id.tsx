@@ -9,9 +9,9 @@ export const Route = createFileRoute("/receipt/$id")({
   head: () => ({
     meta: [
       { title: "To'lov cheki — Akhmad Academy" },
-      { name: "description", content: "Akhmad Academy o'quv markazi to'lov cheki: summa, davr, kurs va fiskal ma'lumotlar." },
+      { name: "description", content: "Akhmad Academy o'quv markazi to'lov cheki: summa, davr va kurs ma'lumotlari." },
       { property: "og:title", content: "To'lov cheki — Akhmad Academy" },
-      { property: "og:description", content: "Akhmad Academy to'lov cheki va fiskal ma'lumotlari." },
+      { property: "og:description", content: "Akhmad Academy to'lov cheki ma'lumotlari." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

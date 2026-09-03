@@ -13,7 +13,6 @@ import {
   Star,
   Phone,
   Send,
-  Receipt,
   Rocket,
   Heart,
   Building2,
@@ -60,12 +59,6 @@ function SettingsLayout() {
 
     { to: "/settings/integrations", label: "AI / Telegram / SMS", icon: MessageSquare, show: true },
     { to: "/settings/telephony", label: "IP Telefoniya (SIP)", icon: Phone, show: isDirector },
-    {
-      to: "/settings/cash-register",
-      label: "Virtual kassa & fiskal chek",
-      icon: Receipt,
-      show: isDirector,
-    },
     { to: "/settings/director-report", label: "Direktor hisoboti", icon: Send, show: isDirector },
     { to: "/settings/donation", label: "Donat / Homiylik", icon: Heart, show: isDirector },
     { to: "/settings/subscription", label: "Abonent (UNI CRM)", icon: Building2, show: true },

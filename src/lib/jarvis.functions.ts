@@ -289,7 +289,7 @@ const TOOLS = [
     function: {
       name: "system_health",
       description:
-        "Telegram, xabar navbati va fiskal chek bo'yicha tizim nosozliklarini tekshirish.",
+        "Telegram va xabar navbati bo'yicha tizim nosozliklarini tekshirish.",
       parameters: { type: "object", properties: {} },
     },
   },
