@@ -10,6 +10,7 @@ import { generateUsername, generateAccessCode } from "@/lib/credentials";
 
 import { z } from "zod";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
+import { LowIncomeBadge } from "@/components/LowIncomeBadge";
 
 type Student = {
   id: string;
@@ -22,6 +23,8 @@ type Student = {
   parent_phone: string | null;
   parent_telegram_chat_id: string | null;
   parent_notifications_enabled: boolean;
+  low_income: boolean | null;
+  low_income_note: string | null;
   profile: { full_name: string | null; phone: string | null } | null;
   group: { id: string; name: string } | null;
 };
@@ -51,7 +54,7 @@ const displayName = (s: {
 
 const PAGE_SIZES = [25, 50, 100];
 const STUDENT_COLUMNS = `
-  id, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, parent_notifications_enabled,
+  id, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, parent_notifications_enabled, low_income, low_income_note,
   profile:profiles(full_name, phone),
   group:groups(id, name)
 `;
@@ -254,6 +257,11 @@ function StudentsPage() {
                       >
                         {displayName(s)}
                       </Link>
+                      {s.low_income && (
+                        <span className="ml-2 inline-block align-middle">
+                          <LowIncomeBadge note={s.low_income_note} compact />
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-4 py-3 text-muted-foreground">
