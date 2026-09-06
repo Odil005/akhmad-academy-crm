@@ -3038,6 +3038,8 @@ export type Database = {
           import_batch_id: string | null
           last_name: string | null
           lesson_time: string | null
+          low_income: boolean
+          low_income_note: string | null
           monthly_fee: number | null
           notes: string | null
           parent_full_name: string | null
@@ -3069,6 +3071,8 @@ export type Database = {
           import_batch_id?: string | null
           last_name?: string | null
           lesson_time?: string | null
+          low_income?: boolean
+          low_income_note?: string | null
           monthly_fee?: number | null
           notes?: string | null
           parent_full_name?: string | null
@@ -3100,6 +3104,8 @@ export type Database = {
           import_batch_id?: string | null
           last_name?: string | null
           lesson_time?: string | null
+          low_income?: boolean
+          low_income_note?: string | null
           monthly_fee?: number | null
           notes?: string | null
           parent_full_name?: string | null
