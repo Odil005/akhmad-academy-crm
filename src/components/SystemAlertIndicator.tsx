@@ -5,6 +5,8 @@ import {
   CheckCircle2,
   ChevronRight,
   RefreshCw,
+  Volume2,
+  VolumeX,
   WifiOff,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -12,6 +14,35 @@ import type { SystemAlertSnapshot } from "@/features/system-alerts/types";
 import { getSystemAlerts } from "@/lib/system-alerts.functions";
 
 const POLL_INTERVAL_MS = 120_000;
+const SOUND_KEY = "akhmad.alert.sound";
+
+/** Short two-tone beep built with WebAudio — no asset download needed. */
+function playAlertBeep() {
+  try {
+    const Ctx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const beep = (at: number, freq: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime + at);
+      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + at + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + 0.28);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + at);
+      osc.stop(ctx.currentTime + at + 0.3);
+    };
+    beep(0, 880);
+    beep(0.34, 660);
+    window.setTimeout(() => void ctx.close().catch(() => {}), 1200);
+  } catch {
+    /* sound is a nicety — never break the indicator */
+  }
+}
 
 function connectionFailureSnapshot(): SystemAlertSnapshot {
   const checkedAt = new Date().toISOString();
@@ -40,6 +71,12 @@ export function SystemAlertIndicator() {
   const [open, setOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const [soundOn, setSoundOn] = useState(true);
+  const lastSignature = useRef<string | null>(null);
+
+  useEffect(() => {
+    setSoundOn(window.localStorage.getItem(SOUND_KEY) !== "off");
+  }, []);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -69,6 +106,26 @@ export function SystemAlertIndicator() {
 
   const count = snapshot?.totalCount ?? 0;
   const hasCritical = (snapshot?.criticalCount ?? 0) > 0;
+
+  // Beep once whenever a new problem appears (not on every 2-minute recheck).
+  useEffect(() => {
+    if (!snapshot) return;
+    const signature = snapshot.alerts.map((alert) => `${alert.id}:${alert.count}`).join("|");
+    const previous = lastSignature.current;
+    lastSignature.current = signature;
+    if (previous === null || signature === previous || signature === "") return;
+    const isNew = signature.split("|").some((item) => !previous.split("|").includes(item));
+    if (isNew && soundOn) playAlertBeep();
+  }, [snapshot, soundOn]);
+
+  const toggleSound = () => {
+    setSoundOn((value) => {
+      const next = !value;
+      window.localStorage.setItem(SOUND_KEY, next ? "on" : "off");
+      if (next) playAlertBeep();
+      return next;
+    });
+  };
 
   return (
     <div ref={rootRef} className="relative shrink-0">
@@ -110,6 +167,14 @@ export function SystemAlertIndicator() {
                 Administrator uchun avtomatik nazorat
               </p>
             </div>
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted"
+              title={soundOn ? "Ovozli signal yoniq" : "Ovozli signal o'chirilgan"}
+            >
+              {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            </button>
             <button
               type="button"
               onClick={() => void refresh()}
@@ -178,7 +243,7 @@ export function SystemAlertIndicator() {
           </div>
 
           <footer className="border-t border-border px-4 py-2.5 text-center text-[10px] text-muted-foreground">
-            Har 2 daqiqada tekshiriladi · xavfsiz navbatlarni Jarvis avtomatik tiklaydi
+            Har 2 daqiqada tekshiriladi · yangi nosozlikda ovozli signal · xavfsiz navbatlarni Jarvis avtomatik tiklaydi
           </footer>
         </section>
       )}
