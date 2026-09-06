@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { TelegramIdField } from "@/components/TelegramIdField";
 import { MethodologyLibrary } from "@/components/MethodologyLibrary";
+import { LowIncomeBadge } from "@/components/LowIncomeBadge";
 
 
 const DAYS_UZ = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
@@ -27,6 +28,8 @@ type StudentRow = {
   telegram_last_checked_at: string | null;
   telegram_last_error: string | null;
   notes: string | null;
+  low_income: boolean | null;
+  low_income_note: string | null;
   profile: { id: string; full_name: string | null; phone: string | null } | null;
 };
 
@@ -68,7 +71,7 @@ function StudentProfile() {
     setLoading(true);
     const [{ data: s }, { data: enr }, { data: pays }, { data: gs }] = await Promise.all([
       supabase.from("students").select(`
-        id, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes,
+        id, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes, low_income, low_income_note,
         telegram_chat_id, telegram_username, telegram_verified_at, telegram_last_checked_at, telegram_last_error,
         profile:profiles(id, full_name, phone)
       `).eq("id", id).maybeSingle(),
@@ -163,6 +166,27 @@ function StudentProfile() {
     setTgLoading(false);
   };
 
+  const setLowIncome = async (value: boolean) => {
+    const { error } = await supabase
+      .from("students")
+      .update({ low_income: value, low_income_note: value ? student?.low_income_note ?? null : null })
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success(value ? "Kam ta'minlangan deb belgilandi" : "Belgi olib tashlandi");
+    load();
+  };
+
+  const editLowIncomeNote = async () => {
+    const note = prompt("Qisqa izoh (masalan: mahalla ma'lumotnomasi bor)", student?.low_income_note ?? "");
+    if (note === null) return;
+    const { error } = await supabase
+      .from("students")
+      .update({ low_income_note: note.trim() || null })
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    load();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -180,6 +204,7 @@ function StudentProfile() {
               <h1 className="truncate text-2xl font-extrabold tracking-tight">{studentName}</h1>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
                 <span className="text-xs text-muted-foreground">ID: {student.id.slice(0, 8)}</span>
+                {student.low_income && <LowIncomeBadge note={student.low_income_note} />}
               </div>
             </div>
           </div>
@@ -207,6 +232,32 @@ function StudentProfile() {
               last_error: student.telegram_last_error,
             }}
           />
+
+          <div className="rounded-xl border border-amber-400/50 bg-amber-400/10 p-3">
+            <label className="flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                checked={!!student.low_income}
+                onChange={(e) => void setLowIncome(e.target.checked)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span className="min-w-0">
+                <span className="block text-xs font-bold">Kam ta'minlangan oila reyestrida</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  Belgilansa, o'quvchi guruh va umumiy ro'yxatlarda alohida rangli belgi bilan
+                  ko'rinadi.
+                </span>
+              </span>
+            </label>
+            {student.low_income && (
+              <button
+                onClick={() => void editLowIncomeNote()}
+                className="mt-2 text-[11px] font-bold text-amber-700 underline"
+              >
+                {student.low_income_note ? `Izoh: ${student.low_income_note}` : "Izoh qo'shish"}
+              </button>
+            )}
+          </div>
 
           <div className="space-y-2 pt-2">
             <button onClick={() => setNoteOpen(true)} className="w-full rounded-lg border border-primary/40 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-primary hover:bg-primary/5">

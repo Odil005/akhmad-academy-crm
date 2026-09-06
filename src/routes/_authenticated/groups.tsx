@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { TelegramIdButton } from "@/components/TelegramIdButton";
+import { LowIncomeBadge } from "@/components/LowIncomeBadge";
 import { emitDataChanged, useDataEvent } from "@/lib/data-events";
 
 type Teacher = { id: string; full_name: string | null; teacher_level: string | null };
@@ -32,6 +33,8 @@ type StudentLite = {
   first_name: string;
   last_name: string | null;
   parent_phone: string | null;
+  low_income?: boolean | null;
+  low_income_note?: string | null;
 };
 type Enrollment = {
   id: string;
@@ -286,7 +289,7 @@ function GroupRoster({
     setLoading(true);
     const { data } = await supabase
       .from("student_enrollments")
-      .select("id, student_id, status, student:students(id, first_name, last_name, parent_phone)")
+      .select("id, student_id, status, student:students(id, first_name, last_name, parent_phone, low_income, low_income_note)")
       .eq("group_id", group.id)
       .in("status", ["active", "trial"])
       .order("started_at", { ascending: false });
@@ -361,8 +364,13 @@ function GroupRoster({
               className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-card px-2 py-1.5 text-xs"
             >
               <div className="min-w-0 flex-1">
-                <div className="truncate font-semibold">
-                  {r.student?.first_name} {r.student?.last_name ?? ""}
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                  <span className="truncate font-semibold">
+                    {r.student?.first_name} {r.student?.last_name ?? ""}
+                  </span>
+                  {r.student?.low_income && (
+                    <LowIncomeBadge note={r.student.low_income_note} compact />
+                  )}
                 </div>
                 {r.student?.parent_phone && (
                   <div className="truncate text-muted-foreground">{r.student.parent_phone}</div>
