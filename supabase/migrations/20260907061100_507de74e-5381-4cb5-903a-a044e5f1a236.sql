@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.set_center_id() FROM anon, authenticated, PUBLIC;
