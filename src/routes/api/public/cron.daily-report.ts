@@ -221,11 +221,12 @@ async function buildAndSend() {
 
   const sends: Array<{ chat_id: string; ok: boolean; error?: string }> = [];
   if (botToken) {
-    for (const r of recipients ?? []) {
-      const res = await sendTelegram(botToken, r.telegram_chat_id, text);
-      sends.push({ chat_id: r.telegram_chat_id, ok: res.ok, error: res.error });
+    for (const chatId of chatIds) {
+      const res = await sendTelegram(botToken, chatId, text);
+      sends.push({ chat_id: chatId, ok: res.ok, error: res.error });
     }
   }
+
 
   if (report?.id) {
     await supabaseAdmin
