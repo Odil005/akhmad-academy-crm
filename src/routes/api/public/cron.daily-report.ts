@@ -156,11 +156,49 @@ async function buildAndSend() {
     .select()
     .maybeSingle();
 
-  // Send to all active recipients
+  // Send to all active recipients; fall back to linked director/admin chats
   const { data: recipients } = await supabaseAdmin
     .from("director_report_recipients")
     .select("telegram_chat_id, full_name")
     .eq("is_active", true);
+
+  const chatIds = new Set<string>(
+    (recipients ?? [])
+      .map((r) => (r.telegram_chat_id ?? "").trim())
+      .filter((id) => id.length > 0),
+  );
+
+  if (chatIds.size === 0) {
+    const { data: staffLinks } = await supabaseAdmin
+      .from("staff_telegram_links")
+      .select("telegram_chat_id, role, notifications_enabled")
+      .in("role", ["director", "admin"]);
+    for (const link of staffLinks ?? []) {
+      if (link.notifications_enabled === false) continue;
+      const id = (link.telegram_chat_id ?? "").trim();
+      if (id) chatIds.add(id);
+    }
+
+    if (chatIds.size === 0) {
+      const { data: roleRows } = await supabaseAdmin
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["director", "admin"]);
+      const ids = (roleRows ?? []).map((r) => r.user_id);
+      if (ids.length > 0) {
+        const { data: staffProfiles } = await supabaseAdmin
+          .from("profiles")
+          .select("telegram_chat_id")
+          .in("id", ids)
+          .not("telegram_chat_id", "is", null);
+        for (const p of staffProfiles ?? []) {
+          const id = (p.telegram_chat_id ?? "").trim();
+          if (id) chatIds.add(id);
+        }
+      }
+    }
+  }
+
 
   const fmt = (n: number) => Number(n).toLocaleString("uz-UZ");
   const text = [
