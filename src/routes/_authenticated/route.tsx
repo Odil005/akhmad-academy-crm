@@ -333,7 +333,8 @@ function AuthenticatedLayout() {
             </button>
 
             <div className="hidden text-lg font-bold tracking-tight md:block">
-              Xush kelibsiz{fullName ? `, ${fullName.split(" ")[0]}` : ""}!
+              {t("Xush kelibsiz")}
+              {fullName ? `, ${fullName.split(" ")[0]}` : ""}!
             </div>
 
             {isStaff && (
@@ -343,9 +344,29 @@ function AuthenticatedLayout() {
                 className="ml-auto flex w-full max-w-md items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-muted-foreground transition hover:border-accent"
               >
                 <Search className="h-4 w-4" />
-                <span className="truncate">O'quvchi yoki telefon raqamini qidiring</span>
+                <span className="truncate">{t("O'quvchi yoki telefon raqamini qidiring")}</span>
               </Link>
             )}
+
+            <div
+              className="ml-auto flex shrink-0 items-center gap-0.5 rounded-xl border border-border p-0.5 lg:ml-3"
+              title={t("Til")}
+            >
+              {(["uz", "ru"] as const).map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => setLang(code)}
+                  className={`rounded-lg px-2 py-1.5 text-[11px] font-bold uppercase transition ${
+                    lang === code
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground/60 hover:bg-secondary"
+                  }`}
+                >
+                  {code}
+                </button>
+              ))}
+            </div>
 
             <TourHelpButton />
 
@@ -353,11 +374,12 @@ function AuthenticatedLayout() {
 
             <button
               onClick={signOut}
-              className="ml-auto rounded-xl border border-border p-2.5 text-foreground/70 transition hover:border-destructive/40 hover:text-destructive lg:ml-3"
-              title="Chiqish"
+              className="rounded-xl border border-border p-2.5 text-foreground/70 transition hover:border-destructive/40 hover:text-destructive lg:ml-1"
+              title={t("Chiqish")}
             >
               <LogOut className="h-4 w-4" />
             </button>
+
           </div>
         </header>
 
