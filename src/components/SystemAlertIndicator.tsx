@@ -134,17 +134,24 @@ export function SystemAlertIndicator() {
     lastSignature.current = signature;
     if (previous === null || signature === previous || signature === "") return;
     const isNew = signature.split("|").some((item) => !previous.split("|").includes(item));
-    if (isNew && soundOn) playAlertBeep();
-  }, [snapshot, soundOn]);
+    if (isNew && soundOn) playAlertBeep(volume);
+  }, [snapshot, soundOn, volume]);
 
   const toggleSound = () => {
     setSoundOn((value) => {
       const next = !value;
       window.localStorage.setItem(SOUND_KEY, next ? "on" : "off");
-      if (next) playAlertBeep();
+      if (next) playAlertBeep(volume);
       return next;
     });
   };
+
+  const changeVolume = (next: number) => {
+    setVolume(next);
+    window.localStorage.setItem(VOLUME_KEY, String(next));
+    if (soundOn) playAlertBeep(next);
+  };
+
 
   return (
     <div ref={rootRef} className="relative shrink-0">
