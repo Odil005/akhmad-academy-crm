@@ -90,6 +90,8 @@ function AuthenticatedLayout() {
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const { lang, setLang, t } = useLanguage();
+
 
   useEffect(() => {
     supabase
