@@ -186,31 +186,54 @@ export function SystemAlertIndicator() {
 
       {open && (
         <section className="absolute right-0 top-full z-50 mt-2 w-[min(390px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-          <header className="flex items-center gap-3 border-b border-border px-4 py-3.5">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-sm font-extrabold">Tizim ogohlantirishlari</h2>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                Administrator uchun avtomatik nazorat
-              </p>
+          <header className="border-b border-border px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-sm font-extrabold">{t("Tizim ogohlantirishlari")}</h2>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  {t("Administrator uchun avtomatik nazorat")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted"
+                title={soundOn ? t("Ovozli signal yoniq") : t("Ovozli signal o'chirilgan")}
+              >
+                {soundOn ? (
+                  <Volume2 className="h-3.5 w-3.5" />
+                ) : (
+                  <VolumeX className="h-3.5 w-3.5" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                disabled={refreshing}
+                className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted disabled:opacity-50"
+                title={t("Qayta tekshirish")}
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={toggleSound}
-              className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted"
-              title={soundOn ? "Ovozli signal yoniq" : "Ovozli signal o'chirilgan"}
-            >
-              {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => void refresh()}
-              disabled={refreshing}
-              className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted disabled:opacity-50"
-              title="Qayta tekshirish"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            </button>
+            {soundOn && (
+              <label className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <Volume2 className="h-3 w-3" />
+                <span className="shrink-0">{t("Ovoz balandligi")}</span>
+                <input
+                  type="range"
+                  min={0.2}
+                  max={1}
+                  step={0.1}
+                  value={volume}
+                  onChange={(event) => changeVolume(Number(event.target.value))}
+                  className="h-1.5 flex-1 accent-primary"
+                />
+                <span className="w-8 text-right font-bold">{Math.round(volume * 100)}%</span>
+              </label>
+            )}
           </header>
+
 
           <div className="max-h-[430px] overflow-y-auto p-2">
             {!snapshot ? (
