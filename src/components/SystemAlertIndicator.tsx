@@ -12,6 +12,8 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SystemAlertSnapshot } from "@/features/system-alerts/types";
 import { getSystemAlerts } from "@/lib/system-alerts.functions";
+import { useLanguage } from "@/lib/i18n";
+
 
 const POLL_INTERVAL_MS = 120_000;
 const SOUND_KEY = "akhmad.alert.sound";
