@@ -238,15 +238,16 @@ export function SystemAlertIndicator() {
           <div className="max-h-[430px] overflow-y-auto p-2">
             {!snapshot ? (
               <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-muted-foreground">
-                <RefreshCw className="h-4 w-4 animate-spin" /> Tekshirilmoqda...
+                <RefreshCw className="h-4 w-4 animate-spin" /> {t("Tekshirilmoqda...")}
               </div>
             ) : snapshot.alerts.length === 0 ? (
               <div className="px-4 py-10 text-center">
                 <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-500" />
-                <div className="mt-3 text-sm font-bold">Hammasi joyida</div>
+                <div className="mt-3 text-sm font-bold">{t("Hammasi joyida")}</div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Tizimda administrator aralashuvi kerak bo'lgan muammo yo'q.
+                  {t("Tizimda administrator aralashuvi kerak bo'lgan muammo yo'q.")}
                 </p>
+
               </div>
             ) : (
               <div className="space-y-2">
