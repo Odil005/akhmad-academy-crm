@@ -15,34 +15,46 @@ import { getSystemAlerts } from "@/lib/system-alerts.functions";
 
 const POLL_INTERVAL_MS = 120_000;
 const SOUND_KEY = "akhmad.alert.sound";
+const VOLUME_KEY = "akhmad.alert.volume";
 
-/** Short two-tone beep built with WebAudio — no asset download needed. */
-function playAlertBeep() {
+/** Baland, uch marta takrorlanadigan ogohlantirish signali (WebAudio — fayl kerak emas). */
+function playAlertBeep(volume = 1) {
   try {
     const Ctx =
       window.AudioContext ??
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctx) return;
     const ctx = new Ctx();
+    void ctx.resume?.().catch(() => {});
+    const master = ctx.createGain();
+    master.gain.value = Math.min(1, Math.max(0.1, volume));
+    // Yumshoq cheklovchi — baland ovozda ham buzilmasin.
+    const limiter = ctx.createDynamicsCompressor();
+    master.connect(limiter).connect(ctx.destination);
+
     const beep = (at: number, freq: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = "sine";
+      osc.type = "square";
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(0.0001, ctx.currentTime + at);
-      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + at + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + 0.28);
-      osc.connect(gain).connect(ctx.destination);
+      gain.gain.exponentialRampToValueAtTime(0.9, ctx.currentTime + at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + 0.3);
+      osc.connect(gain).connect(master);
       osc.start(ctx.currentTime + at);
-      osc.stop(ctx.currentTime + at + 0.3);
+      osc.stop(ctx.currentTime + at + 0.32);
     };
-    beep(0, 880);
-    beep(0.34, 660);
-    window.setTimeout(() => void ctx.close().catch(() => {}), 1200);
+    // 3 marta ketma-ket ikki tonli signal — e'tibordan chetda qolmaydi.
+    for (let i = 0; i < 3; i += 1) {
+      beep(i * 0.72, 1180);
+      beep(i * 0.72 + 0.34, 880);
+    }
+    window.setTimeout(() => void ctx.close().catch(() => {}), 3200);
   } catch {
     /* sound is a nicety — never break the indicator */
   }
 }
+
 
 function connectionFailureSnapshot(): SystemAlertSnapshot {
   const checkedAt = new Date().toISOString();
