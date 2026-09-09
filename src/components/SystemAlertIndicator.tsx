@@ -12,37 +12,51 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SystemAlertSnapshot } from "@/features/system-alerts/types";
 import { getSystemAlerts } from "@/lib/system-alerts.functions";
+import { useLanguage } from "@/lib/i18n";
+
 
 const POLL_INTERVAL_MS = 120_000;
 const SOUND_KEY = "akhmad.alert.sound";
+const VOLUME_KEY = "akhmad.alert.volume";
 
-/** Short two-tone beep built with WebAudio — no asset download needed. */
-function playAlertBeep() {
+/** Baland, uch marta takrorlanadigan ogohlantirish signali (WebAudio — fayl kerak emas). */
+function playAlertBeep(volume = 1) {
   try {
     const Ctx =
       window.AudioContext ??
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctx) return;
     const ctx = new Ctx();
+    void ctx.resume?.().catch(() => {});
+    const master = ctx.createGain();
+    master.gain.value = Math.min(1, Math.max(0.1, volume));
+    // Yumshoq cheklovchi — baland ovozda ham buzilmasin.
+    const limiter = ctx.createDynamicsCompressor();
+    master.connect(limiter).connect(ctx.destination);
+
     const beep = (at: number, freq: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = "sine";
+      osc.type = "square";
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(0.0001, ctx.currentTime + at);
-      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + at + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + 0.28);
-      osc.connect(gain).connect(ctx.destination);
+      gain.gain.exponentialRampToValueAtTime(0.9, ctx.currentTime + at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + 0.3);
+      osc.connect(gain).connect(master);
       osc.start(ctx.currentTime + at);
-      osc.stop(ctx.currentTime + at + 0.3);
+      osc.stop(ctx.currentTime + at + 0.32);
     };
-    beep(0, 880);
-    beep(0.34, 660);
-    window.setTimeout(() => void ctx.close().catch(() => {}), 1200);
+    // 3 marta ketma-ket ikki tonli signal — e'tibordan chetda qolmaydi.
+    for (let i = 0; i < 3; i += 1) {
+      beep(i * 0.72, 1180);
+      beep(i * 0.72 + 0.34, 880);
+    }
+    window.setTimeout(() => void ctx.close().catch(() => {}), 3200);
   } catch {
     /* sound is a nicety — never break the indicator */
   }
 }
+
 
 function connectionFailureSnapshot(): SystemAlertSnapshot {
   const checkedAt = new Date().toISOString();
@@ -72,11 +86,16 @@ export function SystemAlertIndicator() {
   const [refreshing, setRefreshing] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const [soundOn, setSoundOn] = useState(true);
+  const [volume, setVolume] = useState(1);
   const lastSignature = useRef<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     setSoundOn(window.localStorage.getItem(SOUND_KEY) !== "off");
+    const stored = Number(window.localStorage.getItem(VOLUME_KEY));
+    if (Number.isFinite(stored) && stored > 0) setVolume(Math.min(1, stored));
   }, []);
+
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -115,17 +134,24 @@ export function SystemAlertIndicator() {
     lastSignature.current = signature;
     if (previous === null || signature === previous || signature === "") return;
     const isNew = signature.split("|").some((item) => !previous.split("|").includes(item));
-    if (isNew && soundOn) playAlertBeep();
-  }, [snapshot, soundOn]);
+    if (isNew && soundOn) playAlertBeep(volume);
+  }, [snapshot, soundOn, volume]);
 
   const toggleSound = () => {
     setSoundOn((value) => {
       const next = !value;
       window.localStorage.setItem(SOUND_KEY, next ? "on" : "off");
-      if (next) playAlertBeep();
+      if (next) playAlertBeep(volume);
       return next;
     });
   };
+
+  const changeVolume = (next: number) => {
+    setVolume(next);
+    window.localStorage.setItem(VOLUME_KEY, String(next));
+    if (soundOn) playAlertBeep(next);
+  };
+
 
   return (
     <div ref={rootRef} className="relative shrink-0">
@@ -160,44 +186,68 @@ export function SystemAlertIndicator() {
 
       {open && (
         <section className="absolute right-0 top-full z-50 mt-2 w-[min(390px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-          <header className="flex items-center gap-3 border-b border-border px-4 py-3.5">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-sm font-extrabold">Tizim ogohlantirishlari</h2>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                Administrator uchun avtomatik nazorat
-              </p>
+          <header className="border-b border-border px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-sm font-extrabold">{t("Tizim ogohlantirishlari")}</h2>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  {t("Administrator uchun avtomatik nazorat")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted"
+                title={soundOn ? t("Ovozli signal yoniq") : t("Ovozli signal o'chirilgan")}
+              >
+                {soundOn ? (
+                  <Volume2 className="h-3.5 w-3.5" />
+                ) : (
+                  <VolumeX className="h-3.5 w-3.5" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                disabled={refreshing}
+                className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted disabled:opacity-50"
+                title={t("Qayta tekshirish")}
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={toggleSound}
-              className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted"
-              title={soundOn ? "Ovozli signal yoniq" : "Ovozli signal o'chirilgan"}
-            >
-              {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => void refresh()}
-              disabled={refreshing}
-              className="rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted disabled:opacity-50"
-              title="Qayta tekshirish"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            </button>
+            {soundOn && (
+              <label className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <Volume2 className="h-3 w-3" />
+                <span className="shrink-0">{t("Ovoz balandligi")}</span>
+                <input
+                  type="range"
+                  min={0.2}
+                  max={1}
+                  step={0.1}
+                  value={volume}
+                  onChange={(event) => changeVolume(Number(event.target.value))}
+                  className="h-1.5 flex-1 accent-primary"
+                />
+                <span className="w-8 text-right font-bold">{Math.round(volume * 100)}%</span>
+              </label>
+            )}
           </header>
+
 
           <div className="max-h-[430px] overflow-y-auto p-2">
             {!snapshot ? (
               <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-muted-foreground">
-                <RefreshCw className="h-4 w-4 animate-spin" /> Tekshirilmoqda...
+                <RefreshCw className="h-4 w-4 animate-spin" /> {t("Tekshirilmoqda...")}
               </div>
             ) : snapshot.alerts.length === 0 ? (
               <div className="px-4 py-10 text-center">
                 <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-500" />
-                <div className="mt-3 text-sm font-bold">Hammasi joyida</div>
+                <div className="mt-3 text-sm font-bold">{t("Hammasi joyida")}</div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Tizimda administrator aralashuvi kerak bo'lgan muammo yo'q.
+                  {t("Tizimda administrator aralashuvi kerak bo'lgan muammo yo'q.")}
                 </p>
+
               </div>
             ) : (
               <div className="space-y-2">
