@@ -241,7 +241,8 @@ function AuthenticatedLayout() {
               }`}
             >
               <n.icon className="h-[18px] w-[18px]" />
-              <span className="truncate">{n.label}</span>
+              <span className="truncate">{t(n.label)}</span>
+
             </Link>
           );
         })}
