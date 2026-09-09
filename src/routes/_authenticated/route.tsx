@@ -254,7 +254,7 @@ function AuthenticatedLayout() {
               className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-sidebar-foreground/75 transition hover:bg-sidebar-accent"
             >
               <Menu className="h-[18px] w-[18px]" />
-              <span className="flex-1 text-left">Boshqa bo'limlar</span>
+              <span className="flex-1 text-left">{t("Boshqa bo'limlar")}</span>
               <ChevronDown className={`h-4 w-4 transition ${moreOpen ? "rotate-180" : ""}`} />
             </button>
             {moreOpen &&
