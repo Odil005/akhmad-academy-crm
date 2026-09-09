@@ -57,6 +57,8 @@ import {
   getAuthenticatedRouteContext,
 } from "@/lib/authenticated-route-cache";
 import { SystemAlertIndicator } from "@/components/SystemAlertIndicator";
+import { useLanguage } from "@/lib/i18n";
+
 import { TourProvider, useTour } from "@/components/tour/TourProvider";
 import { HelpCircle } from "lucide-react";
 // Jarvis is a heavy assistant panel — keep it out of the initial bundle.
