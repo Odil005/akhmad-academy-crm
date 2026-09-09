@@ -84,11 +84,16 @@ export function SystemAlertIndicator() {
   const [refreshing, setRefreshing] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const [soundOn, setSoundOn] = useState(true);
+  const [volume, setVolume] = useState(1);
   const lastSignature = useRef<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     setSoundOn(window.localStorage.getItem(SOUND_KEY) !== "off");
+    const stored = Number(window.localStorage.getItem(VOLUME_KEY));
+    if (Number.isFinite(stored) && stored > 0) setVolume(Math.min(1, stored));
   }, []);
+
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
