@@ -37,6 +37,7 @@ function StatsSettings() {
     const { error } = await supabase.from("settings").upsert({
       key: "homepage_stats",
       scope: "shared",
+      is_public: true,
       value: s as any,
     });
     setSaving(false);
