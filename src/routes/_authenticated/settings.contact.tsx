@@ -33,6 +33,7 @@ function ContactSettings() {
     const { error } = await supabase.from("settings").upsert({
       key: "contact_info",
       scope: "director",
+      is_public: true,
       value: info as any,
     });
     setSaving(false);
