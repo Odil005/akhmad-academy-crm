@@ -1180,8 +1180,14 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               parent_telegram_chat_id: string | null;
             }>,
           ) => {
+            // A verified own-contact phone match may replace an empty value or a
+            // placeholder username (e.g. "@name") typed in the CRM; only a different
+            // numeric chat ID means another real Telegram account is already linked.
             const targets = matches.filter(
-              (s) => !s.parent_telegram_chat_id || s.parent_telegram_chat_id === String(chat),
+              (s) =>
+                !s.parent_telegram_chat_id ||
+                s.parent_telegram_chat_id === String(chat) ||
+                !/^-?\d+$/.test(s.parent_telegram_chat_id.trim()),
             );
             if (!targets.length) {
               await reply(
@@ -1244,6 +1250,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             if (!isPrivateTelegramChat(cq.message?.chat.type) || cq.from.id !== chatId) {
               return new Response("ok");
             }
+            await claimUsernameLinks(chatId, cq.from.username);
 
             const students = await linkedStudents(chatId);
             if (!students.length) {
@@ -1304,6 +1311,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           if (!isPrivateTelegramChat(msg?.chat?.type) || msg?.from?.id !== chatId) {
             return new Response("ok");
           }
+          await claimUsernameLinks(chatId, msg?.from?.username ?? msg?.chat?.username);
 
           // Contact shared via "request_contact" button
           if (msg?.contact) {
