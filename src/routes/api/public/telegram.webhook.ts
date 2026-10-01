@@ -80,7 +80,7 @@ type Update = {
   message?: Msg;
   callback_query?: {
     id: string;
-    from: { id: number };
+    from: { id: number; username?: string };
     message?: { chat: { id: number; type?: string }; message_id: number };
     data?: string;
   };
