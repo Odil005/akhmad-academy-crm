@@ -223,6 +223,28 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             return data ?? [];
           };
 
+          /**
+           * Staff often type a Telegram @username in the CRM instead of the numeric
+           * chat ID. When that user writes to the bot, replace the username with the
+           * real chat ID so every menu recognises them.
+           */
+          const claimUsernameLinks = async (chatId: number, username?: string | null) => {
+            const uname = (username ?? "").trim().replace(/^@/, "");
+            if (!/^[A-Za-z0-9_]{4,32}$/.test(uname)) return;
+            const variants = [`@${uname}`, uname, `https://t.me/${uname}`, `t.me/${uname}`];
+            const chat = String(chatId);
+            for (const v of variants) {
+              await supabaseAdmin
+                .from("students")
+                .update({ parent_telegram_chat_id: chat, parent_notifications_enabled: true })
+                .ilike("parent_telegram_chat_id", v);
+              await supabaseAdmin
+                .from("students")
+                .update({ telegram_chat_id: chat })
+                .ilike("telegram_chat_id", v);
+            }
+          };
+
           type LinkedStudent = {
             id: string;
             first_name: string | null;
