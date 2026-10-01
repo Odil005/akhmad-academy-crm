@@ -80,7 +80,7 @@ type Update = {
   message?: Msg;
   callback_query?: {
     id: string;
-    from: { id: number };
+    from: { id: number; username?: string };
     message?: { chat: { id: number; type?: string }; message_id: number };
     data?: string;
   };
@@ -221,6 +221,28 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               .select("id, first_name, last_name, group_id")
               .eq("parent_telegram_chat_id", String(chatId));
             return data ?? [];
+          };
+
+          /**
+           * Staff often type a Telegram @username in the CRM instead of the numeric
+           * chat ID. When that user writes to the bot, replace the username with the
+           * real chat ID so every menu recognises them.
+           */
+          const claimUsernameLinks = async (chatId: number, username?: string | null) => {
+            const uname = (username ?? "").trim().replace(/^@/, "");
+            if (!/^[A-Za-z0-9_]{4,32}$/.test(uname)) return;
+            const variants = [`@${uname}`, uname, `https://t.me/${uname}`, `t.me/${uname}`];
+            const chat = String(chatId);
+            for (const v of variants) {
+              await supabaseAdmin
+                .from("students")
+                .update({ parent_telegram_chat_id: chat, parent_notifications_enabled: true })
+                .ilike("parent_telegram_chat_id", v);
+              await supabaseAdmin
+                .from("students")
+                .update({ telegram_chat_id: chat })
+                .ilike("telegram_chat_id", v);
+            }
           };
 
           type LinkedStudent = {
@@ -1180,8 +1202,14 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               parent_telegram_chat_id: string | null;
             }>,
           ) => {
+            // A verified own-contact phone match may replace an empty value or a
+            // placeholder username (e.g. "@name") typed in the CRM; only a different
+            // numeric chat ID means another real Telegram account is already linked.
             const targets = matches.filter(
-              (s) => !s.parent_telegram_chat_id || s.parent_telegram_chat_id === String(chat),
+              (s) =>
+                !s.parent_telegram_chat_id ||
+                s.parent_telegram_chat_id === String(chat) ||
+                !/^-?\d+$/.test(s.parent_telegram_chat_id.trim()),
             );
             if (!targets.length) {
               await reply(
@@ -1244,6 +1272,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             if (!isPrivateTelegramChat(cq.message?.chat.type) || cq.from.id !== chatId) {
               return new Response("ok");
             }
+            await claimUsernameLinks(chatId, cq.from.username);
 
             const students = await linkedStudents(chatId);
             if (!students.length) {
@@ -1304,6 +1333,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           if (!isPrivateTelegramChat(msg?.chat?.type) || msg?.from?.id !== chatId) {
             return new Response("ok");
           }
+          await claimUsernameLinks(chatId, msg?.from?.username ?? msg?.chat?.username);
 
           // Contact shared via "request_contact" button
           if (msg?.contact) {
