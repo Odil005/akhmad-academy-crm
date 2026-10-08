@@ -130,7 +130,7 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
         );
       }
       if (g) {
-        const patch: Record<string, string> = {};
+        const patch: { subject_id?: string; teacher_id?: string } = {};
         if (subjectId && !g.subject_id) patch.subject_id = subjectId;
         if (teacherId && !g.teacher_id) patch.teacher_id = teacherId;
         if (Object.keys(patch).length) {
