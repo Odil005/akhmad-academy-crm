@@ -9,7 +9,10 @@ export type LegacyField =
   | "birth_date"
   | "schedule"
   | "parents"
-  | "amount";
+  | "amount"
+  | "subject"
+  | "teacher"
+  | "group";
 
 export const LEGACY_FIELD_LABELS: Record<LegacyField, string> = {
   ignore: "— e'tiborsiz —",
@@ -20,6 +23,9 @@ export const LEGACY_FIELD_LABELS: Record<LegacyField, string> = {
   schedule: "Soati / jadval",
   parents: "Ota-ona nomerlari",
   amount: "To'lov summasi",
+  subject: "Fan",
+  teacher: "O'qituvchi",
+  group: "Guruh",
 };
 
 const norm = (s: string) =>
@@ -32,6 +38,9 @@ const norm = (s: string) =>
     .trim();
 
 const HEADER_PATTERNS: { field: LegacyField; tests: RegExp[] }[] = [
+  { field: "teacher", tests: [/o'?qituvchi/, /ustoz/, /teacher/, /murabbiy/, /учител/, /преподав/] },
+  { field: "group", tests: [/guru[hx]/, /^group/, /групп/] },
+  { field: "subject", tests: [/^fan/, /\bfani?\b/, /subject/, /kurs/, /yo'?nalish/, /предмет/] },
   { field: "full_name", tests: [/^f ?i ?o$/, /^fio$/, /f\.?\s?i\.?\s?o/, /ism ?familiya/, /familiya/, /o'?quvchi/, /talaba/, /student/, /full ?name/, /name/] },
   { field: "birth_date", tests: [/tug'?il/, /tugil/, /tavallud/, /birth/, /^dob$/, /рожд/] },
   { field: "start_date", tests: [/boshla/, /sana/, /kelgan/, /date/, /start/] },
@@ -278,6 +287,8 @@ export type ParsedStudentRow = {
   schedule_type: string | null;
   subject_name: string | null;
   lesson_time: string | null;
+  teacher_name: string | null;
+  group_name: string | null;
   parent_full_name: string;
   parent_phones: string[];
   monthly_fee: number | null;
@@ -318,6 +329,9 @@ export function parseRows(
   const iSched = col("schedule");
   const iParents = col("parents");
   const iAmount = col("amount");
+  const iSubject = col("subject");
+  const iTeacher = col("teacher");
+  const iGroup = col("group");
 
   const out: ParsedStudentRow[] = [];
   sheet.rows.forEach((row, idx) => {
@@ -359,8 +373,10 @@ export function parseRows(
       birth_date_raw: b.raw,
       schedule_raw: sched.raw,
       schedule_type: sched.schedule_type,
-      subject_name: sched.subject_name,
+      subject_name: String(cell(iSubject) ?? "").trim() || sched.subject_name,
       lesson_time: sched.lesson_time,
+      teacher_name: String(cell(iTeacher) ?? "").replace(/\s+/g, " ").trim() || null,
+      group_name: String(cell(iGroup) ?? "").replace(/\s+/g, " ").trim() || null,
       parent_full_name: parentName,
       parent_phones: phones,
       monthly_fee: fee,
