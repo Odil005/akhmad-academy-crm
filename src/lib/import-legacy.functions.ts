@@ -24,6 +24,8 @@ const LegacyRow = z.object({
   schedule_type: z.string().optional().nullable().default(null),
   subject_name: z.string().optional().nullable().default(null),
   lesson_time: z.string().optional().nullable().default(null),
+  teacher_name: z.string().optional().nullable().default(null),
+  group_name: z.string().optional().nullable().default(null),
   parent_full_name: z.string().optional().default(""),
   parent_phones: z.array(z.string()).optional().default([]),
   parent_raw: z.string().optional().default(""),
@@ -32,7 +34,8 @@ const LegacyRow = z.object({
 
 const LegacyInput = z.object({
   file_name: z.string().optional().default(""),
-  group_id: z.string().uuid(),
+  /** Optional: when empty every row is routed by its subject / teacher / group columns. */
+  group_id: z.string().uuid().nullable().optional().default(null),
   academic_year: z.string().min(4),
   duplicate_strategy: z.enum(["skip", "update", "create"]).default("skip"),
   rows: z.array(LegacyRow).min(1).max(5000),
@@ -52,18 +55,112 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
 
     const yearStart = academicYearStart(data.academic_year);
 
-    const { data: group, error: groupErr } = await supabase
-      .from("groups")
-      .select("id, name, monthly_fee")
-      .eq("id", data.group_id)
-      .maybeSingle();
-    if (groupErr || !group) throw new Response("Guruh topilmadi", { status: 400 });
+    const key = (v: string | null | undefined) =>
+      String(v ?? "").toLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, " ").trim();
 
-    // Existing students of this group for duplicate detection.
+    // ---- Lookups used for automatic subject / teacher / group assignment ----
+    const [{ data: subjRows }, { data: groupRows }, { data: roleRows }] = await Promise.all([
+      supabase.from("subjects").select("id, name"),
+      supabase.from("groups").select("id, name, monthly_fee, subject_id, teacher_id"),
+      supabase.from("user_roles").select("user_id").eq("role", "teacher"),
+    ]);
+    const teacherIds = (roleRows ?? []).map((r: any) => r.user_id);
+    const { data: teacherProfiles } = teacherIds.length
+      ? await supabase.from("profiles").select("id, full_name").in("id", teacherIds)
+      : { data: [] as any[] };
+
+    const subjectByName = new Map<string, string>();
+    (subjRows ?? []).forEach((s: any) => subjectByName.set(key(s.name), s.id));
+    const subjectName = new Map<string, string>();
+    (subjRows ?? []).forEach((s: any) => subjectName.set(s.id, s.name));
+    type G = { id: string; name: string; monthly_fee: number | null; subject_id: string | null; teacher_id: string | null };
+    const groupsAll: G[] = (groupRows ?? []) as G[];
+    const teacherList = (teacherProfiles ?? []).map((t: any) => ({ id: t.id as string, name: key(t.full_name) }));
+    const teacherNameById = new Map<string, string>(
+      (teacherProfiles ?? []).map((t: any) => [t.id, t.full_name ?? ""]),
+    );
+
+    const findTeacher = (raw: string | null) => {
+      const k = key(raw);
+      if (!k) return null;
+      const exact = teacherList.find((t) => t.name === k);
+      if (exact) return exact.id;
+      // Tolerate "Familiya Ism" vs "Ism Familiya" and partial names.
+      const parts = k.split(" ");
+      const loose = teacherList.find((t) => parts.every((p) => t.name.includes(p)));
+      return loose?.id ?? null;
+    };
+
+    const ensureSubject = async (raw: string | null) => {
+      const k = key(raw);
+      if (!k) return null;
+      const hit = subjectByName.get(k);
+      if (hit) return hit;
+      const { data: made } = await supabase
+        .from("subjects").insert({ name: String(raw).trim() }).select("id, name").single();
+      if (!made) return null;
+      subjectByName.set(k, made.id);
+      subjectName.set(made.id, made.name);
+      return made.id as string;
+    };
+
+    const routeCache = new Map<string, G>();
+    const resolveGroup = async (row: z.infer<typeof LegacyRow>): Promise<{ group: G | null; note?: string }> => {
+      if (data.group_id) {
+        const g = groupsAll.find((x) => x.id === data.group_id);
+        return { group: g ?? null };
+      }
+      const sched = !row.subject_name && row.schedule_raw ? parseSchedule(row.schedule_raw) : null;
+      const subjRaw = row.subject_name ?? sched?.subject_name ?? null;
+      const cacheKey = `${key(row.group_name)}|${key(subjRaw)}|${key(row.teacher_name)}`;
+      const cached = routeCache.get(cacheKey);
+      if (cached) return { group: cached };
+
+      const subjectId = await ensureSubject(subjRaw);
+      const teacherId = findTeacher(row.teacher_name ?? null);
+      const note = row.teacher_name && !teacherId
+        ? `O'qituvchi topilmadi: ${row.teacher_name} — guruh o'qituvchisiz qoldi`
+        : undefined;
+
+      let g: G | undefined;
+      if (row.group_name) g = groupsAll.find((x) => key(x.name) === key(row.group_name));
+      if (!g && subjectId) {
+        g = groupsAll.find(
+          (x) => x.subject_id === subjectId && (teacherId ? x.teacher_id === teacherId : true),
+        );
+      }
+      if (g) {
+        const patch: { subject_id?: string; teacher_id?: string } = {};
+        if (subjectId && !g.subject_id) patch.subject_id = subjectId;
+        if (teacherId && !g.teacher_id) patch.teacher_id = teacherId;
+        if (Object.keys(patch).length) {
+          await supabase.from("groups").update(patch).eq("id", g.id);
+          Object.assign(g, patch);
+        }
+      } else if (row.group_name || subjectId) {
+        const name =
+          row.group_name?.trim() ||
+          [subjectName.get(subjectId!), teacherId ? teacherNameById.get(teacherId) : null]
+            .filter(Boolean)
+            .join(" — ");
+        const { data: made } = await supabase
+          .from("groups")
+          .insert({ name, subject_id: subjectId, teacher_id: teacherId, monthly_fee: 0 })
+          .select("id, name, monthly_fee, subject_id, teacher_id")
+          .single();
+        if (made) {
+          g = made as G;
+          groupsAll.push(g);
+        }
+      }
+      if (g) routeCache.set(cacheKey, g);
+      return { group: g ?? null, note };
+    };
+
+    // Existing students for duplicate detection (center-wide).
     const { data: existing } = await supabase
       .from("students")
-      .select("id, full_name, first_name, last_name, parent_phone, parent_phones")
-      .eq("group_id", data.group_id);
+      .select("id, full_name, first_name, last_name, parent_phone, parent_phones");
 
     const dupKey = (name: string, phone: string) =>
       `${name.toLowerCase().replace(/\s+/g, " ").trim()}|${phone.replace(/\D/g, "")}`;
@@ -102,12 +199,21 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
     const toInsert: any[] = [];
     const updates: { id: string; patch: any }[] = [];
 
-    data.rows.forEach((raw, i) => {
+    for (const [i, raw] of data.rows.entries()) {
       const rowNo = i + 1;
       const full = String(raw.full_name ?? "").replace(/\s+/g, " ").trim();
       if (!full) {
         details.push({ row: rowNo, level: "error", message: "F.I.O bo'sh — qator o'tkazildi" });
-        return;
+        continue;
+      }
+      const { group, note } = await resolveGroup(raw);
+      if (note) {
+        warnings++;
+        details.push({ row: rowNo, level: "warning", message: note });
+      }
+      if (!group) {
+        warnings++;
+        details.push({ row: rowNo, level: "warning", message: `${full} — fan/guruh ko'rsatilmagan, guruhsiz qo'shildi` });
       }
       const { first_name, last_name } = splitFullName(full);
 
@@ -141,9 +247,9 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
         schedule_raw: raw.schedule_raw || null,
         schedule_type: raw.schedule_type ?? sched?.schedule_type ?? null,
         lesson_time: raw.lesson_time ?? sched?.lesson_time ?? null,
-        monthly_fee: fee ?? group.monthly_fee ?? null,
+        monthly_fee: fee ?? group?.monthly_fee ?? null,
         academic_year: data.academic_year,
-        group_id: data.group_id,
+        group_id: group?.id ?? null,
         status: "active",
         status_enum: "active",
       };
@@ -155,12 +261,12 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
         duplicates++;
         if (data.duplicate_strategy === "skip") {
           details.push({ row: rowNo, level: "duplicate", message: `${full} — mavjud, o'tkazildi` });
-          return;
+          continue;
         }
         if (data.duplicate_strategy === "update") {
           updates.push({ id: matchId, patch: payload });
           details.push({ row: rowNo, level: "duplicate", message: `${full} — yangilandi` });
-          return;
+          continue;
         }
         details.push({ row: rowNo, level: "duplicate", message: `${full} — yangi sifatida qo'shildi` });
       }
@@ -170,21 +276,21 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
         enrolled_at: new Date().toISOString(),
         import_batch_id: batch.id,
       });
-    });
+    }
 
     if (toInsert.length) {
       const { data: made, error } = await supabase
         .from("students")
         .insert(toInsert)
-        .select("id");
+        .select("id, group_id");
       if (error) {
         details.push({ row: 0, level: "error", message: error.message });
       } else {
         inserted = made?.length ?? 0;
         const startedAt = new Date().toISOString().slice(0, 10);
-        const enrollments = (made ?? []).map((s: any) => ({
+        const enrollments = (made ?? []).filter((s: any) => s.group_id).map((s: any) => ({
           student_id: s.id,
-          group_id: data.group_id,
+          group_id: s.group_id,
           started_at: startedAt,
           status: "active",
         }));

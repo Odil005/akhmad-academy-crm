@@ -157,7 +157,6 @@ function ImportPage() {
   }
 
   async function doImport() {
-    if (!groupId) return toast.error("Avval guruhni tanlang");
     const rows = parsed.filter((r) => !r.errors.length);
     if (!rows.length) return toast.error("Import uchun to'g'ri qator yo'q");
     setBusy(true);
@@ -169,7 +168,7 @@ function ImportPage() {
       const res = await runImport({
         data: {
           file_name: fileName,
-          group_id: groupId,
+          group_id: groupId || null,
           academic_year: year,
           duplicate_strategy: dupStrategy,
           rows: rows.map((r) => ({
@@ -180,6 +179,8 @@ function ImportPage() {
             schedule_type: r.schedule_type,
             subject_name: r.subject_name,
             lesson_time: r.lesson_time,
+            teacher_name: r.teacher_name,
+            group_name: r.group_name,
             parent_full_name: r.parent_full_name,
             parent_phones: r.parent_phones,
             birth_date: r.birth_date,
@@ -224,7 +225,13 @@ function ImportPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">1. Guruhni tanlang (majburiy)</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">1. Guruh (ixtiyoriy)</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Guruh tanlanmasa, tizim har bir o'quvchini Excel'dagi <b>Fan</b>, <b>O'qituvchi</b> va <b>Guruh</b> ustunlari
+            bo'yicha avtomatik biriktiradi: fan yo'q bo'lsa yaratadi, o'qituvchini ismi bo'yicha topadi, kerakli guruhni
+            ochadi.
+          </p>
+        </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-4">
           <div>
             <div className="mb-1 text-xs font-medium text-muted-foreground">Fan</div>
@@ -330,10 +337,10 @@ function ImportPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={doImport} disabled={busy || !groupId}>Import qilish</Button>
+              <Button onClick={doImport} disabled={busy}>Import qilish</Button>
               {!groupId && (
-                <span className="flex items-center gap-1 text-xs text-destructive">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Guruhni tanlang
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Avtomatik taqsimlash: fan / o'qituvchi / guruh ustunlari bo'yicha
                 </span>
               )}
             </div>
@@ -342,7 +349,7 @@ function ImportPage() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-muted text-xs uppercase">
                   <tr>
-                    {["#", "O'quvchi", "Boshlagan", "Tug'ilgan", "Jadval / fan", "Ota-ona", "Telefonlar", "Summa", "Guruh", "Holat"].map((h) => (
+                    {["#", "O'quvchi", "Boshlagan", "Tug'ilgan", "Jadval / fan", "Ota-ona", "Telefonlar", "Summa", "O'qituvchi", "Guruh", "Holat"].map((h) => (
                       <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
                     ))}
                   </tr>
@@ -360,7 +367,8 @@ function ImportPage() {
                       <td className="px-3 py-1.5">{r.parent_full_name || "—"}</td>
                       <td className="px-3 py-1.5">{r.parent_phones.join(", ") || "—"}</td>
                       <td className="px-3 py-1.5">{r.monthly_fee?.toLocaleString("uz-UZ") ?? "—"}</td>
-                      <td className="px-3 py-1.5">{selectedGroup?.name ?? "—"}</td>
+                      <td className="px-3 py-1.5">{r.teacher_name ?? "—"}</td>
+                      <td className="px-3 py-1.5">{selectedGroup?.name ?? r.group_name ?? (r.subject_name ? "Avto" : "—")}</td>
                       <td className="px-3 py-1.5 text-xs">
                         {r.errors.length ? (
                           <span className="text-destructive">{r.errors.join("; ")}</span>
