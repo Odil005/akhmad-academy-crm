@@ -73,6 +73,7 @@ import { Route as AuthenticatedSettingsTeachersRouteImport } from './routes/_aut
 import { Route as AuthenticatedSettingsTelephonyRouteImport } from './routes/_authenticated/settings.telephony'
 import { Route as AuthenticatedStudentsIdRouteImport } from './routes/_authenticated/students.$id'
 import { Route as ApiPublicCronDailyReportRouteImport } from './routes/api/public/cron.daily-report'
+import { Route as ApiPublicCronMonthlyInvoicesRouteImport } from './routes/api/public/cron.monthly-invoices'
 import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes/api/public/cron.notifications-dispatch'
 import { Route as ApiPublicCronParentDigestRouteImport } from './routes/api/public/cron.parent-digest'
 import { Route as ApiPublicCronReceiptQueueRouteImport } from './routes/api/public/cron.receipt-queue'
@@ -433,6 +434,12 @@ const ApiPublicCronDailyReportRoute =
     path: '/api/public/cron/daily-report',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronMonthlyInvoicesRoute =
+  ApiPublicCronMonthlyInvoicesRouteImport.update({
+    id: '/api/public/cron/monthly-invoices',
+    path: '/api/public/cron/monthly-invoices',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronNotificationsDispatchRoute =
   ApiPublicCronNotificationsDispatchRouteImport.update({
     id: '/api/public/cron/notifications-dispatch',
@@ -560,6 +567,7 @@ export interface FileRoutesByFullPath {
   '/students/$id': typeof AuthenticatedStudentsIdRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
+  '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
@@ -635,6 +643,7 @@ export interface FileRoutesByTo {
   '/students/$id': typeof AuthenticatedStudentsIdRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
+  '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
@@ -713,6 +722,7 @@ export interface FileRoutesById {
   '/_authenticated/students/$id': typeof AuthenticatedStudentsIdRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
+  '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
@@ -791,6 +801,7 @@ export interface FileRouteTypes {
     | '/students/$id'
     | '/settings/'
     | '/api/public/cron/daily-report'
+    | '/api/public/cron/monthly-invoices'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/receipt-queue'
@@ -866,6 +877,7 @@ export interface FileRouteTypes {
     | '/students/$id'
     | '/settings'
     | '/api/public/cron/daily-report'
+    | '/api/public/cron/monthly-invoices'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/receipt-queue'
@@ -943,6 +955,7 @@ export interface FileRouteTypes {
     | '/_authenticated/students/$id'
     | '/_authenticated/settings/'
     | '/api/public/cron/daily-report'
+    | '/api/public/cron/monthly-invoices'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/receipt-queue'
@@ -970,6 +983,7 @@ export interface RootRouteChildren {
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicCronDailyReportRoute: typeof ApiPublicCronDailyReportRoute
+  ApiPublicCronMonthlyInvoicesRoute: typeof ApiPublicCronMonthlyInvoicesRoute
   ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
   ApiPublicCronReceiptQueueRoute: typeof ApiPublicCronReceiptQueueRoute
@@ -1433,6 +1447,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronDailyReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/monthly-invoices': {
+      id: '/api/public/cron/monthly-invoices'
+      path: '/api/public/cron/monthly-invoices'
+      fullPath: '/api/public/cron/monthly-invoices'
+      preLoaderRoute: typeof ApiPublicCronMonthlyInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/notifications-dispatch': {
       id: '/api/public/cron/notifications-dispatch'
       path: '/api/public/cron/notifications-dispatch'
@@ -1665,6 +1686,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicCronDailyReportRoute: ApiPublicCronDailyReportRoute,
+  ApiPublicCronMonthlyInvoicesRoute: ApiPublicCronMonthlyInvoicesRoute,
   ApiPublicCronNotificationsDispatchRoute:
     ApiPublicCronNotificationsDispatchRoute,
   ApiPublicCronParentDigestRoute: ApiPublicCronParentDigestRoute,
