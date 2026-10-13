@@ -2294,9 +2294,11 @@ export type Database = {
           idempotency_key: string | null
           next_due_date: string | null
           note: string | null
+          paid_amount: number
           paid_at: string | null
           payment_method: string
           period_month: string
+          settled_by: string | null
           status: string
           student_id: string
           subtotal: number
@@ -2318,9 +2320,11 @@ export type Database = {
           idempotency_key?: string | null
           next_due_date?: string | null
           note?: string | null
+          paid_amount?: number
           paid_at?: string | null
           payment_method?: string
           period_month: string
+          settled_by?: string | null
           status?: string
           student_id: string
           subtotal?: number
@@ -2342,9 +2346,11 @@ export type Database = {
           idempotency_key?: string | null
           next_due_date?: string | null
           note?: string | null
+          paid_amount?: number
           paid_at?: string | null
           payment_method?: string
           period_month?: string
+          settled_by?: string | null
           status?: string
           student_id?: string
           subtotal?: number
@@ -3030,6 +3036,7 @@ export type Database = {
           academic_year: string | null
           birth_date: string | null
           center_id: string | null
+          credit_balance: number
           enrolled_at: string
           first_name: string | null
           full_name: string | null
@@ -3063,6 +3070,7 @@ export type Database = {
           academic_year?: string | null
           birth_date?: string | null
           center_id?: string | null
+          credit_balance?: number
           enrolled_at?: string
           first_name?: string | null
           full_name?: string | null
@@ -3096,6 +3104,7 @@ export type Database = {
           academic_year?: string | null
           birth_date?: string | null
           center_id?: string | null
+          credit_balance?: number
           enrolled_at?: string
           first_name?: string | null
           full_name?: string | null
