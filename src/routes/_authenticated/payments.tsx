@@ -97,9 +97,23 @@ function PaymentsPage() {
           <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">To'lovlar</h1>
           <p className="text-sm text-muted-foreground">Kassa, cheklar va ota-onaga xabarlar</p>
         </div>
-        <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
-          <Plus className="h-4 w-4" /> To'lov qabul qilish
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            disabled={busy === "invoices"}
+            onClick={() => act("invoices", async () => {
+              const { data, error } = await supabase.rpc("generate_monthly_invoices", {});
+              if (error) throw error;
+              const r = (data as { created_count: number; total_amount: number }[] | null)?.[0];
+              setTimeout(() => setToast(`${r?.created_count ?? 0} ta hisob yozildi · ${fmt(Number(r?.total_amount ?? 0))} so'm`), 0);
+            }, "Oylik hisoblar yozildi")}
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/50 px-4 py-2.5 text-sm font-semibold text-primary disabled:opacity-60"
+          >
+            Shu oy hisoblarini yozish
+          </button>
+          <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
+            <Plus className="h-4 w-4" /> To'lov qabul qilish
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

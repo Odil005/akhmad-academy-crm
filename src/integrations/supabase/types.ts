@@ -3783,6 +3783,13 @@ export type Database = {
         Args: { p_error: string; p_success: boolean; p_update_id: number }
         Returns: undefined
       }
+      generate_monthly_invoices: {
+        Args: { p_month?: string }
+        Returns: {
+          created_count: number
+          total_amount: number
+        }[]
+      }
       schedule_insights: {
         Args: { p_since: string }
         Returns: {
