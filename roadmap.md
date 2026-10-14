@@ -6,7 +6,7 @@
 ## Professional daraja (Modme kabi) — dizayn o'zgarmaydi
 ### Moliya va to'lovlar
 - [x] Har oy boshida avtomatik hisob (invoice) + avto chegirma
-- [ ] Qisman to'lov va oldindan to'lov balansi
+- [x] Qisman to'lov va oldindan to'lov balansi
 - [ ] Chegirmalarni to'lovda avtomatik qo'llash, qaytarish (refund) va to'lovni bekor qilish tarixi
 - [ ] Kassa yopilishi + o'qituvchi oyligi avtomatik hisoblanishi
 ### Guruh va jadval

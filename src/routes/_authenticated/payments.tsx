@@ -81,7 +81,7 @@ function PaymentsPage() {
     return true;
   }), [rows, f]);
 
-  const total = filtered.reduce((s, r) => s + Number(r.total_amount || r.amount), 0);
+  const total = filtered.filter((r) => r.status === "paid").reduce((s, r) => s + Number(r.total_amount || r.amount), 0);
 
   const act = async (id: string, fn: () => Promise<unknown>, ok: string) => {
     setBusy(id); setToast(null);
