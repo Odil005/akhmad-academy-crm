@@ -130,15 +130,61 @@ function ImportPage() {
     setFileName(file.name);
     const buf = await file.arrayBuffer();
     const XLSX = await import("xlsx");
-    const wb = XLSX.read(buf, { type: "array", cellDates: true, codepage: 65001 });
-    const ws = wb.Sheets[wb.SheetNames[0]!];
-    if (!ws) return toast.error("Faylda varaq topilmadi");
-    const matrix = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "", raw: false, blankrows: false });
-    const s = toSheet(matrix as unknown[][]);
-    if (!s.rows.length) return toast.error("Faylda ma'lumot topilmadi");
-    setSheet(s);
-    setMapping(detectMapping(s.headers));
-    toast.success(`${s.rows.length} qator o'qildi`);
+    let wb;
+    try {
+      wb = XLSX.read(buf, { type: "array", cellDates: true, codepage: 65001 });
+    } catch {
+      return toast.error("Fayl ochilmadi. Parolli bo'lsa, Excelda parolni olib tashlab qayta saqlang.");
+    }
+    if (!wb.SheetNames.length) return toast.error("Faylda varaq topilmadi");
+
+    // Auto-detect the subject from sheet name, file name or title rows above the table.
+    const norm = (v: string) => v.toLocaleLowerCase("uz-UZ").replace(/[‘’`ʻʼ']/g, "'").replace(/\s+/g, " ").trim();
+    const known = [...subjects].sort((a, b) => b.name.length - a.name.length);
+    const findSubject = (...texts: string[]): string | null => {
+      const t = norm(texts.join(" | "));
+      for (const s of known) if (s.name && t.includes(norm(s.name))) return s.name;
+      return null;
+    };
+
+    let headers: string[] = [];
+    const rows: unknown[][] = [];
+    let subjectCol = -1;
+    const detected = new Set<string>();
+    for (const name of wb.SheetNames) {
+      const ws = wb.Sheets[name];
+      if (!ws) continue;
+      const matrix = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "", raw: false, blankrows: false }) as unknown[][];
+      const s = toSheet(matrix);
+      if (!s.rows.length) continue;
+      const titleText = matrix.slice(0, 5).map((r) => (r ?? []).join(" ")).join(" ");
+      const subj = findSubject(name, titleText) ?? findSubject(file.name);
+      if (subj) detected.add(subj);
+      if (!headers.length) {
+        headers = [...s.headers];
+        const m = detectMapping(headers);
+        subjectCol = m.indexOf("subject");
+        if (subjectCol < 0) {
+          headers.push("Fan");
+          subjectCol = headers.length - 1;
+        }
+      }
+      // Align columns of later sheets to the first sheet by header name.
+      const idx = headers.map((h) => s.headers.indexOf(h));
+      for (const r of s.rows) {
+        const row = idx.map((i, k) => (i >= 0 ? r[i] : k === 0 && headers === s.headers ? r[0] : ""));
+        if (!String(row[subjectCol] ?? "").trim() && subj) row[subjectCol] = subj;
+        rows.push(row);
+      }
+    }
+    if (!rows.length) return toast.error("Faylda ma'lumot topilmadi");
+    const merged = { headers, rows } as RawSheet;
+    setSheet(merged);
+    setMapping(detectMapping(headers));
+    toast.success(
+      `${rows.length} qator o'qildi (${wb.SheetNames.length} varaq)` +
+        (detected.size ? ` · Fan: ${[...detected].join(", ")}` : ""),
+    );
   }
 
   async function createGroup() {

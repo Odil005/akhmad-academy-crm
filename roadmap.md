@@ -16,3 +16,8 @@
 ### Hisobot va analitika
 - [ ] Direktor paneli: tushum, qarz, o'sish/ketish, guruh to'liqligi
 - [ ] Oylik/fan/o'qituvchi bo'yicha hisobotlar va Excel eksport
+### Yangi so'rovlar
+- [x] Har qanday Excel: barcha varaqlar o'qiladi, fan varaq/fayl nomi yoki sarlavhadan aniqlanadi, guruh avtomatik ochiladi
+- [ ] Admin uchun bitta yagona boshqaruv paneli
+- [ ] Jarvis butun tizim ishini bajarishi va muammolarni hal qilishi (kengaytirish)
+- [ ] Direktorga 21:00 Jarvis hisoboti — tayyor, direktor botga /start yozishi kerak
