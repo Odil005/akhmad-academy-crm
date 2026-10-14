@@ -12,6 +12,11 @@ import {
   AlertTriangle,
   Clock,
   GraduationCap,
+  FileSpreadsheet,
+  Layers,
+  ClipboardCheck,
+  MessageSquare,
+  BarChart3,
 } from "lucide-react";
 import {
   loadAdminDeskMetrics,
@@ -29,6 +34,21 @@ import { NewTeacherModal } from "@/components/NewTeacherModal";
 import { TelegramLinkPanel } from "@/components/TelegramLinkPanel";
 
 const fmt = (n: number) => Number(n || 0).toLocaleString("uz-UZ");
+
+const ADMIN_SHORTCUTS = [
+  { to: "/import", label: "Excel import", icon: FileSpreadsheet },
+  { to: "/students", label: "O'quvchilar", icon: Users },
+  { to: "/groups", label: "Guruhlar", icon: Layers },
+  { to: "/teachers", label: "O'qituvchilar", icon: GraduationCap },
+  { to: "/schedule", label: "Jadval", icon: CalendarDays },
+  { to: "/attendance", label: "Davomat", icon: ClipboardCheck },
+  { to: "/payments", label: "To'lovlar", icon: CreditCard },
+  { to: "/debtors", label: "Qarzdorlar", icon: AlertTriangle },
+  { to: "/cash-shifts", label: "Kassa", icon: Wallet },
+  { to: "/leads", label: "Lidlar", icon: UserPlus },
+  { to: "/messages", label: "Xabarlar", icon: MessageSquare },
+  { to: "/reports", label: "Hisobotlar", icon: BarChart3 },
+] as const;
 
 type Lesson = {
   id: string;
@@ -139,6 +159,20 @@ export function AdminDesk() {
           </button>
         </div>
       </header>
+
+      {/* All admin work in one place */}
+      <nav aria-label="Barcha ishlar" className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+        {ADMIN_SHORTCUTS.map((s) => (
+          <Link
+            key={s.to}
+            to={s.to}
+            className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center text-xs font-semibold hover:border-primary/60 hover:bg-primary/10"
+          >
+            <s.icon className="h-5 w-5 text-primary" />
+            {s.label}
+          </Link>
+        ))}
+      </nav>
 
       {/* Global search */}
       <div ref={boxRef} className="relative">
