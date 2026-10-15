@@ -418,6 +418,14 @@ const TOOLS = [
       parameters: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
     },
   },
+  { type: "function", function: { name: "list_debtors", description: "Qarzdorlar ro'yxati (summa, kechikkan kunlar, ota-ona telefoni).", parameters: { type: "object", properties: { limit: { type: "number" } } } } },
+  { type: "function", function: { name: "business_report", description: "Markaz analitikasi: o'quvchilar, bugungi va oylik tushum/xarajat, qarz, lidlar, davomat foizi.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "record_payment", description: "O'quvchidan to'lov qabul qilish (avval search_students bilan id toping). Qarzlar avtomatik yopiladi.", parameters: { type: "object", properties: { student_id: { type: "string" }, amount: { type: "number" }, method: { type: "string", enum: ["cash", "card", "transfer", "qr"] }, period_month: { type: "string", description: "YYYY-MM-01" } }, required: ["student_id", "amount"] } } },
+  { type: "function", function: { name: "mark_attendance", description: "Guruh davomatini belgilash: ko'rsatilmaganlar 'keldi' hisoblanadi.", parameters: { type: "object", properties: { group_id: { type: "string" }, date: { type: "string" }, absent_student_ids: { type: "array", items: { type: "string" } }, late_student_ids: { type: "array", items: { type: "string" } } }, required: ["group_id"] } } },
+  { type: "function", function: { name: "generate_invoices", description: "Shu oy uchun barcha faol o'quvchilarga oylik hisob yozish.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "list_leads", description: "Lidlar ro'yxati.", parameters: { type: "object", properties: { status: { type: "string" } } } } },
+  { type: "function", function: { name: "update_lead_status", description: "Lid holatini o'zgartirish.", parameters: { type: "object", properties: { lead_id: { type: "string" }, status: { type: "string" } }, required: ["lead_id", "status"] } } },
+  { type: "function", function: { name: "remind_debtors", description: "Telegram ulangan barcha qarzdor ota-onalarga eslatma yuborish.", parameters: { type: "object", properties: {} } } },
 ] as const;
 
 
@@ -1034,6 +1042,125 @@ async function runTool(
         .single();
       if (error) return { result: { error: error.message } };
       return { result: data, navigate: "/methodology" };
+    }
+
+    case "list_debtors": {
+      const { data, error } = await supabase.rpc("debtors_overview");
+      if (error) return { result: { error: error.message } };
+      return { result: (data ?? []).slice(0, Number(args?.limit) || 30) };
+    }
+    case "business_report": {
+      const today = new Date().toISOString().slice(0, 10);
+      const monthStart = today.slice(0, 8) + "01";
+      const [m, tx, leads, att] = await Promise.all([
+        supabase.rpc("admin_desk_metrics"),
+        supabase.from("transactions").select("type, amount, occurred_at").gte("occurred_at", monthStart),
+        supabase.from("leads").select("status").gte("created_at", monthStart),
+        supabase.from("attendance").select("status").gte("date", monthStart),
+      ]);
+      const sum = (rows: any[], type: string, from: string) =>
+        rows.filter((r) => r.type === type && r.occurred_at >= from).reduce((s, r) => s + Number(r.amount || 0), 0);
+      const t = (tx.data ?? []) as any[];
+      const a = (att.data ?? []) as any[];
+      return {
+        result: {
+          metrics: m.data?.[0] ?? null,
+          today: { income: sum(t, "income", today), expense: sum(t, "expense", today) },
+          month: { income: sum(t, "income", monthStart), expense: sum(t, "expense", monthStart) },
+          month_new_leads: (leads.data ?? []).length,
+          month_attendance_rate: a.length
+            ? Math.round((a.filter((r) => r.status === "present" || r.status === "late").length / a.length) * 100)
+            : null,
+        },
+      };
+    }
+    case "record_payment": {
+      const amount = Number(args?.amount);
+      if (!args?.student_id || !(amount > 0)) return { result: { error: "O'quvchi va summa kerak" } };
+      const method = ["cash", "card", "transfer", "qr"].includes(args?.method) ? args.method : "cash";
+      const month = new Date().toISOString().slice(0, 8) + "01";
+      const { data, error } = await supabase
+        .from("payments")
+        .insert({
+          student_id: args.student_id,
+          amount,
+          total_amount: amount,
+          subtotal: amount,
+          payment_method: method,
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          period_month: args?.period_month || month,
+          note: "Jarvis orqali qabul qilindi",
+          idempotency_key: `jarvis:${args.student_id}:${amount}:${Date.now()}`,
+        })
+        .select("id, amount, status")
+        .single();
+      if (error) return { result: { error: error.message } };
+      return { result: data };
+    }
+    case "mark_attendance": {
+      const date = String(args?.date || new Date().toISOString().slice(0, 10));
+      const { data: lesson } = await supabase
+        .from("lessons")
+        .select("id, group_id")
+        .eq("group_id", args?.group_id)
+        .limit(1)
+        .maybeSingle();
+      if (!lesson) return { result: { error: "Bu guruhga dars jadvali kiritilmagan" } };
+      const { data: studs } = await supabase
+        .from("students")
+        .select("id, first_name, last_name")
+        .eq("group_id", args.group_id);
+      const absent = new Set<string>((args?.absent_student_ids ?? []).map(String));
+      const late = new Set<string>((args?.late_student_ids ?? []).map(String));
+      const rows = (studs ?? []).map((s: any) => ({
+        lesson_id: lesson.id,
+        student_id: s.id,
+        date,
+        status: absent.has(s.id) ? "absent" : late.has(s.id) ? "late" : "present",
+        marked_by: actor.userId,
+      }));
+      if (!rows.length) return { result: { error: "Guruhda o'quvchi yo'q" } };
+      const { error } = await supabase.from("attendance").upsert(rows, { onConflict: "lesson_id,student_id,date" });
+      if (error) return { result: { error: error.message } };
+      return { result: { saved: rows.length, absent: absent.size, late: late.size, date } };
+    }
+    case "generate_invoices": {
+      const { data, error } = await supabase.rpc("generate_monthly_invoices", {});
+      if (error) return { result: { error: error.message } };
+      return { result: data?.[0] ?? data };
+    }
+    case "list_leads": {
+      let q = supabase.from("leads").select("id, full_name, phone, status, source, created_at").order("created_at", { ascending: false }).limit(30);
+      if (args?.status) q = q.eq("status", args.status);
+      const { data, error } = await q;
+      if (error) return { result: { error: error.message } };
+      return { result: data ?? [] };
+    }
+    case "update_lead_status": {
+      const { data, error } = await supabase
+        .from("leads")
+        .update({ status: String(args?.status ?? "") })
+        .eq("id", args?.lead_id)
+        .select("id, full_name, status")
+        .single();
+      if (error) return { result: { error: error.message } };
+      return { result: data };
+    }
+    case "remind_debtors": {
+      const { data, error } = await supabase.rpc("debtors_overview");
+      if (error) return { result: { error: error.message } };
+      const list = ((data ?? []) as any[]).filter((d) => d.parent_chat_id).slice(0, 50);
+      const { sendTelegramText } = await import("@/lib/telegram.server");
+      let sent = 0;
+      for (const d of list) {
+        const r = await sendTelegramText(
+          d.parent_chat_id,
+          `Hurmatli ota-ona! ${d.student_name} bo'yicha ${Number(d.debt_total).toLocaleString("uz-UZ")} so'm to'lov qarzdorligi bor. Iltimos, to'lovni amalga oshiring. — Akhmad Academy`,
+        );
+        if (r.ok) sent++;
+      }
+      return { result: { debtors_with_telegram: list.length, sent } };
     }
 
     default:
