@@ -18,6 +18,6 @@
 - [ ] Oylik/fan/o'qituvchi bo'yicha hisobotlar va Excel eksport
 ### Yangi so'rovlar
 - [x] Har qanday Excel: barcha varaqlar o'qiladi, fan varaq/fayl nomi yoki sarlavhadan aniqlanadi, guruh avtomatik ochiladi
-- [ ] Admin uchun bitta yagona boshqaruv paneli
-- [ ] Jarvis butun tizim ishini bajarishi va muammolarni hal qilishi (kengaytirish)
-- [ ] Direktorga 21:00 Jarvis hisoboti — tayyor, direktor botga /start yozishi kerak
+- [x] Admin uchun bitta yagona boshqaruv paneli (AdminDesk — 12 ta tugma, tekshirildi)
+- [~] Jarvis butun tizim ishini bajarishi va muammolarni hal qilishi (qarzdorlar, bugungi hisobot, to'lov qabul qilish, davomat qo'shildi; qolgan: to'liq avtonom hal qilish)
+- [~] Direktorga 21:00 Jarvis hisoboti — cron tayyor, direktor botga /start yozishi kerak
