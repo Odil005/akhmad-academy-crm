@@ -1131,7 +1131,7 @@ async function runTool(
       return { result: data?.[0] ?? data };
     }
     case "list_leads": {
-      let q = supabase.from("leads").select("id, full_name, phone, status, source, created_at").order("created_at", { ascending: false }).limit(30);
+      let q = supabase.from("leads").select("id, name, phone, course, status, source, created_at").order("created_at", { ascending: false }).limit(30);
       if (args?.status) q = q.eq("status", args.status);
       const { data, error } = await q;
       if (error) return { result: { error: error.message } };
@@ -1142,7 +1142,7 @@ async function runTool(
         .from("leads")
         .update({ status: String(args?.status ?? "") })
         .eq("id", args?.lead_id)
-        .select("id, full_name, status")
+        .select("id, name, status")
         .single();
       if (error) return { result: { error: error.message } };
       return { result: data };
