@@ -21,6 +21,13 @@ const MANAGER_TOOLS = new Set([
   "assign_teacher_to_group",
   "repair_system_queues",
   "system_health",
+  "list_debtors",
+  "business_report",
+  "record_payment",
+  "generate_invoices",
+  "list_leads",
+  "update_lead_status",
+  "remind_debtors",
 ]);
 
 const MUTATING_TOOLS = new Set([
@@ -35,6 +42,11 @@ const MUTATING_TOOLS = new Set([
   "repair_system_queues",
   "create_github_change_request",
   "update_system_setting",
+  "record_payment",
+  "mark_attendance",
+  "generate_invoices",
+  "update_lead_status",
+  "remind_debtors",
 ]);
 
 
@@ -72,6 +84,11 @@ export function isExplicitJarvisAction(text: string, tool: string): boolean {
   if (tool === "update_system_setting") {
     return /(sozla|o['‘’`]?zgartir|yangila|saqla|belgila|almashtir)/i.test(normalized);
   }
+  if (tool === "record_payment") return /(to['‘’`]?la|qabul qil|yoz|kirit)/i.test(normalized);
+  if (tool === "mark_attendance") return /(davomat|belgila|kelmadi|kechikdi|keldi)/i.test(normalized);
+  if (tool === "generate_invoices") return /(hisob|invoice).*(yoz|yarat|chiqar)/i.test(normalized);
+  if (tool === "update_lead_status") return /(o['‘’`]?zgartir|o['‘’`]?tkaz|belgila|qil)/i.test(normalized);
+  if (tool === "remind_debtors") return /(eslat|yubor|ogohlantir|xabar)/i.test(normalized);
   return /(yarat|qo['‘’`]?sh|biriktir|tayinla|saqla)/i.test(normalized);
 }
 
