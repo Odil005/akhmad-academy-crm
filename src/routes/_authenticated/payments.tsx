@@ -2,9 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Printer, Send, ExternalLink, Undo2 } from "lucide-react";
+import { Plus, Printer, Send, ExternalLink, Undo2, Ban, History } from "lucide-react";
 import { PaymentModal } from "@/components/PaymentModal";
-import { resendReceiptTelegram, refundPayment, getCashierContext } from "@/lib/payments.functions";
+import { resendReceiptTelegram, refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
+
+type AuditRow = { id: string; action: string; old_data: unknown; new_data: unknown; created_at: string; user_name: string };
+const ACTION_LABEL: Record<string, string> = {
+  refunded: "Qaytarildi",
+  voided: "Bekor qilindi",
+  receipt_resent: "Chek qayta yuborildi",
+  created: "Yaratildi",
+};
 
 export const Route = createFileRoute("/_authenticated/payments")({
   component: PaymentsPage,
@@ -38,6 +46,7 @@ function PaymentsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [isDirector, setIsDirector] = useState(false);
+  const [history, setHistory] = useState<{ paymentId: string; rows: AuditRow[] } | null>(null);
 
   const [f, setF] = useState({ from: "", to: "", course: "", method: "", cashier: "" });
 
@@ -175,13 +184,35 @@ function PaymentsPage() {
                           onClick={() => act(r.id, () => resendReceiptTelegram({ data: { payment_id: r.id } }), "Telegramga yuborildi")}>
                           <Send className="h-3.5 w-3.5" />
                         </IconBtn>
-                        {isDirector && r.status !== "refunded" && (
+                        {isDirector && r.status !== "refunded" && r.status !== "voided" && (
                           <IconBtn title="Qaytarish (director)" disabled={busy === r.id}
                             onClick={() => {
                               const reason = window.prompt("Qaytarish sababi:");
                               if (reason && reason.length >= 3) act(r.id, () => refundPayment({ data: { payment_id: r.id, reason } }), "Qaytarildi");
                             }}>
                             <Undo2 className="h-3.5 w-3.5" />
+                          </IconBtn>
+                        )}
+                        {isDirector && r.status !== "voided" && (
+                          <IconBtn title="Bekor qilish" disabled={busy === r.id}
+                            onClick={() => {
+                              const reason = window.prompt("Bekor qilish sababi:");
+                              if (reason && reason.length >= 3) act(r.id, () => voidPayment({ data: { payment_id: r.id, reason } }), "Bekor qilindi");
+                            }}>
+                            <Ban className="h-3.5 w-3.5" />
+                          </IconBtn>
+                        )}
+                        {isDirector && (
+                          <IconBtn title="Amallar tarixi" disabled={busy === r.id}
+                            onClick={async () => {
+                              setBusy(r.id);
+                              try {
+                                const rows = await getPaymentAuditHistory({ data: { payment_id: r.id } });
+                                setHistory({ paymentId: r.id, rows: rows as AuditRow[] });
+                              } catch { setToast("Tarixni yuklab bo'lmadi"); }
+                              finally { setBusy(null); }
+                            }}>
+                            <History className="h-3.5 w-3.5" />
                           </IconBtn>
                         )}
                       </div>
@@ -195,6 +226,35 @@ function PaymentsPage() {
       </div>
 
       {open && <PaymentModal onClose={() => setOpen(false)} onDone={load} />}
+
+      {history && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setHistory(null)}>
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold">To'lov tarixi</h2>
+              <button onClick={() => setHistory(null)} className="rounded-lg border border-border px-3 py-1 text-sm">Yopish</button>
+            </div>
+            {history.rows.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Bu to'lov bo'yicha amallar hali yozilmagan.</p>
+            ) : (
+              <ul className="max-h-80 space-y-2 overflow-y-auto">
+                {history.rows.map((a) => (
+                  <li key={a.id} className="rounded-lg border border-border bg-secondary/30 p-3 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold">{ACTION_LABEL[a.action] ?? a.action}</span>
+                      <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString("uz-UZ")}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {a.user_name}
+                      {(a.new_data as { reason?: string } | null)?.reason ? ` · Sabab: ${(a.new_data as { reason?: string }).reason}` : ""}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@
 ### Moliya va to'lovlar
 - [x] Har oy boshida avtomatik hisob (invoice) + avto chegirma
 - [x] Qisman to'lov va oldindan to'lov balansi
-- [ ] Chegirmalarni to'lovda avtomatik qo'llash, qaytarish (refund) va to'lovni bekor qilish tarixi
+- [x] Chegirmalarni to'lovda avtomatik qo'llash, qaytarish (refund) va to'lovni bekor qilish tarixi
 - [ ] Kassa yopilishi + o'qituvchi oyligi avtomatik hisoblanishi
 ### Guruh va jadval
 - [ ] Guruh ichida darslar kalendari, xona/o'qituvchi to'qnashuvini tekshirish
