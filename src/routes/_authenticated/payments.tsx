@@ -46,6 +46,7 @@ function PaymentsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [isDirector, setIsDirector] = useState(false);
+  const [history, setHistory] = useState<{ paymentId: string; rows: AuditRow[] } | null>(null);
 
   const [f, setF] = useState({ from: "", to: "", course: "", method: "", cashier: "" });
 
@@ -183,13 +184,35 @@ function PaymentsPage() {
                           onClick={() => act(r.id, () => resendReceiptTelegram({ data: { payment_id: r.id } }), "Telegramga yuborildi")}>
                           <Send className="h-3.5 w-3.5" />
                         </IconBtn>
-                        {isDirector && r.status !== "refunded" && (
+                        {isDirector && r.status !== "refunded" && r.status !== "voided" && (
                           <IconBtn title="Qaytarish (director)" disabled={busy === r.id}
                             onClick={() => {
                               const reason = window.prompt("Qaytarish sababi:");
                               if (reason && reason.length >= 3) act(r.id, () => refundPayment({ data: { payment_id: r.id, reason } }), "Qaytarildi");
                             }}>
                             <Undo2 className="h-3.5 w-3.5" />
+                          </IconBtn>
+                        )}
+                        {isDirector && r.status !== "voided" && (
+                          <IconBtn title="Bekor qilish" disabled={busy === r.id}
+                            onClick={() => {
+                              const reason = window.prompt("Bekor qilish sababi:");
+                              if (reason && reason.length >= 3) act(r.id, () => voidPayment({ data: { payment_id: r.id, reason } }), "Bekor qilindi");
+                            }}>
+                            <Ban className="h-3.5 w-3.5" />
+                          </IconBtn>
+                        )}
+                        {isDirector && (
+                          <IconBtn title="Amallar tarixi" disabled={busy === r.id}
+                            onClick={async () => {
+                              setBusy(r.id);
+                              try {
+                                const rows = await getPaymentAuditHistory({ data: { payment_id: r.id } });
+                                setHistory({ paymentId: r.id, rows: rows as AuditRow[] });
+                              } catch { setToast("Tarixni yuklab bo'lmadi"); }
+                              finally { setBusy(null); }
+                            }}>
+                            <History className="h-3.5 w-3.5" />
                           </IconBtn>
                         )}
                       </div>
