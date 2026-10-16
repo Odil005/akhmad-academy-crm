@@ -2,9 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Printer, Send, ExternalLink, Undo2 } from "lucide-react";
+import { Plus, Printer, Send, ExternalLink, Undo2, Ban, History } from "lucide-react";
 import { PaymentModal } from "@/components/PaymentModal";
-import { resendReceiptTelegram, refundPayment, getCashierContext } from "@/lib/payments.functions";
+import { resendReceiptTelegram, refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
+
+type AuditRow = { id: string; action: string; old_data: unknown; new_data: unknown; created_at: string; user_name: string };
+const ACTION_LABEL: Record<string, string> = {
+  refunded: "Qaytarildi",
+  voided: "Bekor qilindi",
+  receipt_resent: "Chek qayta yuborildi",
+  created: "Yaratildi",
+};
 
 export const Route = createFileRoute("/_authenticated/payments")({
   component: PaymentsPage,
