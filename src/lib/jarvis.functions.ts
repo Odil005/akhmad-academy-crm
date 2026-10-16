@@ -1218,11 +1218,11 @@ async function runTool(
       const dow = new Date().getDay();
       const { data, error } = await supabase
         .from("lessons")
-        .select("*, groups(name)")
+        .select("*, groups(name)").eq("is_active", true)
         .limit(200);
       if (error) return { result: { error: error.message } };
       const rows = ((data ?? []) as any[]).filter((l) => l.day_of_week == null || Number(l.day_of_week) === dow || Number(l.day_of_week) === (dow || 7));
-      return { result: rows.map((l) => ({ group: l.groups?.name, start: l.start_time, end: l.end_time, room_id: l.room_id, teacher_id: l.teacher_id })), navigate: "/schedule" };
+      return { result: rows.map((l) => ({ group: l.groups?.name, start: l.start_time, end: l.end_time, room_id: l.room_id, teacher_id: l.teacher_user_id })), navigate: "/schedule" };
     }
 
     default:
