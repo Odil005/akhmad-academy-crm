@@ -706,6 +706,97 @@ export const refundPayment = createServerFn({ method: "POST" })
   });
 
 /* ------------------------------------------------------------------ */
+/* void (bekor qilish) — noto'g'ri yozilgan to'lovni bekor qilish      */
+/* ------------------------------------------------------------------ */
+
+export const voidPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ payment_id: z.string().uuid(), reason: z.string().min(3).max(300) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const roles = await getRoles(context.supabase, context.userId);
+    if (!roles.includes("director") && !roles.includes("admin"))
+      throw new Response("Faqat direktor yoki admin bekor qila oladi", { status: 403 });
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: payment } = await supabaseAdmin
+      .from("payments")
+      .select("id, status, fiscal_status")
+      .eq("id", data.payment_id)
+      .maybeSingle();
+    if (!payment) throw new Response("To'lov topilmadi", { status: 404 });
+    if (payment.status === "voided") return { ok: true };
+    if (payment.fiscal_status === "refunded")
+      throw new Response("Bu to'lov allaqachon qaytarilgan", { status: 400 });
+
+    // Fiskal chek chiqarilgan to'lovni bekor qilib bo'lmaydi — avval qaytarish kerak
+    const { data: receipt } = await supabaseAdmin
+      .from("fiscal_receipts")
+      .select("id, status")
+      .eq("payment_id", payment.id)
+      .maybeSingle();
+    if (receipt && receipt.status !== "refunded")
+      throw new Response("Fiskal chek chiqarilgan — avval «Qaytarish» qiling", { status: 400 });
+
+    // Bog'langan kirim tranzaksiyasini o'chirish — kassa balansi trigger orqali qaytariladi
+    await supabaseAdmin.from("transactions").delete().eq("payment_id", payment.id);
+
+    const { error } = await supabaseAdmin
+      .from("payments")
+      .update({ status: "voided", paid_amount: 0 })
+      .eq("id", payment.id);
+    if (error) throw new Response(error.message, { status: 500 });
+
+    await audit(
+      supabaseAdmin,
+      payment.id,
+      context.userId,
+      "voided",
+      { status: payment.status },
+      { reason: data.reason },
+    );
+    return { ok: true };
+  });
+
+/* ------------------------------------------------------------------ */
+/* audit history — to'lov bo'yicha barcha amallar tarixi               */
+/* ------------------------------------------------------------------ */
+
+export const getPaymentAuditHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ payment_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const roles = await getRoles(context.supabase, context.userId);
+    if (!roles.includes("director") && !roles.includes("admin"))
+      throw new Response("Forbidden", { status: 403 });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await supabaseAdmin
+      .from("payment_audit_log")
+      .select("id, action, old_data, new_data, created_at, user_id")
+      .eq("payment_id", data.payment_id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const userIds = [...new Set((rows ?? []).map((r) => r.user_id).filter(Boolean))] as string[];
+    const names: Record<string, string> = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabaseAdmin
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+      for (const p of profiles ?? []) names[p.id] = p.full_name ?? "—";
+    }
+    return (rows ?? []).map((r) => ({
+      id: r.id,
+      action: r.action,
+      old_data: r.old_data,
+      new_data: r.new_data,
+      created_at: r.created_at,
+      user_name: r.user_id ? (names[r.user_id] ?? "—") : "Tizim",
+    }));
+  });
+
+/* ------------------------------------------------------------------ */
 /* cash register settings (director)                                   */
 /* ------------------------------------------------------------------ */
 
