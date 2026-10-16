@@ -226,6 +226,35 @@ function PaymentsPage() {
       </div>
 
       {open && <PaymentModal onClose={() => setOpen(false)} onDone={load} />}
+
+      {history && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setHistory(null)}>
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold">To'lov tarixi</h2>
+              <button onClick={() => setHistory(null)} className="rounded-lg border border-border px-3 py-1 text-sm">Yopish</button>
+            </div>
+            {history.rows.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Bu to'lov bo'yicha amallar hali yozilmagan.</p>
+            ) : (
+              <ul className="max-h-80 space-y-2 overflow-y-auto">
+                {history.rows.map((a) => (
+                  <li key={a.id} className="rounded-lg border border-border bg-secondary/30 p-3 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold">{ACTION_LABEL[a.action] ?? a.action}</span>
+                      <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString("uz-UZ")}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {a.user_name}
+                      {(a.new_data as { reason?: string } | null)?.reason ? ` · Sabab: ${(a.new_data as { reason?: string }).reason}` : ""}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
