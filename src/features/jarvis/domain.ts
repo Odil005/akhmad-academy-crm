@@ -28,6 +28,9 @@ const MANAGER_TOOLS = new Set([
   "list_leads",
   "update_lead_status",
   "remind_debtors",
+  "find_problems",
+  "teacher_payroll",
+  "cash_summary",
 ]);
 
 const MUTATING_TOOLS = new Set([

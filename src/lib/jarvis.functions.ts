@@ -426,6 +426,10 @@ const TOOLS = [
   { type: "function", function: { name: "list_leads", description: "Lidlar ro'yxati.", parameters: { type: "object", properties: { status: { type: "string" } } } } },
   { type: "function", function: { name: "update_lead_status", description: "Lid holatini o'zgartirish.", parameters: { type: "object", properties: { lead_id: { type: "string" }, status: { type: "string" } }, required: ["lead_id", "status"] } } },
   { type: "function", function: { name: "remind_debtors", description: "Telegram ulangan barcha qarzdor ota-onalarga eslatma yuborish.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "find_problems", description: "Tizimdagi muammolarni avtomatik topish: guruhsiz o'quvchilar, jadvalsiz/o'qituvchisiz guruhlar, uzoq qarzdorlar, yuborilmagan xabarlar, botga ulanmagan ota-onalar. 'Muammolar', 'nima yetishmayapti', 'tahlil qil' deyilganda ishlat.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "teacher_payroll", description: "O'qituvchilar oyligi hisob-kitobi (yig'ilgan pul × foiz + bonus − jarima).", parameters: { type: "object", properties: { period_month: { type: "string", description: "YYYY-MM-01" } } } } },
+  { type: "function", function: { name: "cash_summary", description: "Kassa holati: bugungi tushum to'lov turlari bo'yicha va hisoblar balansi.", parameters: { type: "object", properties: { date: { type: "string" } } } } },
+  { type: "function", function: { name: "today_schedule", description: "Bugungi darslar jadvali.", parameters: { type: "object", properties: {} } } },
 ] as const;
 
 
@@ -1161,6 +1165,64 @@ async function runTool(
         if (r.ok) sent++;
       }
       return { result: { debtors_with_telegram: list.length, sent } };
+    }
+
+    case "find_problems": {
+      const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+      const [noGroup, groups, lessons, debt, failedN, unlinked] = await Promise.all([
+        supabase.from("students").select("id", { count: "exact", head: true }).eq("status_enum", "active").is("group_id", null),
+        supabase.from("groups").select("id, name, teacher_id"),
+        supabase.from("lessons").select("group_id"),
+        supabase.rpc("debtors_overview"),
+        supabase.from("parent_notifications").select("id", { count: "exact", head: true }).eq("status", "failed").gte("created_at", since),
+        supabase.from("students").select("id", { count: "exact", head: true }).eq("status_enum", "active").is("parent_telegram_chat_id", null),
+      ]);
+      const withLessons = new Set(((lessons.data ?? []) as any[]).map((l) => l.group_id));
+      const g = (groups.data ?? []) as any[];
+      const d = (debt.data ?? []) as any[];
+      return {
+        result: {
+          active_students_without_group: noGroup.count ?? 0,
+          groups_without_schedule: g.filter((x) => !withLessons.has(x.id)).map((x) => x.name),
+          groups_without_teacher: g.filter((x) => !x.teacher_id).map((x) => x.name),
+          debtors_over_30_days: d.filter((x) => x.days_overdue > 30).length,
+          debtors_without_reminder_7d: d.filter((x) => !x.last_reminder_at || Date.now() - new Date(x.last_reminder_at).getTime() > 7 * 864e5).length,
+          failed_parent_notifications_30d: failedN.count ?? 0,
+          active_students_without_parent_telegram: unlinked.count ?? 0,
+          hint: "Har bir muammo uchun yechim taklif qil va kerakli tool yoki sahifani ko'rsat.",
+        },
+      };
+    }
+    case "teacher_payroll": {
+      const period = String(args?.period_month || new Date().toISOString().slice(0, 8) + "01");
+      const { data, error } = await supabase.rpc("teacher_payroll_preview", { p_period: period });
+      if (error) return { result: { error: error.message } };
+      return {
+        result: ((data ?? []) as any[]).map((r) => ({
+          ...r,
+          salary_estimate: Math.round((Number(r.collected_total) * Number(r.percent)) / 100 + Number(r.bonus) - Number(r.penalty)),
+        })),
+        navigate: "/teachers",
+      };
+    }
+    case "cash_summary": {
+      const date = String(args?.date || new Date().toISOString().slice(0, 10));
+      const [exp, acc] = await Promise.all([
+        supabase.rpc("cash_shift_expected", { p_date: date }),
+        supabase.from("cash_accounts").select("name, type, balance"),
+      ]);
+      if (exp.error) return { result: { error: exp.error.message } };
+      return { result: { date, by_method: exp.data ?? [], accounts: acc.data ?? [] }, navigate: "/cash-shifts" };
+    }
+    case "today_schedule": {
+      const dow = new Date().getDay();
+      const { data, error } = await supabase
+        .from("lessons")
+        .select("*, groups(name)")
+        .limit(200);
+      if (error) return { result: { error: error.message } };
+      const rows = ((data ?? []) as any[]).filter((l) => l.day_of_week == null || Number(l.day_of_week) === dow || Number(l.day_of_week) === (dow || 7));
+      return { result: rows.map((l) => ({ group: l.groups?.name, start: l.start_time, end: l.end_time, room_id: l.room_id, teacher_id: l.teacher_id })), navigate: "/schedule" };
     }
 
     default:
