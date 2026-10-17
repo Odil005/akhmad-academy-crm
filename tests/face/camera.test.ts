@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isUsbCamera } from '@/features/face/camera';
+import { isUsbCamera } from '../../src/features/face/camera';
 
 describe('USB-only Face ID camera', () => {
   it('accepts USB cameras', () => {
