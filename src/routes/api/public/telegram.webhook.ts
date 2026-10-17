@@ -1339,6 +1339,48 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           }
           await claimUsernameLinks(chatId, msg?.from?.username ?? msg?.chat?.username);
 
+          // Parent types child's name → show Face ID photo + info, only for children
+          // already linked to this chat (privacy: never reveal other students).
+          if (text && !text.startsWith("/") && /^[\p{L}'ʻʼ‘’`\-\s]{3,60}$/u.test(text)) {
+            const words = text.toLowerCase().replace(/[ʻʼ‘’`]/g, "'").split(/\s+/).filter(Boolean);
+            const mine = await linkedStudents(chatId);
+            const hit = (mine as any[]).filter((s) => {
+              const n = `${s.first_name ?? ""} ${s.last_name ?? ""} ${s.full_name ?? ""}`
+                .toLowerCase().replace(/[ʻʼ‘’`]/g, "'");
+              return words.every((w) => n.includes(w));
+            });
+            if (hit.length) {
+              for (const s of hit) {
+                const [{ data: st }, { data: face }, { data: enr }] = await Promise.all([
+                  supabaseAdmin.from("students").select("first_name, last_name, full_name, status_enum, phone, credit_balance").eq("id", s.id).maybeSingle(),
+                  supabaseAdmin.from("student_face_enrollments").select("image_url").eq("student_id", s.id).maybeSingle(),
+                  supabaseAdmin.from("student_enrollments").select("groups(name)").eq("student_id", s.id).eq("status", "active"),
+                ]);
+                const name = (st?.full_name || `${st?.first_name ?? ""} ${st?.last_name ?? ""}`).trim();
+                const groups = ((enr ?? []) as any[]).map((e) => e.groups?.name).filter(Boolean).join(", ") || "—";
+                const caption = `👤 ${name}\n📚 Guruh: ${groups}\n📌 Holat: ${st?.status_enum ?? "—"}${st?.phone ? `\n📞 ${st.phone}` : ""}\n🆔 Face ID: ${face?.image_url ? "ro'yxatdan o'tgan ✅" : "ro'yxatdan o'tmagan ❌"}`;
+                const url = face?.image_url ?? "";
+                if (/^https?:\/\//.test(url)) {
+                  await tg("sendPhoto", { chat_id: chatId, photo: url, caption, protect_content: true });
+                } else if (url.startsWith("data:image")) {
+                  const b64 = url.split(",")[1] ?? "";
+                  const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+                  const { getTelegramToken } = await import("@/lib/telegram.server").catch(() => ({} as any));
+                  const token = (typeof getTelegramToken === "function" ? getTelegramToken() : null) ?? process.env.TELEGRAM_BOT_TOKEN;
+                  const fd = new FormData();
+                  fd.append("chat_id", String(chatId));
+                  fd.append("caption", caption);
+                  fd.append("protect_content", "true");
+                  fd.append("photo", new Blob([bin], { type: "image/jpeg" }), "face.jpg");
+                  await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: fd });
+                } else {
+                  await reply(chatId, caption);
+                }
+              }
+              return new Response("ok");
+            }
+          }
+
           // Contact shared via "request_contact" button
           if (msg?.contact) {
             if (!isOwnTelegramContact(msg.contact.user_id, msg.from?.id, chatId)) {
