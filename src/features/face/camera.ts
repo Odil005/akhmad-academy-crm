@@ -1,8 +1,16 @@
-/** Face ID kiosk accepts only external USB cameras; built-in/laptop/phone cameras are rejected. */
-const BUILT_IN = /(integrated|built[- ]?in|facetime|front|back|rear|internal|\bir\b|infrared|virtual|obs|droidcam|ichki|встроен)/i;
-const USB = /(usb|\([0-9a-f]{4}:[0-9a-f]{4}\)|logitech|webcam|c9\d\d|c2\d\d|c5\d\d|a4tech|defender|razer|elgato|brio)/i;
+/**
+ * Face ID kiosk cameras. Browsers do not expose the connection type and most laptop
+ * cameras are internally USB too, so only cameras whose name says built-in/virtual are hidden;
+ * the operator picks the external USB camera and the choice is remembered.
+ */
+const EXCLUDED = /(integrated|built[- ]?in|facetime|facing (front|back)|rear|internal|\bir camera\b|infrared|virtual|obs|droidcam|ichki|встроен)/i;
 
 export function isUsbCamera(label: string) {
   const l = label.trim();
-  return !!l && !BUILT_IN.test(l) && USB.test(l);
+  return !!l && !EXCLUDED.test(l);
+}
+
+/** When a camera is plugged in while the page is open, prefer the newly connected one. */
+export function newlyConnected(before: string[], after: { deviceId: string }[]) {
+  return after.find((d) => !before.includes(d.deviceId))?.deviceId ?? null;
 }
