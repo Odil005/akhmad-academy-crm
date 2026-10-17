@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Search,
   UserPlus,
   CreditCard,
   Loader2,
@@ -22,9 +21,6 @@ import {
 import {
   loadAdminDeskMetrics,
   loadStudentIndex,
-  searchIndex,
-  initialsOf,
-  shortId,
   type AdminDeskMetrics,
   type StudentIndexRow,
 } from "@/lib/admin-search";
@@ -71,9 +67,6 @@ export function AdminDesk() {
   const [indexError, setIndexError] = useState<string | null>(null);
   const [indexLoading, setIndexLoading] = useState(false);
   const [indexReady, setIndexReady] = useState(false);
-  const [query, setQuery] = useState("");
-  const [debounced, setDebounced] = useState("");
-  const [openList, setOpenList] = useState(false);
   const [selected, setSelected] = useState<StudentIndexRow | null>(null);
   const [payFor, setPayFor] = useState<string | null>(null);
   const [newTeacher, setNewTeacher] = useState(false);
