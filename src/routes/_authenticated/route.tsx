@@ -163,17 +163,14 @@ function AuthenticatedLayout() {
     { to: "/finance", label: "Moliya", icon: DollarSign, show: isStaff },
     { to: "/debtors", label: "Qarzdorlar", icon: AlertTriangle, show: isStaff },
     { to: "/cash-shifts", label: "Kassa yopilishi", icon: Lock, show: isStaff },
-    { to: "/payment-receipts", label: "Chek tasdiqlash", icon: ReceiptText, show: isStaff },
     { to: "/payroll", label: "Oylik hisobi", icon: Calculator, show: isStaff },
 
     { to: "/leads", label: "Lidlar", icon: Inbox, show: isAdmin },
-    { to: "/calls", label: "Qo'ng'iroqlar", icon: Phone, show: isStaff },
     { to: "/messages", label: "Xabarlar", icon: MessageSquare, show: isStaff || isTeacher },
     { to: "/rooms", label: "Xonalar", icon: DoorOpen, show: isStaff },
     { to: "/behavior", label: "Dars faolligi", icon: Smile, show: isTeacher },
     { to: "/face-id", label: "Face ID", icon: ScanFace, show: isTeacher },
     { to: "/face-checkin", label: "Face ID kirish", icon: ScanFace, show: isStaff },
-    { to: "/teacher-balance", label: "O'qituvchi balansi", icon: Wallet, show: isStaff },
     {
       to: "/teacher-kpi",
       label: "Oylik KPI",
