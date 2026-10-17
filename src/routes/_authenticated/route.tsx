@@ -21,7 +21,6 @@ import {
   Settings,
   ShoppingBag,
   Smile,
-  Search,
   Wallet,
   CalendarDays,
   ClipboardCheck,
