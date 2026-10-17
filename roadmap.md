@@ -26,8 +26,8 @@
 
 ## 2026-10-17 so'rovlar
 - [x] Barcha eski ma'lumotlarni tozalash (akkauntlar saqlanadi)
-- [ ] Admin panel qidiruvi ishlamayapti — tuzatish
-- [ ] Telefoniya (qo'ng'iroqlar) va chek chiqarishni olib tashlash
-- [ ] Admin ham Telegram botdan foydalana olsin
+- [x] Admin panel qidiruvi tuzatildi (guruh-o0027qituvchi bog0027lanishi xatosi edi)
+- [x] Telefoniya (qo'ng'iroqlar) va chek chiqarishni olib tashlash
+- [x] Admin ham Telegram (avvaldan qo0027llab-quvvatlangan, username orqali ulanadi) botdan foydalana olsin
 - [ ] O'qituvchi balansi o'rniga Oylik katalogi: o'qituvchi/admin/oshpaz/farrosh
 - [ ] Face ID: o'qituvchi 10 daqiqada kirmasa, o'quvchiga oylik yozilmasin
