@@ -58,7 +58,6 @@ function SettingsLayout() {
     { to: "/settings/news", label: "Yangiliklar & Bannerlar", icon: Megaphone, show: true },
 
     { to: "/settings/integrations", label: "AI / Telegram / SMS", icon: MessageSquare, show: true },
-    { to: "/settings/telephony", label: "IP Telefoniya (SIP)", icon: Phone, show: isDirector },
     { to: "/settings/director-report", label: "Direktor hisoboti", icon: Send, show: isDirector },
     { to: "/settings/donation", label: "Donat / Homiylik", icon: Heart, show: isDirector },
     { to: "/settings/subscription", label: "Abonent (UNI CRM)", icon: Building2, show: true },
