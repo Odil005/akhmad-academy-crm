@@ -41,6 +41,7 @@ import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated/roadmap'
 import { Route as AuthenticatedRoomsRouteImport } from './routes/_authenticated/rooms'
+import { Route as AuthenticatedSalaryRouteImport } from './routes/_authenticated/salary'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
@@ -242,6 +243,11 @@ const AuthenticatedRoadmapRoute = AuthenticatedRoadmapRouteImport.update({
 const AuthenticatedRoomsRoute = AuthenticatedRoomsRouteImport.update({
   id: '/rooms',
   path: '/rooms',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSalaryRoute = AuthenticatedSalaryRouteImport.update({
+  id: '/salary',
+  path: '/salary',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
@@ -481,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
+  '/salary': typeof AuthenticatedSalaryRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/students': typeof AuthenticatedStudentsRouteWithChildren
@@ -550,6 +557,7 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
+  '/salary': typeof AuthenticatedSalaryRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
@@ -620,6 +628,7 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
   '/_authenticated/rooms': typeof AuthenticatedRoomsRoute
+  '/_authenticated/salary': typeof AuthenticatedSalaryRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
@@ -691,6 +700,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/roadmap'
     | '/rooms'
+    | '/salary'
     | '/schedule'
     | '/settings'
     | '/students'
@@ -760,6 +770,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/roadmap'
     | '/rooms'
+    | '/salary'
     | '/schedule'
     | '/students'
     | '/teacher-kpi'
@@ -829,6 +840,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/roadmap'
     | '/_authenticated/rooms'
+    | '/_authenticated/salary'
     | '/_authenticated/schedule'
     | '/_authenticated/settings'
     | '/_authenticated/students'
@@ -1115,6 +1127,13 @@ declare module '@tanstack/react-router' {
       path: '/rooms'
       fullPath: '/rooms'
       preLoaderRoute: typeof AuthenticatedRoomsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/salary': {
+      id: '/_authenticated/salary'
+      path: '/salary'
+      fullPath: '/salary'
+      preLoaderRoute: typeof AuthenticatedSalaryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/schedule': {
@@ -1456,6 +1475,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
   AuthenticatedRoomsRoute: typeof AuthenticatedRoomsRoute
+  AuthenticatedSalaryRoute: typeof AuthenticatedSalaryRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
@@ -1489,6 +1509,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
   AuthenticatedRoomsRoute: AuthenticatedRoomsRoute,
+  AuthenticatedSalaryRoute: AuthenticatedSalaryRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedStudentsRoute: AuthenticatedStudentsRouteWithChildren,

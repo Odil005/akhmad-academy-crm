@@ -164,6 +164,7 @@ function AuthenticatedLayout() {
     { to: "/debtors", label: "Qarzdorlar", icon: AlertTriangle, show: isStaff },
     { to: "/cash-shifts", label: "Kassa yopilishi", icon: Lock, show: isStaff },
     { to: "/payroll", label: "Oylik hisobi", icon: Calculator, show: isStaff },
+    { to: "/salary", label: "Oylik katalogi", icon: Wallet, show: isStaff },
 
     { to: "/leads", label: "Lidlar", icon: Inbox, show: isAdmin },
     { to: "/messages", label: "Xabarlar", icon: MessageSquare, show: isStaff || isTeacher },
