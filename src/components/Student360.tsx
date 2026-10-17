@@ -89,9 +89,19 @@ export function Student360({
         supabase.from("parent_teacher_messages").select("id, message, sender_role, created_at, status").eq("student_id", row.id).order("created_at", { ascending: false }).limit(20),
       ]);
       if (s.error) throw s.error;
+      const enrollRows = ((enr.data as never) ?? []) as Enrollment[];
+      // groups.teacher_id auth.users ga qaraydi — ismlarni profiles dan alohida olamiz
+      const tIds = [...new Set(enrollRows.map((e: any) => e.group?.teacher_id).filter(Boolean))];
+      if (tIds.length) {
+        const { data: tprofs } = await supabase.from("profiles").select("id, full_name").in("id", tIds);
+        const names = new Map((tprofs ?? []).map((p: any) => [p.id, p.full_name ?? ""]));
+        enrollRows.forEach((e: any) => {
+          if (e.group) e.group.teacher = { full_name: names.get(e.group.teacher_id) ?? null };
+        });
+      }
       setData({
         student: s.data,
-        enrollments: ((enr.data as never) ?? []) as Enrollment[],
+        enrollments: enrollRows,
         payments: ((pay.data as never) ?? []) as Payment[],
         attendance: (att.data ?? []) as AttendanceRow[],
         messages: (msg.data ?? []) as MessageRow[],
