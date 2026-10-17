@@ -76,6 +76,7 @@ import { Route as ApiPublicCronDailyReportRouteImport } from './routes/api/publi
 import { Route as ApiPublicCronMonthlyInvoicesRouteImport } from './routes/api/public/cron.monthly-invoices'
 import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes/api/public/cron.notifications-dispatch'
 import { Route as ApiPublicCronParentDigestRouteImport } from './routes/api/public/cron.parent-digest'
+import { Route as ApiPublicCronPayrollRouteImport } from './routes/api/public/cron.payroll'
 import { Route as ApiPublicCronReceiptQueueRouteImport } from './routes/api/public/cron.receipt-queue'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron.reminders'
 import { Route as ApiPublicHealthConfigRouteImport } from './routes/api/public/health.config'
@@ -452,6 +453,11 @@ const ApiPublicCronParentDigestRoute =
     path: '/api/public/cron/parent-digest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronPayrollRoute = ApiPublicCronPayrollRouteImport.update({
+  id: '/api/public/cron/payroll',
+  path: '/api/public/cron/payroll',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronReceiptQueueRoute =
   ApiPublicCronReceiptQueueRouteImport.update({
     id: '/api/public/cron/receipt-queue',
@@ -570,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
@@ -646,6 +653,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
@@ -725,6 +733,7 @@ export interface FileRoutesById {
   '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
+  '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
   '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
@@ -804,6 +813,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/monthly-invoices'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/payroll'
     | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/health/config'
@@ -880,6 +890,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/monthly-invoices'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/payroll'
     | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/health/config'
@@ -958,6 +969,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/monthly-invoices'
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
+    | '/api/public/cron/payroll'
     | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/health/config'
@@ -986,6 +998,7 @@ export interface RootRouteChildren {
   ApiPublicCronMonthlyInvoicesRoute: typeof ApiPublicCronMonthlyInvoicesRoute
   ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
+  ApiPublicCronPayrollRoute: typeof ApiPublicCronPayrollRoute
   ApiPublicCronReceiptQueueRoute: typeof ApiPublicCronReceiptQueueRoute
   ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
   ApiPublicHealthConfigRoute: typeof ApiPublicHealthConfigRoute
@@ -1468,6 +1481,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronParentDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/payroll': {
+      id: '/api/public/cron/payroll'
+      path: '/api/public/cron/payroll'
+      fullPath: '/api/public/cron/payroll'
+      preLoaderRoute: typeof ApiPublicCronPayrollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/receipt-queue': {
       id: '/api/public/cron/receipt-queue'
       path: '/api/public/cron/receipt-queue'
@@ -1690,6 +1710,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronNotificationsDispatchRoute:
     ApiPublicCronNotificationsDispatchRoute,
   ApiPublicCronParentDigestRoute: ApiPublicCronParentDigestRoute,
+  ApiPublicCronPayrollRoute: ApiPublicCronPayrollRoute,
   ApiPublicCronReceiptQueueRoute: ApiPublicCronReceiptQueueRoute,
   ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
   ApiPublicHealthConfigRoute: ApiPublicHealthConfigRoute,
