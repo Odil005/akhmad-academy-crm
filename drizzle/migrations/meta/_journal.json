@@ -50,6 +50,13 @@
       "when": 1792229725892,
       "tag": "0006_invoice_requires_teacher_face_checkin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792231184378,
+      "tag": "0007_speed_indexes",
+      "breakpoints": true
     }
   ]
 }
