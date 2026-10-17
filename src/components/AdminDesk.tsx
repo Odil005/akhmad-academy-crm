@@ -42,6 +42,7 @@ const ADMIN_SHORTCUTS = [
   { to: "/teachers", label: "O'qituvchilar", icon: GraduationCap },
   { to: "/schedule", label: "Jadval", icon: CalendarDays },
   { to: "/attendance", label: "Davomat", icon: ClipboardCheck },
+  { to: "/face-checkin", label: "Face ID kirish", icon: ScanFace },
   { to: "/payments", label: "To'lovlar", icon: CreditCard },
   { to: "/debtors", label: "Qarzdorlar", icon: AlertTriangle },
   { to: "/cash-shifts", label: "Kassa", icon: Wallet },
