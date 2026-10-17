@@ -1,9 +1,9 @@
 # Roadmap
 
 ## O‘lchangan tezlik — 2026-10-17
-- [ ] Admin sahifalarini oldin/keyin bir xil sharoitda o‘lchash
-- [ ] Keraksiz boshlang‘ich yuklashlarni kamaytirish, kirish himoyasini saqlash
-- [ ] Jarvis ochilishi va asosiy sahifalarni qayta tekshirish; 100X haqida faqat o‘lchangan natijani aytish
+- [x] Admin sessiyasida mahalliy oldin/keyin o‘lchandi: Face ID 2.888→2.159 s, O‘quvchilar 1.279→0.966 s, To‘lovlar 1.669→0.962 s. Bitta juft o‘lchov, yuk ostidagi yoki published tezlik kafolati emas; 100X tasdiqlanmadi
+- [x] Jarvis faqat tugma bosilganda yuklanadi; keraksiz uch sahifa preloaddi olib tashlandi, root auth subscription tozalanadi. Boshlang‘ich so‘rovlar 12–17 taga kamaydi; kirish/ruxsatlar o‘zgarmadi
+- [x] Jarvis tugmasi suhbat oynasini ochdi, uch admin sahifasi ochildi, ekran xatosi yo‘q; 12 ruxsat/AI sinovi o‘tdi. Cloud xotira 55%, ulanish 10/60, tiqilinch yo‘q — kattaroq instance tavsiya qilinmadi
 
 ## Bot, hisob va yagona Face ID — 2026-10-17
 - [~] O‘qituvchi o‘z telefon kontaktini yuborganda bot ulanishi qo‘shildi; rol, raqam va eski bog‘lanish tekshiriladi. Haqiqiy o‘qituvchi Telegram kontaktini yuborishi bilan yakuniy sinov kutilmoqda
