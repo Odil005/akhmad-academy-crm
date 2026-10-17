@@ -2967,6 +2967,7 @@ export type Database = {
           created_at: string
           debt_amount: number | null
           id: string
+          match_distance: number | null
           photo_url: string | null
           status: string
           student_id: string
@@ -2975,6 +2976,7 @@ export type Database = {
           created_at?: string
           debt_amount?: number | null
           id?: string
+          match_distance?: number | null
           photo_url?: string | null
           status?: string
           student_id: string
@@ -2983,6 +2985,7 @@ export type Database = {
           created_at?: string
           debt_amount?: number | null
           id?: string
+          match_distance?: number | null
           photo_url?: string | null
           status?: string
           student_id?: string
@@ -3022,6 +3025,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "student_face_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_face_templates: {
+        Row: {
+          consent_confirmed_at: string
+          consent_confirmed_by: string
+          descriptors: Json
+          model_version: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          consent_confirmed_at?: string
+          consent_confirmed_by: string
+          descriptors: Json
+          model_version?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          consent_confirmed_at?: string
+          consent_confirmed_by?: string
+          descriptors?: Json
+          model_version?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_face_templates_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: true
             referencedRelation: "students"
@@ -3939,6 +3977,10 @@ export type Database = {
           created_count: number
           total_amount: number
         }[]
+      }
+      save_student_biometric_enrollment: {
+        Args: { p_descriptors: Json; p_image: string; p_student_id: string }
+        Returns: undefined
       }
       schedule_insights: {
         Args: { p_since: string }
