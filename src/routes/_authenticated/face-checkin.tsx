@@ -100,12 +100,23 @@ function FaceCheckinPage() {
 
   useEffect(() => {
     loadRecent();
-    navigator.mediaDevices?.enumerateDevices().then((all) => {
-      const cams = all.filter((d) => d.kind === "videoinput");
-      setDevices(cams);
+    const refresh = () => navigator.mediaDevices?.enumerateDevices().then((all) => {
+      setDevices(all.filter((d) => d.kind === "videoinput"));
     });
+    void refresh();
+    // USB kamera ulanganda/chiqarilganda ro'yxat yangilanadi; tanlangan kamera qayta yoqiladi
+    const onChange = async () => {
+      await refresh();
+      if (cameraWanted.current && !streamRef.current?.active) void startCamera(localStorage.getItem('face-camera-id') || undefined);
+    };
+    navigator.mediaDevices?.addEventListener?.('devicechange', onChange);
+    // Saqlangan USB kamerani avtomatik yoqish (doimiy yoniq kiosk)
+    let saved = '';
+    try { saved = localStorage.getItem('face-camera-id') || ''; } catch { /* ignore */ }
+    setDeviceId(saved);
+    void startCamera(saved || undefined);
     const clock = setInterval(() => setNow(Date.now()), 1000);
-    return () => { clearInterval(clock); clearTimeout(searchTimer.current); stopCamera(); };
+    return () => { navigator.mediaDevices?.removeEventListener?.('devicechange', onChange); clearInterval(clock); clearTimeout(searchTimer.current); stopCamera(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -137,7 +148,8 @@ function FaceCheckinPage() {
       const all = await navigator.mediaDevices.enumerateDevices();
       setDevices(all.filter((d) => d.kind === "videoinput"));
     } catch {
-      toast.error("Kameraga ruxsat berilmadi yoki kamera topilmadi");
+      if (id) { try { localStorage.removeItem('face-camera-id'); } catch { /* ignore */ } setDeviceId(''); return startCamera(); }
+      toast.error("Kameraga ruxsat berilmadi yoki USB kamera topilmadi");
     }
   };
   const stopCamera = () => {
@@ -281,11 +293,13 @@ function FaceCheckinPage() {
               <ScanFace className="h-4 w-4 text-primary" /> Kamera
             </div>
             <div className="flex items-center gap-2">
-              {devices.length > 1 && (
+              {(
                 <select
+                  aria-label="USB kamerani tanlash"
                   value={deviceId}
                   onChange={(e) => {
                     setDeviceId(e.target.value);
+                    try { localStorage.setItem('face-camera-id', e.target.value); } catch { /* ignore */ }
                     startCamera(e.target.value || undefined);
                   }}
                   className="rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
