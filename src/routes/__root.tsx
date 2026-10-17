@@ -106,18 +106,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Akhmad Academy — zamonaviy o'quv markazi. Ingliz tili, matematika, mental arifmetika va boshqa yo'nalishlar bo'yicha malakali o'qituvchilar bilan sifatli ta'lim.",
       },
-      {
-        property: "og:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/hcTakEu6gKU76YMTH3D4bMFSxwE3/social-images/social-1783517655887-photo_2026-07-07_22-43-48.webp",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/hcTakEu6gKU76YMTH3D4bMFSxwE3/social-images/social-1783517655887-photo_2026-07-07_22-43-48.webp",
-      },
     ],
     links: [
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
