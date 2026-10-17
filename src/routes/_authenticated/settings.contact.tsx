@@ -5,6 +5,14 @@ import { toast } from "sonner";
 import { MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings/contact")({
+  head: () => ({ meta: [
+    { title: "Aloqa sozlamalari | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 aloqa sozlamalari va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Aloqa sozlamalari | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 aloqa sozlamalari va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: ContactSettings,
 });
 

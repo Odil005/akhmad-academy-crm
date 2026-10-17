@@ -30,6 +30,14 @@ const STATUS_LABEL: Record<Status, string> = {
 const DAYS_FULL = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"];
 
 export const Route = createFileRoute("/_authenticated/attendance")({
+  head: () => ({ meta: [
+    { title: 'Davomat | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — davomat va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Davomat | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — davomat va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: AttendancePage,
 });
 

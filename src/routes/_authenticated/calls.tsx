@@ -16,6 +16,14 @@ type Call = {
 };
 
 export const Route = createFileRoute("/_authenticated/calls")({
+  head: () => ({ meta: [
+    { title: 'Qo‘ng‘iroqlar | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — qo‘ng‘iroqlar va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Qo‘ng‘iroqlar | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — qo‘ng‘iroqlar va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: CallsPage,
 });
 

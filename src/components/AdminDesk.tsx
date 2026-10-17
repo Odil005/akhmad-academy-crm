@@ -32,6 +32,7 @@ import { STATUS_META } from "@/lib/status";
 import { Student360 } from "@/components/Student360";
 import { PaymentModal } from "@/components/PaymentModal";
 import { NewTeacherModal } from "@/components/NewTeacherModal";
+import { Button } from "@/components/ui/button";
 import { TelegramLinkPanel } from "@/components/TelegramLinkPanel";
 
 const fmt = (n: number) => Number(n || 0).toLocaleString("uz-UZ");
@@ -131,9 +132,9 @@ export function AdminDesk() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 lg:flex lg:flex-wrap lg:justify-between">
+      <header className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl font-extrabold tracking-tight md:text-3xl">
+          <h1 className="text-xl font-bold">
             Administrator ish stoli
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -147,18 +148,18 @@ export function AdminDesk() {
           >
             <UserPlus className="h-4 w-4" /> Yangi o'quvchi
           </Link>
-          <button
+          <Button variant="ghost"
             onClick={() => setNewTeacher(true)}
             className="flex items-center gap-2 rounded-xl border border-primary/50 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/10"
           >
             <GraduationCap className="h-4 w-4" /> Yangi o'qituvchi
-          </button>
-          <button
+          </Button>
+          <Button variant="ghost"
             onClick={() => setPayFor("")}
             className="flex items-center gap-2 rounded-xl border border-primary/50 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/10"
           >
             <CreditCard className="h-4 w-4" /> To'lov olish
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -210,10 +211,10 @@ export function AdminDesk() {
                 r.debt > 0
                   ? { text: "Qarzdor", cls: "bg-destructive/15 text-destructive" }
                   : r.paidThisMonth
-                    ? { text: "To'lovlari to'liq", cls: "bg-green-500/15 text-green-600" }
-                    : { text: "To'lov kutilmoqda", cls: "bg-amber-500/20 text-amber-700" };
+                    ? { text: "To'lovlari to'liq", cls: "bg-success/15 text-success" }
+                    : { text: "To'lov kutilmoqda", cls: "bg-warning/15 text-warning" };
               return (
-                <button
+                <Button variant="ghost"
                   key={r.id}
                   onClick={() => {
                     setSelected(r);
@@ -250,12 +251,12 @@ export function AdminDesk() {
                       {pay.text}
                     </span>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold text-white ${meta.bg}`}
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold text-foreground ${meta.bg}`}
                     >
                       {meta.label}
                     </span>
                   </span>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -263,17 +264,15 @@ export function AdminDesk() {
       </div>
 
       {!indexReady && !indexError && (
-        <p className="-mt-3 text-xs text-muted-foreground">
-          Qidiruv satrini bosing — o'quvchilar ro'yxati faqat kerak bo'lganda yuklanadi.
-        </p>
+        <span />
       )}
 
       {indexError && (
         <div className="flex items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
           <AlertTriangle className="h-4 w-4" /> {indexError}
-          <button onClick={() => void refreshIndex(true)} className="font-semibold underline">
+          <Button variant="ghost" onClick={() => void refreshIndex(true)} className="font-semibold underline">
             Qayta urinish
-          </button>
+          </Button>
         </div>
       )}
 
@@ -307,9 +306,9 @@ export function AdminDesk() {
       {metricsError && (
         <div className="flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-xs">
           <AlertTriangle className="h-4 w-4" /> Ko'rsatkichlar olinmadi: {metricsError}
-          <button onClick={() => void refreshMetrics(true)} className="font-semibold underline">
+          <Button variant="ghost" onClick={() => void refreshMetrics(true)} className="font-semibold underline">
             Qayta urinish
-          </button>
+          </Button>
         </div>
       )}
 
@@ -339,12 +338,12 @@ export function AdminDesk() {
       )}
 
       {selected && (
-        <button
+        <Button variant="ghost"
           onClick={() => setSelected(null)}
           className="rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:border-primary"
         >
           ← Ish stoliga qaytish
-        </button>
+        </Button>
       )}
 
       {newTeacher && <NewTeacherModal onClose={() => setNewTeacher(false)} />}
@@ -374,7 +373,7 @@ function Kpi({
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <Icon
-        className={`h-5 w-5 ${tone === "ok" ? "text-green-600" : tone === "bad" ? "text-destructive" : "text-primary"}`}
+        className={`h-5 w-5 ${tone === "ok" ? "text-success" : tone === "bad" ? "text-destructive" : "text-primary"}`}
       />
       <div className="mt-2 truncate text-xl font-extrabold">{value}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
@@ -417,35 +416,35 @@ function DebtorsBlock({
       </div>
       <div className="mt-3 divide-y divide-border text-sm">
         {!ready && (
-          <button
+          <Button variant="ghost"
             onClick={onLoad}
             disabled={loading}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 font-semibold text-primary disabled:opacity-60"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {loading ? "Ro'yxat yuklanmoqda..." : "Qarzdorlar ro'yxatini ko'rish"}
-          </button>
+          </Button>
         )}
         {ready && debtors.length === 0 && (
           <p className="py-3 text-muted-foreground">Qarzdorlar yo'q</p>
         )}
         {debtors.map((r) => (
           <div key={r.id} className="flex items-center justify-between gap-2 py-2.5">
-            <button onClick={() => onPick(r)} className="min-w-0 flex-1 text-left">
+            <Button variant="ghost" onClick={() => onPick(r)} className="min-w-0 flex-1 text-left">
               <span className="block truncate font-semibold">{r.name}</span>
               <span className="block truncate text-xs text-muted-foreground">
                 {r.groupNames[0] ?? "guruhsiz"}
               </span>
-            </button>
+            </Button>
             <span className="shrink-0 rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-bold text-destructive">
               {fmt(r.debt)} so'm
             </span>
-            <button
+            <Button variant="ghost"
               onClick={() => onPay(r.id)}
               className="shrink-0 rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground"
             >
               To'lov
-            </button>
+            </Button>
           </div>
         ))}
       </div>

@@ -7,6 +7,14 @@ import { toast } from "sonner";
 import { Smile, Send } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/behavior")({
+  head: () => ({ meta: [
+    { title: 'Dars faolligi | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — dars faolligi va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Dars faolligi | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — dars faolligi va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: BehaviorPage,
 });
 

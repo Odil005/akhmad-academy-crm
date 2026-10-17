@@ -11,6 +11,10 @@ export const Route = createFileRoute("/bootstrap")({
   ssr: false,
   head: () => ({
     meta: [
+      { property: "og:title", content: 'Director bootstrap · Akhmad Academy' },
+      { property: "og:description", content: 'Birinchi director akkaunti yaratish' },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Director bootstrap · Akhmad Academy" },
       { name: "description", content: "Birinchi director akkaunti yaratish" },
       { name: "robots", content: "noindex, nofollow" },

@@ -36,6 +36,14 @@ const SearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/students")({
+  head: () => ({ meta: [
+    { title: "O\u2018quvchilar | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 o\u2018quvchilar va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "O\u2018quvchilar | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 o\u2018quvchilar va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   validateSearch: SearchSchema,
   component: StudentsPage,
 });

@@ -5,6 +5,14 @@ import { Search as SearchIcon, User, Users, GraduationCap, UserRound, Phone } fr
 import { STATUS_META } from "@/lib/status";
 
 export const Route = createFileRoute("/_authenticated/search")({
+  head: () => ({ meta: [
+    { title: "Qidiruv | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 qidiruv va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Qidiruv | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 qidiruv va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: SearchPage,
 });
 

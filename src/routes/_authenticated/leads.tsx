@@ -23,6 +23,14 @@ const STATUSES = [
 ];
 
 export const Route = createFileRoute("/_authenticated/leads")({
+  head: () => ({ meta: [
+    { title: 'Lidlar | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — lidlar va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Lidlar | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — lidlar va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: LeadsPage,
 });
 

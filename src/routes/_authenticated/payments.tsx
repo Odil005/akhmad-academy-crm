@@ -15,6 +15,14 @@ const ACTION_LABEL: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/_authenticated/payments")({
+  head: () => ({ meta: [
+    { title: 'To‘lovlar | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — to‘lovlar va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'To‘lovlar | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — to‘lovlar va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: PaymentsPage,
 });
 

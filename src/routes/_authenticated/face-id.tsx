@@ -19,6 +19,14 @@ type Checkin = {
 };
 
 export const Route = createFileRoute("/_authenticated/face-id")({
+  head: () => ({ meta: [
+    { title: 'O‘qituvchi Face ID | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — o‘qituvchi face id va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'O‘qituvchi Face ID | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — o‘qituvchi face id va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: FaceIdPage,
 });
 

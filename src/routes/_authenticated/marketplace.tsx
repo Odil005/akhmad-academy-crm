@@ -5,6 +5,14 @@ import { ShoppingBag, Package } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/marketplace")({
+  head: () => ({ meta: [
+    { title: 'Marketplace | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — marketplace va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Marketplace | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — marketplace va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: MarketplacePage,
 });
 

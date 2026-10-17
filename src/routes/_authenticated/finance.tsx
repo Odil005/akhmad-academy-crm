@@ -5,6 +5,14 @@ import { toast } from "sonner";
 import { DollarSign, TrendingUp, TrendingDown, Wallet, Plus, Trash2, Download, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/finance")({
+  head: () => ({ meta: [
+    { title: 'Moliya | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — moliya va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Moliya | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — moliya va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: FinancePage,
 });
 

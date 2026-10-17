@@ -19,6 +19,14 @@ import { getGitHubAutomationStatus } from "@/lib/github-automation.functions";
 import { getJarvisAIStatus, testJarvisAIConnection } from "@/lib/jarvis-ai.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/integrations")({
+  head: () => ({ meta: [
+    { title: "Integratsiyalar | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 integratsiyalar va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Integratsiyalar | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 integratsiyalar va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: IntegrationsSettings,
 });
 

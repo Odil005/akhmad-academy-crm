@@ -11,6 +11,14 @@ import {
 } from "@/lib/parent-messaging.functions";
 
 export const Route = createFileRoute("/_authenticated/messages")({
+  head: () => ({ meta: [
+    { title: 'Xabarlar | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — xabarlar va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Xabarlar | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — xabarlar va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: MessagesPage,
 });
 

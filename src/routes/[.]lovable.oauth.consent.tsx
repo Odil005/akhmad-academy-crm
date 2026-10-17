@@ -17,6 +17,14 @@ type OAuthApi = {
 const oauth = () => (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 
 export const Route = createFileRoute("/.lovable/oauth/consent")({
+  head: () => ({ meta: [
+    { title: 'Ilovaga ruxsat | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — ilovaga ruxsat va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Ilovaga ruxsat | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — ilovaga ruxsat va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
     authorization_id: typeof s.authorization_id === "string" ? s.authorization_id : "",

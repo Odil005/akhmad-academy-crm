@@ -54,6 +54,14 @@ type RecentBehavior = {
 };
 
 export const Route = createFileRoute("/_authenticated/teacher-panel")({
+  head: () => ({ meta: [
+    { title: "O\u2018qituvchi paneli | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 o\u2018qituvchi paneli va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "O\u2018qituvchi paneli | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 o\u2018qituvchi paneli va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: TeacherPanelPage,
 });
 

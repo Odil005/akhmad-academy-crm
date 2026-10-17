@@ -48,6 +48,14 @@ type TeacherCredentialRow = { teacher_user_id: string | null; username: string }
 type Teacher = ScheduleTeacher;
 
 export const Route = createFileRoute("/_authenticated/schedule")({
+  head: () => ({ meta: [
+    { title: "Dars jadvali | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 dars jadvali va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Dars jadvali | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 dars jadvali va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: SchedulePage,
 });
 

@@ -4,6 +4,14 @@ import { Check, Circle, RefreshCw, ArrowRight } from "lucide-react";
 import { getSetupStatus, type SetupStep } from "@/lib/setup.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/setup")({
+  head: () => ({ meta: [
+    { title: "Tizim sozlash | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 tizim sozlash va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Tizim sozlash | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 tizim sozlash va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: SetupPage,
 });
 

@@ -14,6 +14,14 @@ import { toast } from "sonner";
 import { isStaff, manageableAccountRoles, type AppRole } from "@/lib/authz";
 
 export const Route = createFileRoute("/_authenticated/settings/credentials")({
+  head: () => ({ meta: [
+    { title: "Login va parollar | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 login va parollar va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Login va parollar | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 login va parollar va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   beforeLoad: ({ context }) => {
     const roles = (context as any).roles as string[];
     if (!isStaff(roles ?? [])) throw redirect({ to: "/dashboard" });
