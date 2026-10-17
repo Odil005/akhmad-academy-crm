@@ -15,6 +15,7 @@ import {
   FileSpreadsheet,
   Layers,
   ClipboardCheck,
+  ScanFace,
   MessageSquare,
   BarChart3,
 } from "lucide-react";
