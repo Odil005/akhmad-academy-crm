@@ -1352,21 +1352,21 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             if (hit.length) {
               for (const s of hit) {
                 const [{ data: st }, { data: face }, { data: enr }] = await Promise.all([
-                  supabaseAdmin.from("students").select("first_name, last_name, full_name, status_enum, phone, credit_balance").eq("id", s.id).maybeSingle(),
+                  supabaseAdmin.from("students").select("first_name, last_name, full_name, status_enum").eq("id", s.id).maybeSingle(),
                   supabaseAdmin.from("student_face_enrollments").select("image_url").eq("student_id", s.id).maybeSingle(),
                   supabaseAdmin.from("student_enrollments").select("groups(name)").eq("student_id", s.id).eq("status", "active"),
                 ]);
                 const name = (st?.full_name || `${st?.first_name ?? ""} ${st?.last_name ?? ""}`).trim();
                 const groups = ((enr ?? []) as any[]).map((e) => e.groups?.name).filter(Boolean).join(", ") || "—";
-                const caption = `👤 ${name}\n📚 Guruh: ${groups}\n📌 Holat: ${st?.status_enum ?? "—"}${st?.phone ? `\n📞 ${st.phone}` : ""}\n🆔 Face ID: ${face?.image_url ? "ro'yxatdan o'tgan ✅" : "ro'yxatdan o'tmagan ❌"}`;
+                const caption = `👤 ${name}\n📚 Guruh: ${groups}\n📌 Holat: ${st?.status_enum ?? "—"}\n🆔 Face ID: ${face?.image_url ? "ro'yxatdan o'tgan ✅" : "ro'yxatdan o'tmagan ❌"}`;
                 const url = face?.image_url ?? "";
                 if (/^https?:\/\//.test(url)) {
                   await tg("sendPhoto", { chat_id: chatId, photo: url, caption, protect_content: true });
                 } else if (url.startsWith("data:image")) {
                   const b64 = url.split(",")[1] ?? "";
                   const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-                  const { getTelegramToken } = await import("@/lib/telegram.server").catch(() => ({} as any));
-                  const token = (typeof getTelegramToken === "function" ? getTelegramToken() : null) ?? process.env.TELEGRAM_BOT_TOKEN;
+                  const { getTelegramBotToken } = await import("@/lib/telegram.server");
+                  const token = getTelegramBotToken();
                   const fd = new FormData();
                   fd.append("chat_id", String(chatId));
                   fd.append("caption", caption);
