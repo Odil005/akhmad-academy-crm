@@ -8,7 +8,7 @@
 - [x] Har oy boshida avtomatik hisob (invoice) + avto chegirma
 - [x] Qisman to'lov va oldindan to'lov balansi
 - [x] Chegirmalarni to'lovda avtomatik qo'llash, qaytarish (refund) va to'lovni bekor qilish tarixi
-- [ ] Kassa yopilishi + o'qituvchi oyligi avtomatik hisoblanishi
+- [x] Kassa yopilishi + o'qituvchi oyligi avtomatik hisoblanishi (cron 1-sana, qo'lda saqlanganlarni qayta yozmaydi)
 ### Guruh va jadval
 - [ ] Guruh ichida darslar kalendari, xona/o'qituvchi to'qnashuvini tekshirish
 - [ ] Bir bosishda guruh davomati, o'quvchini guruhdan guruhga ko'chirish
