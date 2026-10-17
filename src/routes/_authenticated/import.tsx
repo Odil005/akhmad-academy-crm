@@ -507,26 +507,40 @@ function TeacherImport() {
   const [result, setResult] = useState<Awaited<ReturnType<typeof importTeachers>> | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [firstSheetName, setFirstSheetName] = useState("");
+  const [extraRows, setExtraRows] = useState<ParsedTeacherRow[]>([]);
+  const withSubject = (rows: ParsedTeacherRow[], sheetName: string) =>
+    rows.map((r) => (r.subject_name || !sheetName || /^(sheet|лист|varaq)\s*\d*$/i.test(sheetName.trim()) ? r : { ...r, subject_name: sheetName.trim() }));
   const parsed: ParsedTeacherRow[] = useMemo(
-    () => (sheet ? parseTeacherRows(sheet, mapping) : []),
-    [sheet, mapping],
+    () => (sheet ? [...withSubject(parseTeacherRows(sheet, mapping), firstSheetName), ...extraRows] : []),
+    [sheet, mapping, extraRows, firstSheetName],
   );
   const okRows = parsed.filter((r) => !r.errors.length);
 
   async function handleFile(file: File) {
     setResult(null);
     setFileName(file.name);
-    const buf = await file.arrayBuffer();
-    const XLSX = await import("xlsx");
-    const wb = XLSX.read(buf, { type: "array", cellDates: true, codepage: 65001 });
-    const ws = wb.Sheets[wb.SheetNames[0]!];
-    if (!ws) return toast.error("Faylda varaq topilmadi");
-    const matrix = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "", raw: false, blankrows: false });
-    const s = toSheet(matrix as unknown[][]);
-    if (!s.rows.length) return toast.error("Faylda ma'lumot topilmadi");
-    setSheet(s);
-    setMapping(detectTeacherMapping(s.headers));
-    toast.success(`${s.rows.length} qator o'qildi`);
+    let wb;
+    try {
+      const buf = await file.arrayBuffer();
+      const XLSX = await import("xlsx");
+      wb = XLSX.read(buf, { type: "array", cellDates: true, codepage: 65001 });
+      const sheets = wb.SheetNames.map((name) => {
+        const ws = wb!.Sheets[name]!;
+        const matrix = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "", raw: false, blankrows: false });
+        return { name, s: toSheet(matrix as unknown[][]) };
+      }).filter((x) => x.s.rows.length);
+      if (!sheets.length) return toast.error("Faylda ma'lumot topilmadi");
+      const [first, ...rest] = sheets;
+      setFirstSheetName(first!.name);
+      setSheet(first!.s);
+      setMapping(detectTeacherMapping(first!.s.headers));
+      setExtraRows(rest.flatMap(({ name, s }) => withSubject(parseTeacherRows(s, detectTeacherMapping(s.headers)), name)));
+      const total = sheets.reduce((n, x) => n + x.s.rows.length, 0);
+      toast.success(`${sheets.length} varaqdan ${total} qator o'qildi`);
+    } catch {
+      toast.error("Faylni ochib bo'lmadi. Parolli bo'lsa, parolsiz saqlab qayta yuklang.");
+    }
   }
 
   async function doImport() {
