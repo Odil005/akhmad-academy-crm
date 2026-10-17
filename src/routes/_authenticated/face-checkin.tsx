@@ -1,3 +1,4 @@
+import { isUsbCamera } from '@/features/face/camera';
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -101,7 +102,7 @@ function FaceCheckinPage() {
   useEffect(() => {
     loadRecent();
     const refresh = () => navigator.mediaDevices?.enumerateDevices().then((all) => {
-      setDevices(all.filter((d) => d.kind === "videoinput"));
+      setDevices(all.filter((d) => d.kind === "videoinput" && isUsbCamera(d.label)));
     });
     void refresh();
     // USB kamera ulanganda/chiqarilganda ro'yxat yangilanadi; tanlangan kamera qayta yoqiladi
@@ -125,8 +126,22 @@ function FaceCheckinPage() {
       stopCamera();
       cameraWanted.current = true;
       const generation = cameraGeneration.current;
+      // Faqat USB kamera: nomlarni o'qish uchun ruxsat olib, birinchi USB kamerani tanlaymiz
+      let list = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput");
+      if (list.length && !list.some((d) => d.label)) {
+        const probe = await navigator.mediaDevices.getUserMedia({ video: true });
+        probe.getTracks().forEach((t) => t.stop());
+        list = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput");
+      }
+      const usb = list.filter((d) => isUsbCamera(d.label));
+      setDevices(usb);
+      const chosen = usb.find((d) => d.deviceId === id) ?? usb[0];
+      if (!chosen) { cameraWanted.current = true; setStreaming(false); toast.error("USB kamera topilmadi. Face ID faqat USB kamera bilan ishlaydi — kamerani ulang."); return; }
+      id = chosen.deviceId;
+      setDeviceId(id);
+      if (generation !== cameraGeneration.current) return;
       const s = await navigator.mediaDevices.getUserMedia({
-        video: { ...(id ? { deviceId: { exact: id } } : { facingMode: 'user' }), width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15, max: 20 } },
+        video: { deviceId: { exact: id }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15, max: 20 } },
       });
       if (!cameraWanted.current || generation !== cameraGeneration.current) { s.getTracks().forEach(t => t.stop()); return; }
       streamRef.current = s;
@@ -148,7 +163,6 @@ function FaceCheckinPage() {
       const all = await navigator.mediaDevices.enumerateDevices();
       setDevices(all.filter((d) => d.kind === "videoinput"));
     } catch {
-      if (id) { try { localStorage.removeItem('face-camera-id'); } catch { /* ignore */ } setDeviceId(''); return startCamera(); }
       toast.error("Kameraga ruxsat berilmadi yoki USB kamera topilmadi");
     }
   };
@@ -304,7 +318,7 @@ function FaceCheckinPage() {
                   }}
                   className="rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
                 >
-                  <option value="">Standart kamera</option>
+                  {!devices.length && <option value="">USB kamera ulanmagan</option>}
                   {devices.map((d, i) => (
                     <option key={d.deviceId} value={d.deviceId}>
                       {d.label || `Kamera ${i + 1}`}
