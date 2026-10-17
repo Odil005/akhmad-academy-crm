@@ -5,6 +5,14 @@ import { toast } from "sonner";
 import { Megaphone, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings/news")({
+  head: () => ({ meta: [
+    { title: "Yangiliklar | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 yangiliklar va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Yangiliklar | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 yangiliklar va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: NewsSettings,
 });
 

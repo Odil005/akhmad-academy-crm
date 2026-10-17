@@ -5,6 +5,14 @@ import { AlertTriangle, CalendarClock, CheckCircle2, Loader2, Users } from "luci
 import { getMyCenterBilling } from "@/lib/platform.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/subscription")({
+  head: () => ({ meta: [
+    { title: "Abonent | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 abonent va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Abonent | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 abonent va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: SubscriptionPage,
 });
 

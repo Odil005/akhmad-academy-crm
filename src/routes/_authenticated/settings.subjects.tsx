@@ -5,6 +5,14 @@ import { BookOpen, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings/subjects")({
+  head: () => ({ meta: [
+    { title: "Fanlar | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 fanlar va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Fanlar | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 fanlar va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: SubjectsPage,
 });
 

@@ -5,6 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings/reports")({
+  head: () => ({ meta: [
+    { title: "Ma\u2019lumotlar eksporti | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 ma\u2019lumotlar eksporti va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Ma\u2019lumotlar eksporti | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 ma\u2019lumotlar eksporti va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: ReportsSettings,
 });
 

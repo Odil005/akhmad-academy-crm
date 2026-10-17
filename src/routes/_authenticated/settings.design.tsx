@@ -5,6 +5,14 @@ import { toast } from "sonner";
 import { Palette } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings/design")({
+  head: () => ({ meta: [
+    { title: "Sayt dizayni | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 sayt dizayni va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Sayt dizayni | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 sayt dizayni va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: DesignPage,
 });
 

@@ -20,6 +20,14 @@ type CheckinRow = {
 };
 
 export const Route = createFileRoute("/_authenticated/face-checkin")({
+  head: () => ({ meta: [
+    { title: "Face ID kirish | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 face id kirish va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Face ID kirish | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 face id kirish va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: FaceCheckinPage,
 });
 

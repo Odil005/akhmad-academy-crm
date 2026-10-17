@@ -4,6 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Phone, Save, Wifi, WifiOff } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings/telephony")({
+  head: () => ({ meta: [
+    { title: "Telefoniya | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 telefoniya va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Telefoniya | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 telefoniya va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: TelephonySettings,
 });
 

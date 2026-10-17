@@ -4,7 +4,15 @@ import { FileVideo, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/video-lessons")({ component: VideoLessonsPage });
+export const Route = createFileRoute("/_authenticated/video-lessons")({
+  head: () => ({ meta: [
+    { title: "Video darslar | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 video darslar va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Video darslar | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 video darslar va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }), component: VideoLessonsPage });
 type VideoRow = { id: string; group_id: string; title: string; description: string | null; storage_path: string; published: boolean; created_at: string; group?: { name: string } | null; url?: string };
 type Group = { id: string; name: string };
 

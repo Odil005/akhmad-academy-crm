@@ -12,6 +12,14 @@ import {
 } from "@/lib/donation";
 
 export const Route = createFileRoute("/_authenticated/settings/donation")({
+  head: () => ({ meta: [
+    { title: "Homiylik sozlamalari | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 homiylik sozlamalari va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Homiylik sozlamalari | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 homiylik sozlamalari va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: DonationSettings,
 });
 

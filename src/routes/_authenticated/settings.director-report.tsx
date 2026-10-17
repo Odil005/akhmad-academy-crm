@@ -5,6 +5,14 @@ import { Plus, Trash2, Send, MessageCircle, Loader2 } from "lucide-react";
 import { sendDirectorReportTest } from "@/lib/director-report.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/director-report")({
+  head: () => ({ meta: [
+    { title: "Direktor kunlik hisoboti | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 direktor kunlik hisoboti va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Direktor kunlik hisoboti | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 direktor kunlik hisoboti va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: DirectorReportSettings,
 });
 

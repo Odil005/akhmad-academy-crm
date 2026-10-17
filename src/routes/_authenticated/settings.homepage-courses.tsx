@@ -14,6 +14,14 @@ type Course = {
 };
 
 export const Route = createFileRoute("/_authenticated/settings/homepage-courses")({
+  head: () => ({ meta: [
+    { title: "Bosh sahifa fanlari | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 bosh sahifa fanlari va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Bosh sahifa fanlari | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 bosh sahifa fanlari va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: HomepageCoursesPage,
 });
 

@@ -4,7 +4,15 @@ import { Award, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/teacher-kpi")({ beforeLoad: ({ context }) => { const roles = (context as any).roles as string[]; if (!roles?.some((role) => ["admin", "director", "teacher"].includes(role))) throw redirect({ to: "/dashboard" }); }, component: TeacherKpiPage });
+export const Route = createFileRoute("/_authenticated/teacher-kpi")({
+  head: () => ({ meta: [
+    { title: "O\u2018qituvchi KPI | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 o\u2018qituvchi kpi va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "O\u2018qituvchi KPI | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 o\u2018qituvchi kpi va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }), beforeLoad: ({ context }) => { const roles = (context as any).roles as string[]; if (!roles?.some((role) => ["admin", "director", "teacher"].includes(role))) throw redirect({ to: "/dashboard" }); }, component: TeacherKpiPage });
 const FIELDS = [{ key: "attendance_points", label: "Davomatni vaqtida kiritish", max: 25 }, { key: "student_attendance_points", label: "O'quvchi davomat foizi", max: 20 }, { key: "grading_points", label: "Darsdagi faollik qaydlari", max: 15 }, { key: "retention_points", label: "Guruh saqlanishi", max: 15 }, { key: "results_points", label: "Test / natija o'sishi", max: 15 }, { key: "materials_points", label: "Video dars va material", max: 10 }] as const;
 type Form = Record<(typeof FIELDS)[number]["key"], number> & { teacher_user_id: string; period_month: string; note: string };
 const blank = (): Form => ({ teacher_user_id: "", period_month: new Date().toISOString().slice(0, 7) + "-01", attendance_points: 0, student_attendance_points: 0, grading_points: 0, retention_points: 0, results_points: 0, materials_points: 0, note: "" });

@@ -14,6 +14,14 @@ type Room = {
 };
 
 export const Route = createFileRoute("/_authenticated/rooms")({
+  head: () => ({ meta: [
+    { title: "Xonalar | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 xonalar va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Xonalar | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 xonalar va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: RoomsPage,
 });
 

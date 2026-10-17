@@ -5,6 +5,14 @@ import { toast } from "sonner";
 import { BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings/stats")({
+  head: () => ({ meta: [
+    { title: "Sayt statistikasi | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM \u2014 sayt statistikasi va o\u2018quv markazini boshqarish." },
+    { property: "og:title", content: "Sayt statistikasi | Akhmad CRM" },
+    { property: "og:description", content: "Akhmad CRM \u2014 sayt statistikasi va o\u2018quv markazini boshqarish." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: StatsSettings,
 });
 
