@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { canManageAccount, isDirector, isStaff, type AppRole } from "@/lib/authz";
 import { emailToUsername, usernameToEmail } from "@/lib/credentials";
+import { managedLoginError } from "@/lib/managed-login-errors";
 import { z } from "zod";
 
 const CreateUserSchema = z.object({
@@ -122,7 +123,7 @@ export const createManagedUser = createServerFn({ method: "POST" })
       if (/already been registered|already exists|duplicate/i.test(msg)) {
         return { ok: false, error: duplicateMessage };
       }
-      return { ok: false, error: msg };
+      return { ok: false, error: managedLoginError(createErr) };
     }
 
     const newUserId = created.user.id;

@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { InstallAppPrompt } from "@/components/InstallAppPrompt";
 import { clearAuthenticatedRouteCache } from "@/lib/authenticated-route-cache";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -185,6 +186,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <Toaster />
       <InstallAppPrompt />
     </QueryClientProvider>
   );
