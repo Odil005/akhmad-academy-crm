@@ -59,6 +59,7 @@ import {
   getAuthenticatedRouteContext,
 } from "@/lib/authenticated-route-cache";
 import { SystemAlertIndicator } from "@/components/SystemAlertIndicator";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
 
@@ -347,16 +348,7 @@ function AuthenticatedLayout() {
               <Menu className="h-5 w-5" />
             </Button>
 
-            {isStaff && (
-              <Link
-                to="/search"
-                data-tour="topbar-search"
-                className="min-w-0 flex w-full max-w-md items-center gap-2 rounded-lg border border-border bg-secondary/60 px-3 py-2 text-xs text-muted-foreground transition hover:border-accent"
-              >
-                <Search className="h-4 w-4" />
-                <span className="truncate">{t("Tizim bo‘ylab qidirish…")}</span>
-              </Link>
-            )}
+            {isStaff && <GlobalSearch />}
 
             <div
               className="col-span-2 ml-auto flex shrink-0 items-center gap-0.5 rounded-lg border border-border p-0.5 sm:ml-auto"
