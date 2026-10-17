@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Individual tuition edits use the authenticated student-fees service and shared StudentFeeEditor; update enrollment prices (student fallback without active groups), never group defaults or existing invoices, to preserve other students and payment history.
+- Internal CRM visual tokens are scoped to crm-theme, shared across all authenticated roles and applied to the document while mounted so dialogs inherit the theme without changing public pages or permissions.

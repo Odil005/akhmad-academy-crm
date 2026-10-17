@@ -19,6 +19,10 @@
  */
 
 @theme inline {
+  --color-success: var(--success);
+  --color-info: var(--info);
+  --color-highlight: var(--highlight);
+  --color-warning: var(--warning);
   --font-display: "Playfair Display", ui-serif, Georgia, serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -63,6 +67,10 @@
 }
 
 :root {
+  --success: oklch(0.72 0.15 160);
+  --info: oklch(0.73 0.12 220);
+  --highlight: oklch(0.66 0.2 305);
+  --warning: oklch(0.78 0.15 75);
   --radius: 0.75rem;
   /* Akhmad Academy — deep navy + gold on warm ivory */
   --background: oklch(0.985 0.008 85);
@@ -98,6 +106,62 @@
   --sidebar-border: oklch(0.78 0.125 85 / 18%);
   --sidebar-ring: oklch(0.78 0.125 85);
 }
+
+.crm-theme {
+  color-scheme: dark;
+  --radius: 0.5rem;
+  --background: oklch(0.17 0.019 275);
+  --foreground: oklch(0.95 0.006 275);
+  --card: oklch(0.215 0.022 275);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.245 0.022 275);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.77 0.14 166);
+  --primary-foreground: oklch(0.18 0.035 166);
+  --secondary: oklch(0.28 0.022 275);
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.25 0.019 275);
+  --muted-foreground: oklch(0.69 0.018 275);
+  --accent: oklch(0.72 0.12 218);
+  --accent-foreground: oklch(0.17 0.02 218);
+  --destructive: oklch(0.72 0.18 25);
+  --destructive-foreground: oklch(0.98 0.005 25);
+  --border: oklch(0.36 0.022 275 / 65%);
+  --input: oklch(0.34 0.022 275);
+  --ring: var(--primary);
+  --chart-1: var(--primary);
+  --chart-2: var(--info);
+  --chart-3: var(--highlight);
+  --chart-4: var(--warning);
+  --chart-5: var(--destructive);
+  --sidebar: oklch(0.205 0.025 275);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: oklch(0.285 0.025 275);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --crm-active: linear-gradient(105deg, oklch(0.55 0.16 305 / 35%), oklch(0.65 0.14 166 / 32%));
+  --crm-shadow: 0 4px 18px oklch(0.08 0.015 275 / 20%);
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+
+.crm-shell { min-height: 100dvh; letter-spacing: 0; }
+.crm-shell :is(h1,h2,h3,h4) { font-family: var(--font-display); letter-spacing: 0; }
+.crm-shell [class*="tracking-"] { letter-spacing: 0; }
+.crm-shell :is(.rounded-2xl,.rounded-3xl,.rounded-xl) { border-radius: 8px; }
+.crm-shell :is(.glass,.glass-strong,.card-premium) { background: var(--card); backdrop-filter: none; box-shadow: none; }
+.crm-shell :is(.ambient-bg,.ambient-orb,.ambient-grid) { display: none; }
+.crm-shell .gold-text { color: var(--primary); background: none; animation: none; }
+.crm-shell .gold-glow { box-shadow: none; }
+.crm-nav-active { background: var(--crm-active); border-color: color-mix(in oklab, var(--primary) 35%, transparent); box-shadow: var(--crm-shadow); }
+.crm-panel { border: 1px solid var(--border); border-radius: 8px; background: var(--card); box-shadow: var(--crm-shadow); }
+.crm-chart .recharts-cartesian-axis-tick-value { fill: var(--muted-foreground); font-size: 11px; }
+.crm-chart .recharts-cartesian-grid line { stroke: var(--border); }
+.crm-chart .recharts-tooltip-wrapper { outline: none; }
+.crm-shell :is(input,select,textarea) { color-scheme: dark; }
 
 .dark {
   --background: oklch(0.17 0.045 265);
