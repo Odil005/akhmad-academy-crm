@@ -1,5 +1,10 @@
 # Roadmap
 
+## O‘lchangan tezlik — 2026-10-17
+- [ ] Admin sahifalarini oldin/keyin bir xil sharoitda o‘lchash
+- [ ] Keraksiz boshlang‘ich yuklashlarni kamaytirish, kirish himoyasini saqlash
+- [ ] Jarvis ochilishi va asosiy sahifalarni qayta tekshirish; 100X haqida faqat o‘lchangan natijani aytish
+
 ## Bot, hisob va yagona Face ID — 2026-10-17
 - [~] O‘qituvchi o‘z telefon kontaktini yuborganda bot ulanishi qo‘shildi; rol, raqam va eski bog‘lanish tekshiriladi. Haqiqiy o‘qituvchi Telegram kontaktini yuborishi bilan yakuniy sinov kutilmoqda
 - [x] AI hisob-kitobni faqat tahlil qiladi; pul amallari qo‘lda, ruxsat va bajarish chegarasi sinovdan o‘tdi

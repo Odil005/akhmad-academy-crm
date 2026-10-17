@@ -110,7 +110,7 @@ const WELCOME_MESSAGE: Msg = {
     "Assalomu alaykum! Men Jarvisman. Siz bilan oddiy suhbatlashaman, savollaringizni tushuntiraman va ruxsatingiz doirasida CRM ishlarini ham bajaraman. Bugun nimadan boshlaymiz?",
 };
 
-export function Jarvis() {
+export function Jarvis({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
   const chat = useServerFn(jarvisChat);
   const transcribe = useServerFn(jarvisTranscribe);
   const speak = useServerFn(jarvisSpeak);
@@ -123,7 +123,7 @@ export function Jarvis() {
     [mode, pathname, role],
   );
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const [msgs, setMsgs] = useState<Msg[]>([WELCOME_MESSAGE]);
   const [historyReady, setHistoryReady] = useState(false);
   const [input, setInput] = useState("");
