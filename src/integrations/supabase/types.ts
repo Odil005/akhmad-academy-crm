@@ -2775,6 +2775,45 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_salaries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          monthly_salary: number
+          note: string | null
+          paid_amount: number
+          period_month: string
+          position: string
+          staff_name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          monthly_salary?: number
+          note?: string | null
+          paid_amount?: number
+          period_month: string
+          position?: string
+          staff_name: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          monthly_salary?: number
+          note?: string | null
+          paid_amount?: number
+          period_month?: string
+          position?: string
+          staff_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       staff_telegram_links: {
         Row: {
           created_at: string

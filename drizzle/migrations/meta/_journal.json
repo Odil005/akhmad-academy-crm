@@ -36,6 +36,20 @@
       "when": 1792226040069,
       "tag": "0004_perf_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792229671692,
+      "tag": "0005_staff_salaries_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792229725892,
+      "tag": "0006_invoice_requires_teacher_face_checkin",
+      "breakpoints": true
     }
   ]
 }

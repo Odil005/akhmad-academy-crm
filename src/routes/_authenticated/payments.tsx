@@ -2,15 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Printer, Send, ExternalLink, Undo2, Ban, History } from "lucide-react";
+import { Plus, Undo2, Ban, History } from "lucide-react";
 import { PaymentModal } from "@/components/PaymentModal";
-import { resendReceiptTelegram, refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
+import { refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
 
 type AuditRow = { id: string; action: string; old_data: unknown; new_data: unknown; created_at: string; user_name: string };
 const ACTION_LABEL: Record<string, string> = {
   refunded: "Qaytarildi",
   voided: "Bekor qilindi",
-  receipt_resent: "Chek qayta yuborildi",
   created: "Yaratildi",
 };
 
@@ -112,7 +111,7 @@ function PaymentsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">To'lovlar</h1>
-          <p className="text-sm text-muted-foreground">Kassa, cheklar va ota-onaga xabarlar</p>
+          <p className="text-sm text-muted-foreground">Kassa va ota-onaga xabarlar</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -186,12 +185,6 @@ function PaymentsPage() {
                     <td className="px-4 py-3 text-muted-foreground">{new Date(r.paid_at ?? r.created_at).toLocaleDateString("uz-UZ")}</td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
-                        <IconBtn title="Chekni ko'rish" href={`/receipt/${r.id}`}><ExternalLink className="h-3.5 w-3.5" /></IconBtn>
-                        <IconBtn title="Chekni chiqarish" href={`/receipt/${r.id}`}><Printer className="h-3.5 w-3.5" /></IconBtn>
-                        <IconBtn title="Telegramga qayta yuborish" disabled={busy === r.id}
-                          onClick={() => act(r.id, () => resendReceiptTelegram({ data: { payment_id: r.id } }), "Telegramga yuborildi")}>
-                          <Send className="h-3.5 w-3.5" />
-                        </IconBtn>
                         {isDirector && r.status !== "refunded" && r.status !== "voided" && (
                           <IconBtn title="Qaytarish (director)" disabled={busy === r.id}
                             onClick={() => {

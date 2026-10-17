@@ -71,7 +71,7 @@ export function GlobalSearch() {
 
       const groupsQ = supabase
         .from("groups")
-        .select("id, name, subject:subjects(name), teacher:profiles!groups_teacher_id_fkey(full_name)")
+        .select("id, name, teacher_id, subject:subjects(name)")
         .ilike("name", like)
         .limit(8);
 
@@ -86,6 +86,21 @@ export function GlobalSearch() {
         groupsQ,
         leadsQ,
       ]);
+
+      // groups.teacher_id auth.users ga qaraydi — PostgREST orqali profiles ga
+      // to'g'ridan-to'g'ri bog'lab bo'lmaydi, shuning uchun ismlarni alohida olamiz.
+      const teacherIds = [...new Set((grps ?? []).map((g: any) => g.teacher_id).filter(Boolean))];
+      const teacherNames = new Map<string, string>();
+      if (teacherIds.length) {
+        const { data: tprofs } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", teacherIds);
+        (tprofs ?? []).forEach((p: any) => teacherNames.set(p.id, p.full_name ?? ""));
+      }
+      (grps ?? []).forEach((g: any) => {
+        g.teacher = { full_name: teacherNames.get(g.teacher_id) ?? null };
+      });
 
       const profileIds = (profs ?? []).map((p: any) => p.id);
       const orParts: string[] = [

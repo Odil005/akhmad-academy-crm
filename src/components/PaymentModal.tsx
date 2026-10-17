@@ -3,10 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   createPaymentWithReceipt,
   getCashierContext,
-  resendReceiptTelegram,
 } from "@/lib/payments.functions";
-import { ReceiptView, type ReceiptData } from "@/components/ReceiptView";
-import { X, Search, CheckCircle2, XCircle, Printer, Send, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
+import { X, Search, CheckCircle2, XCircle, Loader2, AlertTriangle } from "lucide-react";
 
 type StudentRow = {
   id: string;
@@ -53,7 +51,6 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ paymentId: string; notifStatus: string | null } | null>(null);
-  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [idemKey] = useState(() => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`));
 
   useEffect(() => {
@@ -135,9 +132,6 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
         paymentId: r.payment.id,
         notifStatus: r.notification?.status ?? null,
       });
-      const { getPublicReceipt } = await import("@/lib/payments.functions");
-      const rec = await getPublicReceipt({ data: { payment_id: r.payment.id } });
-      setReceipt(rec as unknown as ReceiptData);
       onDone();
     } catch (e) {
       setError(errText(e));
@@ -156,9 +150,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
 
         {result ? (
           <SuccessPanel
-            paymentId={result.paymentId}
             notifStatus={result.notifStatus}
-            receipt={receipt}
             onClose={onClose}
           />
         ) : (
@@ -336,24 +328,14 @@ function HealthStrip({ ctx }: { ctx: Ctx | null }) {
   );
 }
 
-function SuccessPanel({ paymentId, notifStatus, receipt, onClose }: {
-  paymentId: string; notifStatus: string | null; receipt: ReceiptData | null; onClose: () => void;
+function SuccessPanel({ notifStatus, onClose }: {
+  notifStatus: string | null; onClose: () => void;
 }) {
-  const [msg, setMsg] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const resend = async () => {
-    setBusy(true); setMsg(null);
-    try { await resendReceiptTelegram({ data: { payment_id: paymentId } }); setMsg("Telegramga yuborildi"); }
-    catch { setMsg("Yuborilmadi — navbatda saqlandi"); }
-    finally { setBusy(false); }
-  };
-
   return (
     <div className="space-y-4 px-5 py-5">
       <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-700">
         <div className="font-bold">To'lov qabul qilindi</div>
-        <div className="mt-1 text-xs">Chek tizimda saqlandi va ota-onaga Telegram orqali yuborildi.</div>
+        <div className="mt-1 text-xs">To'lov tizimda saqlandi va ota-onaga Telegram orqali xabar yuborildi.</div>
       </div>
 
       {notifStatus && notifStatus !== "sent" && (
@@ -362,25 +344,8 @@ function SuccessPanel({ paymentId, notifStatus, receipt, onClose }: {
         </p>
       )}
 
-      {receipt && (
-        <div className="max-h-[45vh] overflow-y-auto rounded-xl border border-border bg-white p-2">
-          <ReceiptView data={receipt} />
-        </div>
-      )}
-
-      {msg && <p className="text-xs text-muted-foreground">{msg}</p>}
-
-      <div className="flex flex-wrap gap-2">
-        <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">
-          <Printer className="h-4 w-4" /> Chekni chiqarish
-        </button>
-        <a href={`/receipt/${paymentId}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-secondary">
-          <ExternalLink className="h-4 w-4" /> Chekni ochish
-        </a>
-        <button onClick={resend} disabled={busy} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-secondary disabled:opacity-60">
-          <Send className="h-4 w-4" /> Telegramga qayta yuborish
-        </button>
-        <button onClick={onClose} className="ml-auto rounded-lg border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary">Yopish</button>
+      <div className="flex justify-end">
+        <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary">Yopish</button>
       </div>
     </div>
   );

@@ -81,7 +81,7 @@ export function Student360({
         supabase
           .from("student_enrollments")
           .select(
-            "id, group_id, started_at, ended_at, status, monthly_fee, group:groups(id, name, monthly_fee, schedule, subject:subjects(name), teacher:profiles!groups_teacher_id_fkey(full_name))",
+            "id, group_id, started_at, ended_at, status, monthly_fee, group:groups(id, name, monthly_fee, schedule, teacher_id, subject:subjects(name))",
           )
           .eq("student_id", row.id),
         supabase.from("payments").select("id, amount, total_amount, discount_amount, status, period_month, paid_at, payment_method, fiscal_status").eq("student_id", row.id).order("period_month", { ascending: false }).limit(50),
@@ -89,9 +89,19 @@ export function Student360({
         supabase.from("parent_teacher_messages").select("id, message, sender_role, created_at, status").eq("student_id", row.id).order("created_at", { ascending: false }).limit(20),
       ]);
       if (s.error) throw s.error;
+      const enrollRows = ((enr.data as never) ?? []) as Enrollment[];
+      // groups.teacher_id auth.users ga qaraydi — ismlarni profiles dan alohida olamiz
+      const tIds = [...new Set(enrollRows.map((e: any) => e.group?.teacher_id).filter(Boolean))];
+      if (tIds.length) {
+        const { data: tprofs } = await supabase.from("profiles").select("id, full_name").in("id", tIds);
+        const names = new Map((tprofs ?? []).map((p: any) => [p.id, p.full_name ?? ""]));
+        enrollRows.forEach((e: any) => {
+          if (e.group) e.group.teacher = { full_name: names.get(e.group.teacher_id) ?? null };
+        });
+      }
       setData({
         student: s.data,
-        enrollments: ((enr.data as never) ?? []) as Enrollment[],
+        enrollments: enrollRows,
         payments: ((pay.data as never) ?? []) as Payment[],
         attendance: (att.data ?? []) as AttendanceRow[],
         messages: (msg.data ?? []) as MessageRow[],
@@ -447,11 +457,6 @@ function PaymentsPanel({ payments, debt }: { payments: Payment[]; debt: number }
             <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${p.status === "paid" ? "bg-green-500/15 text-green-600" : "bg-destructive/15 text-destructive"}`}>
               {p.status === "paid" ? "To'langan" : "Kutilmoqda"}
             </span>
-            {p.status === "paid" && (
-              <a href={`/receipt/${p.id}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline">
-                Chek
-              </a>
-            )}
           </div>
         ))}
       </div>
