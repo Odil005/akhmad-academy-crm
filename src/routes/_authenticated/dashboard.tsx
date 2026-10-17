@@ -5,6 +5,8 @@ import { Users, BookOpen, CreditCard, GraduationCap, TrendingUp } from "lucide-r
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { SetupBanner } from "@/components/SetupBanner";
 import { AttendanceReminder } from "@/components/AttendanceReminder";
+import { CrmOverview } from "@/components/CrmOverview";
+import { Button } from "@/components/ui/button";
 
 // The administrator desk loads a large search index. Loading it only for admins
 // keeps the director dashboard responsive on slower phones and computers.
@@ -13,6 +15,14 @@ const AdminDesk = lazy(() =>
 );
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({ meta: [
+    { title: "Boshqaruv paneli | Akhmad CRM" },
+    { name: "description", content: "Akhmad CRM o‘quvchilar, guruhlar, tushum va davomat boshqaruvi." },
+    { property: "og:title", content: "Boshqaruv paneli | Akhmad CRM" },
+    { property: "og:description", content: "O‘quv markazining joriy ko‘rsatkichlari va boshqaruvi." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: Dashboard,
 });
 
@@ -20,8 +30,15 @@ function Dashboard() {
   const { user, roles } = Route.useRouteContext();
   const isStaff = roles.includes("director") || roles.includes("admin");
   const isAdminOnly = roles.includes("admin") && !roles.includes("director");
+  const [deskOpen, setDeskOpen] = useState(false);
 
-  if (isAdminOnly) return <AdminDashboard />;
+  if (isStaff) return <div className="space-y-4">
+    <header className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+      <div className="min-w-0"><h1 className="text-xl font-bold">Boshqaruv paneli</h1><p className="mt-1 text-xs text-muted-foreground">{new Date().toLocaleDateString("uz-UZ", { day: "numeric", month: "long", year: "numeric" })}</p></div>
+      <div className="flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/students"><Users className="h-4 w-4" /> O‘quvchilar</Link></Button>{isAdminOnly && <Button size="sm" variant={deskOpen ? "secondary" : "default"} onClick={() => setDeskOpen(v => !v)}>{deskOpen ? "Ko‘rsatkichlar" : "Administrator ish stoli"}</Button>}</div>
+    </header>
+    {deskOpen ? <Suspense fallback={<DashboardLoading />}><AdminDesk /></Suspense> : <CrmOverview />}
+  </div>;
 
   return (
     <div className="space-y-8">
