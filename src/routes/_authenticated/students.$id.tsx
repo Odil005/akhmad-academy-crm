@@ -7,6 +7,7 @@ import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { TelegramIdField } from "@/components/TelegramIdField";
 import { MethodologyLibrary } from "@/components/MethodologyLibrary";
 import { LowIncomeBadge } from "@/components/LowIncomeBadge";
+import { StudentFeeEditor } from "@/components/StudentFeeEditor";
 
 
 const DAYS_UZ = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
@@ -14,6 +15,7 @@ const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padS
 
 type StudentRow = {
   id: string;
+  monthly_fee: number | null;
   status_enum: StudentStatus | null;
   enrolled_at: string;
   full_name: string | null;
@@ -48,6 +50,14 @@ type LessonRow = { group_id: string; day_of_week: number; start_time: string; en
 type PaymentRow = { id: string; amount: number; period_month: string; status: string; paid_at: string | null; note: string | null };
 
 export const Route = createFileRoute("/_authenticated/students/$id")({
+  head: () => ({ meta: [
+    { title: "O‘quvchi va oylik to‘lov | Akhmad Academy" },
+    { name: "description", content: "Akhmad Academy o‘quvchisining guruhlari, oylik to‘lovi va davomati." },
+    { property: "og:title", content: "O‘quvchi | Akhmad Academy" },
+    { property: "og:description", content: "O‘quvchi ma’lumotlari va individual oylik to‘lovlar." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: StudentProfile,
 });
 
@@ -71,7 +81,7 @@ function StudentProfile() {
     setLoading(true);
     const [{ data: s }, { data: enr }, { data: pays }, { data: gs }] = await Promise.all([
       supabase.from("students").select(`
-        id, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes, low_income, low_income_note,
+        id, monthly_fee, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes, low_income, low_income_note,
         telegram_chat_id, telegram_username, telegram_verified_at, telegram_last_checked_at, telegram_last_error,
         profile:profiles(id, full_name, phone)
       `).eq("id", id).maybeSingle(),
@@ -101,8 +111,10 @@ function StudentProfile() {
   useEffect(() => { load(); }, [id]);
 
   const totalMonthlyFee = useMemo(
-    () => enrollments.reduce((sum, e) => sum + Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0), 0),
-    [enrollments],
+    () => enrollments.some((e) => e.status === "active")
+      ? enrollments.filter((e) => e.status === "active").reduce((sum, e) => sum + Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0), 0)
+      : Number(student?.monthly_fee ?? 0),
+    [enrollments, student],
   );
 
   const balance = useMemo(() => {
@@ -316,6 +328,10 @@ function StudentProfile() {
 
         {/* RIGHT: per-enrollment cards */}
         <div className="space-y-5">
+          {!enrollments.some((e) => e.status === "active") && <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-semibold">Oylik: {Number(student.monthly_fee ?? 0).toLocaleString("uz-UZ")} so‘m</span>
+            <StudentFeeEditor studentId={id} amount={Number(student.monthly_fee ?? 0)} label={studentName} onSaved={load} />
+          </div>}
           {enrollments.length === 0 && (
             <div className="rounded-2xl border border-border bg-card p-8 text-center">
               <p className="text-sm text-muted-foreground">Hech qaysi guruhga yozilmagan</p>
@@ -359,6 +375,10 @@ function StudentProfile() {
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="text-lg font-extrabold uppercase leading-tight tracking-wide">{e.group?.subject?.name || e.group?.name || "—"}</h3>
                   </div>
+                  {e.status === "active" && <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-sm font-semibold">Oylik: {fee.toLocaleString("uz-UZ")} so‘m</span>
+                    <StudentFeeEditor studentId={id} enrollmentId={e.id} amount={fee} label={`${studentName} · ${e.group?.name ?? "Guruh"}`} onSaved={load} />
+                  </div>}
 
                   <div className="text-xs">
                     <span className="text-muted-foreground">Guruh intervali : </span>
