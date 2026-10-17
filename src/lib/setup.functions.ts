@@ -41,7 +41,6 @@ export const getSetupStatus = createServerFn({ method: "GET" })
       students,
       parentsLinked,
       recipients,
-      sip,
     ] = await Promise.all([
       count("cash_accounts"),
       count("subjects"),
@@ -51,7 +50,6 @@ export const getSetupStatus = createServerFn({ method: "GET" })
       count("students"),
       count("students", (q: any) => q.not("parent_telegram_chat_id", "is", null)),
       count("director_report_recipients", (q: any) => q.eq("is_active", true)),
-      count("sip_config", (q: any) => q.eq("is_active", true)),
     ]);
 
     const steps: SetupStep[] = [

@@ -61,7 +61,6 @@ const ROUTE_MAP: RouteIntent[] = [
     label: "Marketplace",
     keywords: ["market", "do'kon", "dokon", "mahsulot", "sotib"],
   },
-  {
   { to: "/face-id", label: "Face ID", keywords: ["face", "yuz", "face id"] },
   { to: "/reports", label: "Hisobotlar", keywords: ["hisobot", "report", "otchet"] },
   { to: "/import", label: "Excel import", keywords: ["import", "excel", "yuklash"] },
