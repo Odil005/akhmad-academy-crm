@@ -17,7 +17,7 @@
 - [ ] Direktor paneli: tushum, qarz, o'sish/ketish, guruh to'liqligi
 - [ ] Oylik/fan/o'qituvchi bo'yicha hisobotlar va Excel eksport
 ### Yangi so'rovlar
-- [ ] Har bir o‘quvchining oylik to‘lovini alohida o‘zgartirish
+- [~] Har bir o‘quvchining oylik to‘lovini alohida o‘zgartirish — qo‘shildi, 9 sinov o‘tdi; haqiqiy saqlashni tekshirish uchun preview’da admin/direktor kirishi kerak
 - [x] Har qanday Excel: barcha varaqlar o'qiladi, fan varaq/fayl nomi yoki sarlavhadan aniqlanadi, guruh avtomatik ochiladi
 - [x] Admin uchun bitta yagona boshqaruv paneli (AdminDesk — 12 ta tugma, tekshirildi)
 - [~] Jarvis butun tizim ishini bajarishi va muammolarni hal qilishi (qarzdorlar, bugungi hisobot, to'lov qabul qilish, davomat qo'shildi; qolgan: to'liq avtonom hal qilish)
