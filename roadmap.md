@@ -1,11 +1,11 @@
 # Roadmap
 
 ## Bot, hisob va yagona Face ID — 2026-10-17
-- [ ] O‘qituvchi o‘z telefon kontaktini yuborganda xavfsiz bot ulanishi
-- [ ] AI hisob-kitobni faqat tahlil qiladi; pul amallari qo‘lda
-- [ ] Bir martalik o‘quvchi/xodim ro‘yxati, avtomatik tanish va kirish/chiqish rejimi
-- [ ] Tezlikni o‘lchash, aniqlangan ortiqcha yukni kamaytirish
-- [ ] Sinovlar va qolgan kamchiliklar haqida aniq xulosa
+- [~] O‘qituvchi o‘z telefon kontaktini yuborganda bot ulanishi qo‘shildi; rol, raqam va eski bog‘lanish tekshiriladi. Haqiqiy o‘qituvchi Telegram kontaktini yuborishi bilan yakuniy sinov kutilmoqda
+- [x] AI hisob-kitobni faqat tahlil qiladi; pul amallari qo‘lda, ruxsat va bajarish chegarasi sinovdan o‘tdi
+- [~] Bir martalik o‘quvchi/xodim ro‘yxati, avtomatik tanish va kirish/chiqish rejimi qo‘shildi; admin kamera/tugmalar tekshirildi. Haqiqiy shaxs, rozilik va USB kamera bilan ro‘yxat→tanish→qaydni to‘liq sinash kerak; surat bilan aldashga qarshi sertifikatlangan liveness yo‘q
+- [x] AI moliya konteksti 4000 qator yuklash o‘rniga bitta jami natija oladi; yuz qidiruvi 300 ms kutadi, tanish parallel ishlamaydi. Mahalliy Face ID ochilishi 6.77–7.68 s; 100X tezlashish tasdiqlanmadi
+- [x] 29 qoida sinovi va 9 mavjud dars sinovi o‘tdi; ekran xatosi yo‘q. To‘liq kamera/Telegram sinovi yuqoridagi tashqi shaxs harakatlarini kutadi
 
 ## Face ID — 2026-10-17
 - [~] Ichki Face ID bugungi faol enrollment darsi davomatiga tranzaksiyada bog‘landi; takroriy va noaniq darslarda yangi davomat yozilmaydi, qo‘lda yozilgan belgilar saqlanadi; 15 qoida sinovi va admin ekran/kamera boshqaruvi tekshirildi. Bazada o‘quvchi yo‘q — haqiqiy o‘quvchi va USB kamera bilan to‘liq sinov kutilmoqda

@@ -18,17 +18,33 @@ export const recognizeFacePresence = createServerFn({ method: 'POST' })
   .handler(async ({ data, context }) => {
     const { data: roles, error: roleError } = await context.supabase.from('user_roles').select('role').eq('user_id', context.userId);
     if (roleError || !roles?.some(r => r.role === 'admin' || r.role === 'director')) throw new Error('Kirish ruxsati yo‘q');
+    // Read every enrollment, not only the API's default first 1,000 rows.
     const [students, staff] = await Promise.all([
-      context.supabase.from('student_face_templates').select('student_id, descriptors, model_version'),
-      context.supabase.from('staff_face_templates').select('user_id, descriptors, model_version'),
+      (async () => {
+        const rows = [];
+        for (let offset = 0; ; offset += 500) {
+          const result = await context.supabase.from('student_face_templates').select('student_id, descriptors, model_version').order('student_id').range(offset, offset + 499);
+          if (result.error) throw new Error(result.error.message);
+          rows.push(...result.data);
+          if (result.data.length < 500) return rows;
+        }
+      })(),
+      (async () => {
+        const rows = [];
+        for (let offset = 0; ; offset += 500) {
+          const result = await context.supabase.from('staff_face_templates').select('user_id, descriptors, model_version').order('user_id').range(offset, offset + 499);
+          if (result.error) throw new Error(result.error.message);
+          rows.push(...result.data);
+          if (result.data.length < 500) return rows;
+        }
+      })(),
     ]);
-    if (students.error || staff.error) throw new Error(students.error?.message ?? staff.error?.message);
     const candidates: { id: string; descriptors: number[][] }[] = [];
-    for (const row of students.data ?? []) {
+    for (const row of students) {
       const parsed = samplesSchema.safeParse(row.descriptors);
       if (parsed.success && row.model_version === FACE_MODEL) candidates.push({ id: `student:${row.student_id}`, descriptors: parsed.data });
     }
-    for (const row of staff.data ?? []) {
+    for (const row of staff) {
       const parsed = samplesSchema.safeParse(row.descriptors);
       if (parsed.success && row.model_version === FACE_MODEL) candidates.push({ id: `staff:${row.user_id}`, descriptors: parsed.data });
     }
