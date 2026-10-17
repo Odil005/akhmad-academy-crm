@@ -25,6 +25,7 @@
 - [~] Direktorga 21:00 Jarvis hisoboti — cron tayyor, direktor botga /start yozishi kerak
 
 ## 2026-10-17 so'rovlar
+- [x] Yangi login yaratish: zaif parol xabari o'zbekcha va forma ichida ko'rinadi; admin sessiyasida xavfsiz parol bilan login yaratildi, ro'yxatdan o'qildi va sinov akkaunti o'chirildi
 - [x] Barcha eski ma'lumotlarni tozalash (akkauntlar saqlanadi)
 - [x] Admin panel qidiruvi tuzatildi (guruh-o0027qituvchi bog0027lanishi xatosi edi)
 - [x] Telefoniya (qo'ng'iroqlar) va chek chiqarishni olib tashlash

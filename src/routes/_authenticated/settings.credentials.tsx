@@ -12,6 +12,7 @@ import { generateUsername, generateAccessCode } from "@/lib/credentials";
 import { Copy, RefreshCw, UserPlus, KeyRound, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { isStaff, manageableAccountRoles, type AppRole } from "@/lib/authz";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/settings/credentials")({
   head: () => ({ meta: [
@@ -50,6 +51,7 @@ function CredentialsPage() {
   });
   const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(false);
+  const [creationError, setCreationError] = useState<string | null>(null);
   const [tab, setTab] = useState<Role>("student");
   const [list, setList] = useState<
     Array<{
@@ -155,8 +157,9 @@ function CredentialsPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCreationError(null);
     if (!form.first_name || !form.username || !form.access_code) {
-      toast.error("Ism, username va access_code kerak");
+      setCreationError("Ism, login va parolni kiriting.");
       return;
     }
     setLoading(true);
@@ -174,7 +177,7 @@ function CredentialsPage() {
         },
       });
       if (!result.ok) {
-        toast.error(result.error ?? "Login saqlanmadi");
+        setCreationError(result.error ?? "Login saqlanmadi");
         return;
       }
       toast.success("Foydalanuvchi yaratildi");
@@ -192,7 +195,7 @@ function CredentialsPage() {
         group_id: "",
       });
     } catch (err: any) {
-      toast.error(err?.message ?? "Xatolik");
+      setCreationError(err?.message ?? "Login yaratilmadi. Qayta urinib ko'ring.");
     } finally {
       setLoading(false);
     }
@@ -332,12 +335,14 @@ function CredentialsPage() {
             />
           </div>
 
-          <button
+          {creationError && <p role="alert" className="text-sm text-destructive">{creationError}</p>}
+          <Button
+            type="submit"
             disabled={loading}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
             {loading ? "Yaratilmoqda..." : "Yaratish"}
-          </button>
+          </Button>
           <p className="text-xs text-muted-foreground">
             Foydalanuvchi bu ma'lumotlarni <b>/auth → "Xodim / O'quvchi"</b> tabiga kiritadi:{" "}
             <b>Foydalanuvchi nomi</b> ={" "}
