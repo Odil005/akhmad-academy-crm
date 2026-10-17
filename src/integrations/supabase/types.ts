@@ -2923,6 +2923,41 @@ export type Database = {
           },
         ]
       }
+      student_face_checkins: {
+        Row: {
+          created_at: string
+          debt_amount: number | null
+          id: string
+          photo_url: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          debt_amount?: number | null
+          id?: string
+          photo_url?: string | null
+          status?: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          debt_amount?: number | null
+          id?: string
+          photo_url?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_face_checkins_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_face_enrollments: {
         Row: {
           created_at: string
