@@ -4,8 +4,12 @@ let loading: Promise<typeof import('@vladmandic/face-api')> | undefined;
 export function loadFaceEngine() {
   loading ??= (async () => {
     const api = await import('@vladmandic/face-api');
-    await api.tf.setBackend('webgl').catch(() => api.tf.setBackend('cpu'));
-    await api.tf.ready();
+    // The bundled runtime exposes backend methods omitted by this package's declarations.
+    const runtime = api.tf as unknown as { setBackend: (name: string) => Promise<boolean>; ready: () => Promise<void> };
+    try {
+      if (!await runtime.setBackend('webgl')) await runtime.setBackend('cpu');
+    } catch { await runtime.setBackend('cpu'); }
+    await runtime.ready();
     await Promise.all([
       api.nets.tinyFaceDetector.loadFromUri('/face-models'),
       api.nets.faceLandmark68Net.loadFromUri('/face-models'),
