@@ -11,6 +11,16 @@ import { Camera, CheckCircle2, Clock, ScanFace, Search, ShieldOff, ShieldCheck, 
 import { toast } from "sonner";
 import { tashkentDate } from '@/features/face/attendance';
 
+const attendanceLabels: Record<string, string> = {
+  recorded: 'Dars davomati yozildi',
+  already_recorded: 'Davomat avval yozilgan',
+  no_lesson: 'Hozir faol guruh darsi yo‘q',
+  ambiguous: 'Bir nechta dars mos — administrator tekshirishi kerak',
+  manual_review: 'Oldingi davomat saqlandi — administrator tekshirishi kerak',
+  blocked: 'Davomat yozilmadi: kirish taqiqlangan',
+  unverified: 'Davomat yozilmadi: yuz tasdiqlanmagan',
+};
+
 type Student = {
   id: string;
   first_name: string;

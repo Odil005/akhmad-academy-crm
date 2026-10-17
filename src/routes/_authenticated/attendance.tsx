@@ -97,7 +97,7 @@ function AttendancePage() {
         supabase.from("student_enrollments").select("students(id, first_name, last_name)").eq("group_id", lesson.group_id).eq('status', 'active').lte('started_at', date).or(`ended_at.is.null,ended_at.gte.${date}`),
         supabase.from("attendance").select("student_id, status, note").eq("lesson_id", lessonId).eq("date", date),
       ]);
-      const list = (enrollments ?? []).flatMap(row => row.students ? [row.students] : []).sort((a, b) => a.first_name.localeCompare(b.first_name)) as Student[];
+      const list = (enrollments ?? []).flatMap(row => row.students ? [{ id: row.students.id, first_name: row.students.first_name ?? '', last_name: row.students.last_name }] : []).sort((a, b) => a.first_name.localeCompare(b.first_name));
       setStudents(list);
       const m: Record<string, AttRow> = {};
       for (const s of list) m[s.id] = { student_id: s.id, status: "present", note: null };
