@@ -29,6 +29,14 @@ import { BackgroundAnimation } from "@/components/BackgroundAnimation";
 
 
 export const Route = createFileRoute("/")({
+  head: () => ({ meta: [
+    { title: "Akhmad Academy | O‘quv markazi" },
+    { name: "description", content: "Akhmad Academy fanlari, o‘qituvchilari va o‘quv markazi bilan aloqa." },
+    { property: "og:title", content: "Akhmad Academy" },
+    { property: "og:description", content: "Akhmad Academy o‘quv markazi va fanlar." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: Index,
 });
 
