@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { isStaff } from "@/lib/authz";
+import { isStaff } from "./authz";
 
 export const studentFeeSchema = z.object({
   studentId: z.string().uuid(),

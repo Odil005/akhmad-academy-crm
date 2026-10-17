@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { saveIndividualFee, studentFeeSchema } from "@/lib/student-fees";
+import { saveIndividualFee, studentFeeSchema } from "../src/lib/student-fees";
 
 const studentId = "00000000-0000-4000-8000-000000000001";
 const enrollmentId = "00000000-0000-4000-8000-000000000002";
