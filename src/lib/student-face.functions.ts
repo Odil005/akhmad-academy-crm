@@ -38,7 +38,7 @@ export const verifyStudentFace = createServerFn({ method: 'POST' })
     const { data: row, error: writeError } = await context.supabase.from('student_face_checkins').insert({
       student_id: data.studentId, status: 'allowed', match_distance: score,
       // Keep no additional check-in photograph: enrollment image is sufficient for the parent bot.
-    }).select('status, debt_amount').single();
+    }).select('status, debt_amount, attendance_result, attendance_id, lesson_id').single();
     if (writeError) throw new Error(writeError.message);
     return row;
   });

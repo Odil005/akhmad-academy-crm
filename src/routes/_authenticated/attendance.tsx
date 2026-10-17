@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import { Check, X, Clock, FileText, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
+import { tashkentDate } from '@/features/face/attendance';
 
 type Lesson = {
   id: string;
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/attendance")({
 });
 
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return tashkentDate(new Date());
 }
 
 // JS getDay(): 0=Sun,1=Mon..6=Sat  →  our 1=Mon..7=Sun
@@ -92,11 +93,11 @@ function AttendancePage() {
       setLoading(true);
       const lesson = lessons.find((l) => l.id === lessonId);
       if (!lesson) { setLoading(false); return; }
-      const [{ data: st }, { data: att }] = await Promise.all([
-        supabase.from("students").select("id, first_name, last_name").eq("group_id", lesson.group_id).order("first_name"),
+      const [{ data: enrollments }, { data: att }] = await Promise.all([
+        supabase.from("student_enrollments").select("students(id, first_name, last_name)").eq("group_id", lesson.group_id).eq('status', 'active').lte('started_at', date).or(`ended_at.is.null,ended_at.gte.${date}`),
         supabase.from("attendance").select("student_id, status, note").eq("lesson_id", lessonId).eq("date", date),
       ]);
-      const list = (st as Student[] | null) ?? [];
+      const list = (enrollments ?? []).flatMap(row => row.students ? [row.students] : []).sort((a, b) => a.first_name.localeCompare(b.first_name)) as Student[];
       setStudents(list);
       const m: Record<string, AttRow> = {};
       for (const s of list) m[s.id] = { student_id: s.id, status: "present", note: null };
