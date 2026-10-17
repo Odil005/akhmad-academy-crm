@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Search,
   UserPlus,
   CreditCard,
   Loader2,
@@ -22,9 +21,6 @@ import {
 import {
   loadAdminDeskMetrics,
   loadStudentIndex,
-  searchIndex,
-  initialsOf,
-  shortId,
   type AdminDeskMetrics,
   type StudentIndexRow,
 } from "@/lib/admin-search";
@@ -71,13 +67,9 @@ export function AdminDesk() {
   const [indexError, setIndexError] = useState<string | null>(null);
   const [indexLoading, setIndexLoading] = useState(false);
   const [indexReady, setIndexReady] = useState(false);
-  const [query, setQuery] = useState("");
-  const [debounced, setDebounced] = useState("");
-  const [openList, setOpenList] = useState(false);
   const [selected, setSelected] = useState<StudentIndexRow | null>(null);
   const [payFor, setPayFor] = useState<string | null>(null);
   const [newTeacher, setNewTeacher] = useState(false);
-  const boxRef = useRef<HTMLDivElement>(null);
 
   const refreshMetrics = useCallback(async (force = false) => {
     setMetricsLoading(true);
@@ -109,21 +101,6 @@ export function AdminDesk() {
   useEffect(() => {
     void refreshMetrics();
   }, [refreshMetrics]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(query), 280);
-    return () => clearTimeout(t);
-  }, [query]);
-
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpenList(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
-
-  const results = useMemo(() => searchIndex(index, debounced, 10), [index, debounced]);
 
   const refreshAll = useCallback(async () => {
     await Promise.all([refreshIndex(true), refreshMetrics(true)]);
@@ -176,92 +153,6 @@ export function AdminDesk() {
           </Link>
         ))}
       </nav>
-
-      {/* Global search */}
-      <div ref={boxRef} className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-        <input
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpenList(true);
-          }}
-          onFocus={() => {
-            setOpenList(true);
-            if (!indexReady && !indexLoading) void refreshIndex();
-          }}
-          placeholder="O'quvchi ismi, familiyasi, telefon raqami yoki ID orqali qidiring..."
-          className="w-full rounded-2xl border border-border bg-card py-4 pl-12 pr-12 text-sm shadow-sm outline-none transition focus:border-primary"
-        />
-        {indexLoading && indexReady && (
-          <Loader2 className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-        )}
-
-        {openList && debounced.trim().length >= 2 && (
-          <div className="absolute z-40 mt-2 max-h-[420px] w-full overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-2xl">
-            {results.length === 0 && (
-              <p className="px-3 py-4 text-sm text-muted-foreground">Hech narsa topilmadi</p>
-            )}
-            {results.map((r) => {
-              const meta = STATUS_META[r.status_enum as keyof typeof STATUS_META] ?? {
-                label: r.status_enum,
-                bg: "bg-muted",
-              };
-              const pay =
-                r.debt > 0
-                  ? { text: "Qarzdor", cls: "bg-destructive/15 text-destructive" }
-                  : r.paidThisMonth
-                    ? { text: "To'lovlari to'liq", cls: "bg-success/15 text-success" }
-                    : { text: "To'lov kutilmoqda", cls: "bg-warning/15 text-warning" };
-              return (
-                <Button variant="ghost"
-                  key={r.id}
-                  onClick={() => {
-                    setSelected(r);
-                    setOpenList(false);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-secondary"
-                >
-                  {r.profile?.avatar_url ? (
-                    <img
-                      src={r.profile.avatar_url}
-                      alt=""
-                      className="h-10 w-10 shrink-0 rounded-full object-cover"
-                      width={40}
-                      height={40}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : (
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                      {initialsOf(r.name)}
-                    </span>
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold">{r.name}</span>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {r.phone || r.parent_phone || "telefon yo'q"} · {shortId(r.id)} ·{" "}
-                      {r.groupNames[0] ?? "guruhsiz"}
-                    </span>
-                  </span>
-                  <span className="hidden shrink-0 items-center gap-2 sm:flex">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${pay.cls}`}
-                    >
-                      {pay.text}
-                    </span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold text-foreground ${meta.bg}`}
-                    >
-                      {meta.label}
-                    </span>
-                  </span>
-                </Button>
-              );
-            })}
-          </div>
-        )}
-      </div>
 
       {!indexReady && !indexError && (
         <span />

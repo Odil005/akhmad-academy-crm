@@ -44,7 +44,6 @@ import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated/roadmap'
 import { Route as AuthenticatedRoomsRouteImport } from './routes/_authenticated/rooms'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
-import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
 import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authenticated/teacher-balance'
@@ -268,11 +267,6 @@ const AuthenticatedRoomsRoute = AuthenticatedRoomsRouteImport.update({
 const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -551,7 +545,6 @@ export interface FileRoutesByFullPath {
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
-  '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
@@ -630,7 +623,6 @@ export interface FileRoutesByTo {
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/rooms': typeof AuthenticatedRoomsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
-  '/search': typeof AuthenticatedSearchRoute
   '/students': typeof AuthenticatedStudentsRouteWithChildren
   '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
@@ -710,7 +702,6 @@ export interface FileRoutesById {
   '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
   '/_authenticated/rooms': typeof AuthenticatedRoomsRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
-  '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
   '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
@@ -791,7 +782,6 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/rooms'
     | '/schedule'
-    | '/search'
     | '/settings'
     | '/students'
     | '/teacher-balance'
@@ -870,7 +860,6 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/rooms'
     | '/schedule'
-    | '/search'
     | '/students'
     | '/teacher-balance'
     | '/teacher-kpi'
@@ -949,7 +938,6 @@ export interface FileRouteTypes {
     | '/_authenticated/roadmap'
     | '/_authenticated/rooms'
     | '/_authenticated/schedule'
-    | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/students'
     | '/_authenticated/teacher-balance'
@@ -1268,13 +1256,6 @@ declare module '@tanstack/react-router' {
       path: '/schedule'
       fullPath: '/schedule'
       preLoaderRoute: typeof AuthenticatedScheduleRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/search': {
-      id: '/_authenticated/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof AuthenticatedSearchRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -1663,7 +1644,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
   AuthenticatedRoomsRoute: typeof AuthenticatedRoomsRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
-  AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
   AuthenticatedTeacherBalanceRoute: typeof AuthenticatedTeacherBalanceRoute
@@ -1700,7 +1680,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
   AuthenticatedRoomsRoute: AuthenticatedRoomsRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
-  AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedStudentsRoute: AuthenticatedStudentsRouteWithChildren,
   AuthenticatedTeacherBalanceRoute: AuthenticatedTeacherBalanceRoute,

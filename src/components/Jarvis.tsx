@@ -70,7 +70,7 @@ const ROUTE_MAP: RouteIntent[] = [
   { to: "/face-id", label: "Face ID", keywords: ["face", "yuz", "face id"] },
   { to: "/reports", label: "Hisobotlar", keywords: ["hisobot", "report", "otchet"] },
   { to: "/import", label: "Excel import", keywords: ["import", "excel", "yuklash"] },
-  { to: "/search", label: "Qidiruv", keywords: ["qidir", "search", "topish"] },
+  { to: "/students", label: "O'quvchilar", keywords: ["qidir", "search", "topish", "o'quvchi"] },
   {
     to: "/methodology",
     label: "Metodika",
