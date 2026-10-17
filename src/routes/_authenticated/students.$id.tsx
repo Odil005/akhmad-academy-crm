@@ -87,7 +87,7 @@ function StudentProfile() {
       `).eq("id", id).maybeSingle(),
       supabase.from("student_enrollments").select(`
         id, group_id, subject_id, teacher_user_id, started_at, monthly_fee, status,
-        group:groups(id, name, monthly_fee, subject:subjects(name), teacher:profiles!groups_teacher_id_fkey(full_name))
+        group:groups(id, name, monthly_fee, teacher_id, subject:subjects(name))
       `).eq("student_id", id).order("started_at", { ascending: false }),
       supabase.from("payments").select("id, amount, period_month, status, paid_at, note").eq("student_id", id).order("period_month", { ascending: false }),
       supabase.from("groups").select("id, name, monthly_fee, subject_id, teacher_id").order("name"),

@@ -81,7 +81,7 @@ export function Student360({
         supabase
           .from("student_enrollments")
           .select(
-            "id, group_id, started_at, ended_at, status, monthly_fee, group:groups(id, name, monthly_fee, schedule, subject:subjects(name), teacher:profiles!groups_teacher_id_fkey(full_name))",
+            "id, group_id, started_at, ended_at, status, monthly_fee, group:groups(id, name, monthly_fee, schedule, teacher_id, subject:subjects(name))",
           )
           .eq("student_id", row.id),
         supabase.from("payments").select("id, amount, total_amount, discount_amount, status, period_month, paid_at, payment_method, fiscal_status").eq("student_id", row.id).order("period_month", { ascending: false }).limit(50),
