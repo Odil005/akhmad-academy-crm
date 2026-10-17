@@ -192,9 +192,17 @@ function CredentialsPage() {
 
   const doReset = async (user_id: string | null, role: Role) => {
     if (!user_id) return;
-    const newCode = generateAccessCode(8);
-    if (!confirm(`Yangi kod: ${newCode}\nDavom etilsinmi? Kod faqat bir marta ko'rsatiladi.`))
+    const suggested = generateAccessCode(8);
+    const typed = window.prompt(
+      "Yangi kirish kodini o'zingiz yozing (kamida 4 belgi) yoki taklif qilingan kodni qoldiring:",
+      suggested,
+    );
+    if (typed === null) return;
+    const newCode = typed.trim();
+    if (newCode.length < 4) {
+      toast.error("Kod kamida 4 belgidan iborat bo'lsin");
       return;
+    }
     try {
       const res = await reset({ data: { user_id, new_code: newCode, role } });
       window.prompt(
