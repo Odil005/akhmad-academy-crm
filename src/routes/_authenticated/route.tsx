@@ -45,6 +45,8 @@ import {
 
 
   Building2,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import {
@@ -57,6 +59,7 @@ import {
   getAuthenticatedRouteContext,
 } from "@/lib/authenticated-route-cache";
 import { SystemAlertIndicator } from "@/components/SystemAlertIndicator";
+import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
 
 import { TourProvider, useTour } from "@/components/tour/TourProvider";
@@ -90,6 +93,12 @@ function AuthenticatedLayout() {
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.add("crm-theme");
+    return () => document.documentElement.classList.remove("crm-theme");
+  }, []);
   const { lang, setLang, t } = useLanguage();
 
 
@@ -186,7 +195,7 @@ function AuthenticatedLayout() {
   const ADMIN_PRIMARY = ["/dashboard", "/students", "/payments", "/groups"];
   const primaryNav = adminSimplified
     ? visibleNav.filter((n) => ADMIN_PRIMARY.includes(n.to))
-    : visibleNav;
+    : [...visibleNav].sort((a, b) => (a.to === "/dashboard" ? -1 : b.to === "/dashboard" ? 1 : 0));
   const moreNav = adminSimplified ? visibleNav.filter((n) => !ADMIN_PRIMARY.includes(n.to)) : [];
 
   const signOut = async () => {
@@ -201,48 +210,49 @@ function AuthenticatedLayout() {
 
   const SidebarInner = (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex items-center gap-3 border-b border-sidebar-border px-5 py-5">
+      <div className="flex items-center gap-3 border-b border-sidebar-border px-3 py-4">
         <img
           src={logoAsset.url}
           alt="Akhmad Academy"
-          className="h-11 w-11 rounded-full object-cover"
+          className="h-9 w-9 rounded-full object-cover"
           width={44}
           height={44}
           decoding="async"
           fetchPriority="high"
         />
-        <div className="leading-tight">
-          <div className="text-sm font-extrabold tracking-[0.14em] text-sidebar-primary">
-            AKHMAD
+        <div className={`min-w-0 leading-tight ${collapsed ? "lg:hidden" : ""}`}>
+          <div className="text-sm font-extrabold text-sidebar-primary">
+            AKHMAD CRM
           </div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sidebar-foreground/70">
+          <div className="text-[10px] font-medium text-sidebar-foreground/60">
             Academy
           </div>
         </div>
-        <button
+        <Button variant="ghost"
           onClick={() => setOpen(false)}
           className="ml-auto rounded-lg p-2 text-sidebar-foreground/70 hover:bg-sidebar-accent lg:hidden"
         >
           <X className="h-5 w-5" />
-        </button>
+        </Button>
       </div>
 
-      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
         {primaryNav.map((n) => {
           const active = pathname === n.to || pathname.startsWith(n.to + "/");
           return (
             <Link
               key={n.to}
               to={n.to}
+              title={t(n.label)}
               data-tour={`nav-${n.to}`}
-              className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
+              className={`flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-xs font-medium transition ${
                 active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
+                  ? "crm-nav-active text-sidebar-foreground"
                   : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               }`}
             >
               <n.icon className="h-[18px] w-[18px]" />
-              <span className="truncate">{t(n.label)}</span>
+              <span className={`truncate ${collapsed ? "lg:hidden" : ""}`}>{t(n.label)}</span>
 
             </Link>
           );
@@ -250,14 +260,14 @@ function AuthenticatedLayout() {
 
         {moreNav.length > 0 && (
           <div className="pt-2">
-            <button
+            <Button variant="ghost"
               onClick={() => setMoreOpen((v) => !v)}
               className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-sidebar-foreground/75 transition hover:bg-sidebar-accent"
             >
               <Menu className="h-[18px] w-[18px]" />
               <span className="flex-1 text-left">{t("Boshqa bo'limlar")}</span>
               <ChevronDown className={`h-4 w-4 transition ${moreOpen ? "rotate-180" : ""}`} />
-            </button>
+            </Button>
             {moreOpen &&
               moreNav.map((n) => {
                 const active = pathname === n.to || pathname.startsWith(n.to + "/");
@@ -265,7 +275,8 @@ function AuthenticatedLayout() {
                   <Link
                     key={n.to}
                     to={n.to}
-                    data-tour={`nav-${n.to}`}
+                    title={t(n.label)}
+              data-tour={`nav-${n.to}`}
                     className={`ml-3 flex items-center gap-3 rounded-xl px-3.5 py-2 text-sm transition ${
                       active
                         ? "bg-sidebar-primary text-sidebar-primary-foreground"
@@ -273,7 +284,7 @@ function AuthenticatedLayout() {
                     }`}
                   >
                     <n.icon className="h-4 w-4" />
-                    <span className="truncate">{t(n.label)}</span>
+                    <span className={`truncate ${collapsed ? "lg:hidden" : ""}`}>{t(n.label)}</span>
                   </Link>
                 );
               })}
@@ -286,19 +297,19 @@ function AuthenticatedLayout() {
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">
             {initials}
           </div>
-          <div className="min-w-0 flex-1">
+          <div className={`min-w-0 flex-1 ${collapsed ? "lg:hidden" : ""}`}>
             <div className="truncate text-sm font-semibold">{fullName}</div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-primary">
               {primaryRole}
             </div>
           </div>
-          <button
+          <Button variant="ghost"
             onClick={signOut}
             className="rounded-lg p-2 text-sidebar-foreground/70 transition hover:bg-destructive/20 hover:text-destructive"
             title="Chiqish"
           >
             <LogOut className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -306,9 +317,9 @@ function AuthenticatedLayout() {
 
   return (
     <TourProvider userId={user.id} roles={roles}>
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="crm-theme crm-shell bg-background text-foreground">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] lg:block">
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden border-r border-sidebar-border transition-[width] lg:block ${collapsed ? "w-[68px]" : "w-[220px]"}`}>
         {SidebarInner}
       </aside>
 
@@ -322,39 +333,37 @@ function AuthenticatedLayout() {
         </div>
       )}
 
-      <div className="lg:pl-[264px]">
+      <div className={`min-w-0 transition-[padding] ${collapsed ? "lg:pl-[68px]" : "lg:pl-[220px]"}`}>
         {/* Topbar */}
-        <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur">
-          <div className="flex items-center gap-3 px-4 py-3 md:px-6">
-            <button
+        <header className="sticky top-0 z-30 border-b border-border bg-background">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-3 py-3 sm:flex md:px-5">
+            <Button variant="ghost" size="icon" className="hidden shrink-0 lg:inline-flex" onClick={() => setCollapsed(v => !v)} title={collapsed ? "Menyuni ochish" : "Menyuni yig‘ish"} aria-label={collapsed ? "Menyuni ochish" : "Menyuni yig‘ish"}>
+              {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+            </Button>
+            <Button variant="ghost"
               onClick={() => setOpen(true)}
               className="rounded-lg border border-border p-2 text-foreground/70 transition hover:bg-secondary lg:hidden"
             >
               <Menu className="h-5 w-5" />
-            </button>
-
-            <div className="hidden text-lg font-bold tracking-tight md:block">
-              {t("Xush kelibsiz")}
-              {fullName ? `, ${fullName.split(" ")[0]}` : ""}!
-            </div>
+            </Button>
 
             {isStaff && (
               <Link
                 to="/search"
                 data-tour="topbar-search"
-                className="ml-auto flex w-full max-w-md items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-muted-foreground transition hover:border-accent"
+                className="min-w-0 flex w-full max-w-md items-center gap-2 rounded-lg border border-border bg-secondary/60 px-3 py-2 text-xs text-muted-foreground transition hover:border-accent"
               >
                 <Search className="h-4 w-4" />
-                <span className="truncate">{t("O'quvchi yoki telefon raqamini qidiring")}</span>
+                <span className="truncate">{t("Tizim bo‘ylab qidirish…")}</span>
               </Link>
             )}
 
             <div
-              className="ml-auto flex shrink-0 items-center gap-0.5 rounded-xl border border-border p-0.5 lg:ml-3"
+              className="col-span-2 ml-auto flex shrink-0 items-center gap-0.5 rounded-lg border border-border p-0.5 sm:ml-auto"
               title={t("Til")}
             >
               {(["uz", "ru"] as const).map((code) => (
-                <button
+                <Button variant="ghost"
                   key={code}
                   type="button"
                   onClick={() => setLang(code)}
@@ -365,27 +374,29 @@ function AuthenticatedLayout() {
                   }`}
                 >
                   {code}
-                </button>
+                </Button>
               ))}
             </div>
 
-            <TourHelpButton />
+            <div className="hidden shrink-0 sm:block"><TourHelpButton /></div>
 
-            {isStaff && <SystemAlertIndicator />}
+            {isStaff && <div className="hidden shrink-0 sm:block"><SystemAlertIndicator /></div>}
+            {isStaff && <Button asChild variant="outline" size="sm" className="hidden shrink-0 md:inline-flex"><Link to="/messages"><MessageSquare /> Xabarlar</Link></Button>}
+            {canSeeGroups && <Button asChild size="sm" className="hidden shrink-0 xl:inline-flex"><Link to="/groups"><BookOpen /> Guruhlar</Link></Button>}
 
-            <button
+            <Button variant="ghost"
               onClick={signOut}
-              className="rounded-xl border border-border p-2.5 text-foreground/70 transition hover:border-destructive/40 hover:text-destructive lg:ml-1"
+              className="hidden shrink-0 rounded-lg border border-border p-2 text-muted-foreground transition hover:text-destructive sm:block"
               title={t("Chiqish")}
             >
               <LogOut className="h-4 w-4" />
-            </button>
+            </Button>
 
           </div>
         </header>
 
         <main>
-          <div className="mx-auto max-w-[1500px] px-4 py-6 md:px-8 md:py-8">
+          <div className="mx-auto max-w-[1600px] px-3 py-4 md:px-5 md:py-5">
             <Outlet />
           </div>
         </main>
@@ -405,21 +416,21 @@ function TourHelpButton() {
   const { start, openChecklist, progress } = useTour();
   return (
     <div className="ml-auto flex items-center gap-1 lg:ml-3">
-      <button
+      <Button variant="ghost"
         onClick={() => start(0)}
         data-tour="help-button"
         title="Tizimni o'rgatuvchi tur"
         className="rounded-xl border border-border p-2.5 text-foreground/70 transition hover:border-primary hover:text-primary"
       >
         <HelpCircle className="h-4 w-4" />
-      </button>
-      <button
+      </Button>
+      <Button variant="ghost"
         onClick={openChecklist}
         title="Boshlash vazifalari"
         className="hidden rounded-xl border border-border px-3 py-2 text-xs font-bold text-primary transition hover:border-primary sm:block"
       >
         {progress}%
-      </button>
+      </Button>
     </div>
   );
 }
