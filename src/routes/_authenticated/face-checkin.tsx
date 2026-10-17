@@ -68,6 +68,14 @@ function FaceCheckinPage() {
         video: id ? { deviceId: { exact: id } } : { facingMode: "user" },
       });
       streamRef.current = s;
+      // Kamera uzilib qolsa (USB chiqib ketsa) 3 soniyadan keyin o'zi qayta ulanadi
+      s.getVideoTracks().forEach((t) => {
+        t.onended = () => {
+          if (streamRef.current !== s) return;
+          setStreaming(false);
+          setTimeout(() => startCamera(id), 3000);
+        };
+      });
       if (videoRef.current) {
         videoRef.current.srcObject = s;
         await videoRef.current.play();
