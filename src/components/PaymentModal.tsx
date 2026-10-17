@@ -46,7 +46,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
   const [discountReason, setDiscountReason] = useState("");
   const [method, setMethod] = useState<(typeof METHODS)[number]["v"]>("cash");
   const [cashAccountId, setCashAccountId] = useState<string>("");
-  const [notify, setNotify] = useState(true);
+  const notify = false; // Ota-onaga chek yuborilmaydi
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,6 +128,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
         },
       });
       const r = res as any;
+      if (!r?.payment?.id) throw new Error(r?.message || "To'lov saqlanmadi. Qayta urinib ko'ring.");
       setResult({
         paymentId: r.payment.id,
         notifStatus: r.notification?.status ?? null,
@@ -260,7 +261,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
             </div>
 
             <div className="space-y-2">
-              <Toggle checked={notify} onChange={setNotify} label="Ota-onaga Telegram orqali yuborish" />
+
             </div>
 
             {error && (

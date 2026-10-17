@@ -56,7 +56,7 @@ export const getCashierContext = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const roles = await getRoles(context.supabase, context.userId);
     const isStaff = roles.includes("director") || roles.includes("admin");
-    if (!isStaff) throw new Response("Forbidden", { status: 403 });
+    if (!isStaff) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveFiscalProvider } = await import("@/lib/fiscal.server");
@@ -134,9 +134,7 @@ export const createPaymentWithReceipt = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.supabase, context.userId);
     if (!roles.includes("director") && !roles.includes("admin")) {
-      throw new Response("Faqat direktor va administrator to'lov qabul qila oladi", {
-        status: 403,
-      });
+      throw new Error("Faqat direktor va administrator to'lov qabul qila oladi");
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -144,7 +142,7 @@ export const createPaymentWithReceipt = createServerFn({ method: "POST" })
 
     const total = Math.max(0, data.subtotal - data.discount_amount);
     if (total <= 0)
-      throw new Response("To'lov summasi noldan katta bo'lishi kerak", { status: 400 });
+      throw new Error("To'lov summasi noldan katta bo'lishi kerak");
 
     // idempotency: return existing payment if the key was already used
     const { data: existing } = await supabaseAdmin
@@ -161,7 +159,7 @@ export const createPaymentWithReceipt = createServerFn({ method: "POST" })
       )
       .eq("id", data.student_id)
       .maybeSingle();
-    if (!student) throw new Response("O'quvchi topilmadi", { status: 404 });
+    if (!student) throw new Error("O'quvchi topilmadi");
 
     const studentName =
       (student as any).profile?.full_name ||
@@ -226,7 +224,7 @@ export const createPaymentWithReceipt = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (insErr || !payment)
-      throw new Response(insErr?.message ?? "To'lovni saqlashda xato", { status: 500 });
+      throw new Error(insErr?.message ?? "To'lovni saqlashda xato");
 
     await audit(supabaseAdmin, payment.id, context.userId, "payment_created", null, {
       total,
@@ -466,7 +464,7 @@ export const retryFiscalization = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.supabase, context.userId);
     if (!roles.includes("director") && !roles.includes("admin"))
-      throw new Response("Forbidden", { status: 403 });
+      throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveFiscalProvider } = await import("@/lib/fiscal.server");
@@ -476,16 +474,16 @@ export const retryFiscalization = createServerFn({ method: "POST" })
       .select("*")
       .eq("id", data.payment_id)
       .maybeSingle();
-    if (!payment) throw new Response("To'lov topilmadi", { status: 404 });
+    if (!payment) throw new Error("To'lov topilmadi");
     if (payment.fiscal_status === "fiscalized")
-      throw new Response("Bu to'lov allaqachon fiskallashtirilgan", { status: 409 });
+      throw new Error("Bu to'lov allaqachon fiskallashtirilgan");
 
     const { data: dup } = await supabaseAdmin
       .from("fiscal_receipts")
       .select("id")
       .eq("payment_id", payment.id)
       .maybeSingle();
-    if (dup) throw new Response("Chek allaqachon mavjud", { status: 409 });
+    if (dup) throw new Error("Chek allaqachon mavjud");
 
     const { data: settings } = await supabaseAdmin
       .from("cash_register_settings")
@@ -583,9 +581,7 @@ export const retryFiscalization = createServerFn({ method: "POST" })
       await audit(supabaseAdmin, payment.id, context.userId, "fiscal_failed", null, {
         error: (e as Error).message,
       });
-      throw new Response(`Virtual kassa bilan aloqa o'rnatilmadi: ${(e as Error).message}`, {
-        status: 502,
-      });
+      throw new Error(`Virtual kassa bilan aloqa o'rnatilmadi: ${(e as Error).message}`);
     }
   });
 
@@ -595,7 +591,7 @@ export const resendReceiptTelegram = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.supabase, context.userId);
     if (!roles.includes("director") && !roles.includes("admin"))
-      throw new Response("Forbidden", { status: 403 });
+      throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: row } = await supabaseAdmin
@@ -605,7 +601,7 @@ export const resendReceiptTelegram = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!row) throw new Response("Yuboriladigan xabar topilmadi", { status: 404 });
+    if (!row) throw new Error("Yuboriladigan xabar topilmadi");
 
     if (!row.telegram_chat_id) {
       const { data: p } = await supabaseAdmin
@@ -619,7 +615,7 @@ export const resendReceiptTelegram = createServerFn({ method: "POST" })
         .eq("id", p?.student_id ?? "")
         .maybeSingle();
       if (!s?.parent_telegram_chat_id)
-        throw new Response("Ota-onaning Telegram chat ID topilmadi", { status: 400 });
+        throw new Error("Ota-onaning Telegram chat ID topilmadi");
       await supabaseAdmin
         .from("notification_queue")
         .update({ telegram_chat_id: s.parent_telegram_chat_id })
@@ -630,7 +626,7 @@ export const resendReceiptTelegram = createServerFn({ method: "POST" })
       ok: res.ok,
     });
     if (!res.ok)
-      throw new Response("Telegramga yuborib bo'lmadi, navbatda saqlandi", { status: 502 });
+      throw new Error("Telegramga yuborib bo'lmadi, navbatda saqlandi");
     return { ok: true };
   });
 
@@ -642,7 +638,7 @@ export const refundPayment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.supabase, context.userId);
     if (!roles.includes("director"))
-      throw new Response("Faqat direktor qaytara oladi", { status: 403 });
+      throw new Error("Faqat direktor qaytara oladi");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveFiscalProvider } = await import("@/lib/fiscal.server");
@@ -652,7 +648,7 @@ export const refundPayment = createServerFn({ method: "POST" })
       .select("*")
       .eq("id", data.payment_id)
       .maybeSingle();
-    if (!payment) throw new Response("To'lov topilmadi", { status: 404 });
+    if (!payment) throw new Error("To'lov topilmadi");
     const { data: receipt } = await supabaseAdmin
       .from("fiscal_receipts")
       .select("*")
@@ -684,9 +680,7 @@ export const refundPayment = createServerFn({ method: "POST" })
           .update({ status: "refunded" })
           .eq("id", receipt.id);
       } catch (e) {
-        throw new Response(`Fiskal qaytarish amalga oshmadi: ${(e as Error).message}`, {
-          status: 502,
-        });
+        throw new Error(`Fiskal qaytarish amalga oshmadi: ${(e as Error).message}`);
       }
     }
 
@@ -717,7 +711,7 @@ export const voidPayment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.supabase, context.userId);
     if (!roles.includes("director") && !roles.includes("admin"))
-      throw new Response("Faqat direktor yoki admin bekor qila oladi", { status: 403 });
+      throw new Error("Faqat direktor yoki admin bekor qila oladi");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: payment } = await supabaseAdmin
@@ -725,10 +719,10 @@ export const voidPayment = createServerFn({ method: "POST" })
       .select("id, status, fiscal_status")
       .eq("id", data.payment_id)
       .maybeSingle();
-    if (!payment) throw new Response("To'lov topilmadi", { status: 404 });
+    if (!payment) throw new Error("To'lov topilmadi");
     if (payment.status === "voided") return { ok: true };
     if (payment.fiscal_status === "refunded")
-      throw new Response("Bu to'lov allaqachon qaytarilgan", { status: 400 });
+      throw new Error("Bu to'lov allaqachon qaytarilgan");
 
     // Fiskal chek chiqarilgan to'lovni bekor qilib bo'lmaydi — avval qaytarish kerak
     const { data: receipt } = await supabaseAdmin
@@ -737,7 +731,7 @@ export const voidPayment = createServerFn({ method: "POST" })
       .eq("payment_id", payment.id)
       .maybeSingle();
     if (receipt && receipt.status !== "refunded")
-      throw new Response("Fiskal chek chiqarilgan — avval «Qaytarish» qiling", { status: 400 });
+      throw new Error("Fiskal chek chiqarilgan — avval «Qaytarish» qiling");
 
     // Bog'langan kirim tranzaksiyasini o'chirish — kassa balansi trigger orqali qaytariladi
     await supabaseAdmin.from("transactions").delete().eq("payment_id", payment.id);
@@ -746,7 +740,7 @@ export const voidPayment = createServerFn({ method: "POST" })
       .from("payments")
       .update({ status: "voided", paid_amount: 0 })
       .eq("id", payment.id);
-    if (error) throw new Response(error.message, { status: 500 });
+    if (error) throw new Error(error.message);
 
     await audit(
       supabaseAdmin,
@@ -769,7 +763,7 @@ export const getPaymentAuditHistory = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.supabase, context.userId);
     if (!roles.includes("director") && !roles.includes("admin"))
-      throw new Response("Forbidden", { status: 403 });
+      throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows } = await supabaseAdmin
       .from("payment_audit_log")
@@ -821,7 +815,7 @@ export const saveCashRegisterSettings = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.supabase, context.userId);
     if (!roles.includes("director"))
-      throw new Response("Faqat direktor sozlay oladi", { status: 403 });
+      throw new Error("Faqat direktor sozlay oladi");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: existing } = await supabaseAdmin
       .from("cash_register_settings")
@@ -834,10 +828,10 @@ export const saveCashRegisterSettings = createServerFn({ method: "POST" })
         .from("cash_register_settings")
         .update(data)
         .eq("id", existing.id);
-      if (error) throw new Response(error.message, { status: 500 });
+      if (error) throw new Error(error.message);
     } else {
       const { error } = await supabaseAdmin.from("cash_register_settings").insert(data);
-      if (error) throw new Response(error.message, { status: 500 });
+      if (error) throw new Error(error.message);
     }
     return { ok: true };
   });
