@@ -2964,33 +2964,56 @@ export type Database = {
       }
       student_face_checkins: {
         Row: {
+          attendance_id: string | null
+          attendance_result: string | null
           created_at: string
           debt_amount: number | null
           id: string
+          lesson_id: string | null
           match_distance: number | null
           photo_url: string | null
           status: string
           student_id: string
         }
         Insert: {
+          attendance_id?: string | null
+          attendance_result?: string | null
           created_at?: string
           debt_amount?: number | null
           id?: string
+          lesson_id?: string | null
           match_distance?: number | null
           photo_url?: string | null
           status?: string
           student_id: string
         }
         Update: {
+          attendance_id?: string | null
+          attendance_result?: string | null
           created_at?: string
           debt_amount?: number | null
           id?: string
+          lesson_id?: string | null
           match_distance?: number | null
           photo_url?: string | null
           status?: string
           student_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "student_face_checkins_attendance_id_fkey"
+            columns: ["attendance_id"]
+            isOneToOne: false
+            referencedRelation: "attendance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_face_checkins_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "student_face_checkins_student_id_fkey"
             columns: ["student_id"]
@@ -3966,6 +3989,19 @@ export type Database = {
           student_id: string
           student_name: string
         }[]
+      }
+      face_lesson_is_current: {
+        Args: {
+          p_active: boolean
+          p_day: number
+          p_end: string
+          p_ended: string
+          p_local: string
+          p_start: string
+          p_started: string
+          p_status: string
+        }
+        Returns: boolean
       }
       finish_telegram_update: {
         Args: { p_error: string; p_success: boolean; p_update_id: number }

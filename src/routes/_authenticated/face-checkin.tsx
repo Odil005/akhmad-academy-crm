@@ -9,6 +9,17 @@ import { accessAllowed } from '@/features/face/domain';
 import { saveStudentFace, verifyStudentFace } from '@/lib/student-face.functions';
 import { Camera, CheckCircle2, Clock, ScanFace, Search, ShieldOff, ShieldCheck, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { tashkentDate } from '@/features/face/attendance';
+
+const attendanceLabels: Record<string, string> = {
+  recorded: 'Dars davomati yozildi',
+  already_recorded: 'Davomat avval yozilgan',
+  no_lesson: 'Hozir faol guruh darsi yo‘q',
+  ambiguous: 'Bir nechta dars mos — administrator tekshirishi kerak',
+  manual_review: 'Oldingi davomat saqlandi — administrator tekshirishi kerak',
+  blocked: 'Davomat yozilmadi: kirish taqiqlangan',
+  unverified: 'Davomat yozilmadi: yuz tasdiqlanmagan',
+};
 
 type Student = {
   id: string;
@@ -22,6 +33,7 @@ type CheckinRow = {
   status: string;
   debt_amount: number | null;
   created_at: string;
+  attendance_result: string | null;
   students?: { first_name: string; last_name: string } | null;
 };
 
@@ -68,7 +80,8 @@ function FaceCheckinPage() {
   const loadRecent = async () => {
     const { data } = await supabase
       .from("student_face_checkins")
-      .select("id, student_id, status, debt_amount, created_at, students(first_name, last_name)")
+      .select("id, student_id, status, debt_amount, created_at, attendance_result, students(first_name, last_name)")
+      .gte('created_at', `${tashkentDate(new Date())}T00:00:00+05:00`)
       .order("created_at", { ascending: false })
       .limit(15);
     setRecent((data as CheckinRow[] | null) ?? []);
@@ -155,7 +168,7 @@ function FaceCheckinPage() {
         .select("amount, paid_amount")
         .eq("student_id", s.id)
         .eq("status", "pending")
-        .lt("due_date", new Date().toISOString().slice(0, 10)),
+        .lt("due_date", tashkentDate(new Date())),
       supabase
         .from("face_access_overrides")
         .select("expires_at")
@@ -188,7 +201,8 @@ function FaceCheckinPage() {
       } else {
         const result = await verifyFace({ data: { studentId: selected.id, samples, image } });
         if (result.status === 'blocked') toast.error(`Kirish rad etildi — qarz: ${Number(result.debt_amount).toLocaleString()} so‘m`);
-        else toast.success(`${selected.first_name} ${selected.last_name} — yuz tasdiqlandi, kirish qayd etildi`);
+        else if (result.attendance_result === 'recorded' || result.attendance_result === 'already_recorded') toast.success(`${selected.first_name} ${selected.last_name} — ${attendanceLabels[result.attendance_result]}`);
+        else toast.warning(`${selected.first_name} — yuz tasdiqlandi. ${attendanceLabels[result.attendance_result ?? ''] ?? 'Davomatni tekshiring'}`);
         await loadRecent();
       }
       setMode(null);
@@ -224,9 +238,9 @@ function FaceCheckinPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">Face ID — o'quvchilar kirishi</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">Face ID — o‘quvchilar davomati</h1>
         <p className="text-sm text-muted-foreground">
-          Yuzni ro‘yxatga olish va kirish nazorati
+                  Akhmad CRM
         </p>
       </div>
 
@@ -404,6 +418,7 @@ function FaceCheckinPage() {
                     {c.status === "blocked" && c.debt_amount != null
                       ? ` · rad etildi — qarz ${Number(c.debt_amount).toLocaleString()} so'm`
                       : ""}
+                    {c.attendance_result && ` · ${attendanceLabels[c.attendance_result] ?? 'Davomatni tekshiring'}`}
                   </div>
                 </div>
               </li>

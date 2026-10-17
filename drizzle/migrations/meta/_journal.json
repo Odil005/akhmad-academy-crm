@@ -71,6 +71,13 @@
       "when": 1792233397657,
       "tag": "0009_atomic_student_biometric_enrollment",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792233797025,
+      "tag": "0010_face_checkin_attendance_link",
+      "breakpoints": true
     }
   ]
 }
