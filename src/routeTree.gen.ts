@@ -20,7 +20,6 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedBehaviorRouteImport } from './routes/_authenticated/behavior'
-import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
 import { Route as AuthenticatedCashShiftsRouteImport } from './routes/_authenticated/cash-shifts'
 import { Route as AuthenticatedCheckinLocationsRouteImport } from './routes/_authenticated/checkin-locations'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -36,7 +35,6 @@ import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedMethodologyRouteImport } from './routes/_authenticated/methodology'
-import { Route as AuthenticatedPaymentReceiptsRouteImport } from './routes/_authenticated/payment-receipts'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
@@ -46,12 +44,10 @@ import { Route as AuthenticatedRoomsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
-import { Route as AuthenticatedTeacherBalanceRouteImport } from './routes/_authenticated/teacher-balance'
 import { Route as AuthenticatedTeacherKpiRouteImport } from './routes/_authenticated/teacher-kpi'
 import { Route as AuthenticatedTeacherPanelRouteImport } from './routes/_authenticated/teacher-panel'
 import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
 import { Route as AuthenticatedVideoLessonsRouteImport } from './routes/_authenticated/video-lessons'
-import { Route as ReceiptIdRouteImport } from './routes/receipt.$id'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
@@ -70,22 +66,17 @@ import { Route as AuthenticatedSettingsStatsRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsSubjectsRouteImport } from './routes/_authenticated/settings.subjects'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings.subscription'
 import { Route as AuthenticatedSettingsTeachersRouteImport } from './routes/_authenticated/settings.teachers'
-import { Route as AuthenticatedSettingsTelephonyRouteImport } from './routes/_authenticated/settings.telephony'
 import { Route as AuthenticatedStudentsIdRouteImport } from './routes/_authenticated/students.$id'
 import { Route as ApiPublicCronDailyReportRouteImport } from './routes/api/public/cron.daily-report'
 import { Route as ApiPublicCronMonthlyInvoicesRouteImport } from './routes/api/public/cron.monthly-invoices'
 import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes/api/public/cron.notifications-dispatch'
 import { Route as ApiPublicCronParentDigestRouteImport } from './routes/api/public/cron.parent-digest'
 import { Route as ApiPublicCronPayrollRouteImport } from './routes/api/public/cron.payroll'
-import { Route as ApiPublicCronReceiptQueueRouteImport } from './routes/api/public/cron.receipt-queue'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron.reminders'
 import { Route as ApiPublicHealthConfigRouteImport } from './routes/api/public/health.config'
 import { Route as ApiPublicHealthLiveRouteImport } from './routes/api/public/health.live'
 import { Route as ApiPublicHealthReadyRouteImport } from './routes/api/public/health.ready'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
-import { Route as ApiPublicTelephonyOutboxRouteImport } from './routes/api/public/telephony.outbox'
-import { Route as ApiPublicTelephonySipWebhookRouteImport } from './routes/api/public/telephony.sip-webhook'
-import { Route as ApiPublicTelephonyWebhookRouteImport } from './routes/api/public/telephony.webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -141,11 +132,6 @@ const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
 const AuthenticatedBehaviorRoute = AuthenticatedBehaviorRouteImport.update({
   id: '/behavior',
   path: '/behavior',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
-  id: '/calls',
-  path: '/calls',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCashShiftsRoute = AuthenticatedCashShiftsRouteImport.update({
@@ -228,12 +214,6 @@ const AuthenticatedMethodologyRoute =
     path: '/methodology',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedPaymentReceiptsRoute =
-  AuthenticatedPaymentReceiptsRouteImport.update({
-    id: '/payment-receipts',
-    path: '/payment-receipts',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -279,12 +259,6 @@ const AuthenticatedStudentsRoute = AuthenticatedStudentsRouteImport.update({
   path: '/students',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedTeacherBalanceRoute =
-  AuthenticatedTeacherBalanceRouteImport.update({
-    id: '/teacher-balance',
-    path: '/teacher-balance',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedTeacherKpiRoute = AuthenticatedTeacherKpiRouteImport.update({
   id: '/teacher-kpi',
   path: '/teacher-kpi',
@@ -307,11 +281,6 @@ const AuthenticatedVideoLessonsRoute =
     path: '/video-lessons',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ReceiptIdRoute = ReceiptIdRouteImport.update({
-  id: '/receipt/$id',
-  path: '/receipt/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -419,12 +388,6 @@ const AuthenticatedSettingsTeachersRoute =
     path: '/teachers',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
-const AuthenticatedSettingsTelephonyRoute =
-  AuthenticatedSettingsTelephonyRouteImport.update({
-    id: '/telephony',
-    path: '/telephony',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
 const AuthenticatedStudentsIdRoute = AuthenticatedStudentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -459,12 +422,6 @@ const ApiPublicCronPayrollRoute = ApiPublicCronPayrollRouteImport.update({
   path: '/api/public/cron/payroll',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicCronReceiptQueueRoute =
-  ApiPublicCronReceiptQueueRouteImport.update({
-    id: '/api/public/cron/receipt-queue',
-    path: '/api/public/cron/receipt-queue',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
   id: '/api/public/cron/reminders',
   path: '/api/public/cron/reminders',
@@ -491,24 +448,6 @@ const ApiPublicTelegramWebhookRoute =
     path: '/api/public/telegram/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicTelephonyOutboxRoute =
-  ApiPublicTelephonyOutboxRouteImport.update({
-    id: '/api/public/telephony/outbox',
-    path: '/api/public/telephony/outbox',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicTelephonySipWebhookRoute =
-  ApiPublicTelephonySipWebhookRouteImport.update({
-    id: '/api/public/telephony/sip-webhook',
-    path: '/api/public/telephony/sip-webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicTelephonyWebhookRoute =
-  ApiPublicTelephonyWebhookRouteImport.update({
-    id: '/api/public/telephony/webhook',
-    path: '/api/public/telephony/webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -521,7 +460,6 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
-  '/calls': typeof AuthenticatedCallsRoute
   '/cash-shifts': typeof AuthenticatedCashShiftsRoute
   '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -537,7 +475,6 @@ export interface FileRoutesByFullPath {
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/methodology': typeof AuthenticatedMethodologyRoute
-  '/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
@@ -547,12 +484,10 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/students': typeof AuthenticatedStudentsRouteWithChildren
-  '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/video-lessons': typeof AuthenticatedVideoLessonsRoute
-  '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
@@ -570,7 +505,6 @@ export interface FileRoutesByFullPath {
   '/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
-  '/settings/telephony': typeof AuthenticatedSettingsTelephonyRoute
   '/students/$id': typeof AuthenticatedStudentsIdRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
@@ -578,15 +512,11 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
-  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
-  '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
-  '/api/public/telephony/sip-webhook': typeof ApiPublicTelephonySipWebhookRoute
-  '/api/public/telephony/webhook': typeof ApiPublicTelephonyWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -599,7 +529,6 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
-  '/calls': typeof AuthenticatedCallsRoute
   '/cash-shifts': typeof AuthenticatedCashShiftsRoute
   '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -615,7 +544,6 @@ export interface FileRoutesByTo {
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/methodology': typeof AuthenticatedMethodologyRoute
-  '/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
@@ -624,12 +552,10 @@ export interface FileRoutesByTo {
   '/rooms': typeof AuthenticatedRoomsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/students': typeof AuthenticatedStudentsRouteWithChildren
-  '/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/video-lessons': typeof AuthenticatedVideoLessonsRoute
-  '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
@@ -647,7 +573,6 @@ export interface FileRoutesByTo {
   '/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
-  '/settings/telephony': typeof AuthenticatedSettingsTelephonyRoute
   '/students/$id': typeof AuthenticatedStudentsIdRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
@@ -655,15 +580,11 @@ export interface FileRoutesByTo {
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
-  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
-  '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
-  '/api/public/telephony/sip-webhook': typeof ApiPublicTelephonySipWebhookRoute
-  '/api/public/telephony/webhook': typeof ApiPublicTelephonyWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -678,7 +599,6 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/behavior': typeof AuthenticatedBehaviorRoute
-  '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/cash-shifts': typeof AuthenticatedCashShiftsRoute
   '/_authenticated/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -694,7 +614,6 @@ export interface FileRoutesById {
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/methodology': typeof AuthenticatedMethodologyRoute
-  '/_authenticated/payment-receipts': typeof AuthenticatedPaymentReceiptsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
@@ -704,12 +623,10 @@ export interface FileRoutesById {
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
-  '/_authenticated/teacher-balance': typeof AuthenticatedTeacherBalanceRoute
   '/_authenticated/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/_authenticated/video-lessons': typeof AuthenticatedVideoLessonsRoute
-  '/receipt/$id': typeof ReceiptIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
@@ -727,7 +644,6 @@ export interface FileRoutesById {
   '/_authenticated/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
-  '/_authenticated/settings/telephony': typeof AuthenticatedSettingsTelephonyRoute
   '/_authenticated/students/$id': typeof AuthenticatedStudentsIdRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
@@ -735,15 +651,11 @@ export interface FileRoutesById {
   '/api/public/cron/notifications-dispatch': typeof ApiPublicCronNotificationsDispatchRoute
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
-  '/api/public/cron/receipt-queue': typeof ApiPublicCronReceiptQueueRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
-  '/api/public/telephony/outbox': typeof ApiPublicTelephonyOutboxRoute
-  '/api/public/telephony/sip-webhook': typeof ApiPublicTelephonySipWebhookRoute
-  '/api/public/telephony/webhook': typeof ApiPublicTelephonyWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -758,7 +670,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/attendance'
     | '/behavior'
-    | '/calls'
     | '/cash-shifts'
     | '/checkin-locations'
     | '/dashboard'
@@ -774,7 +685,6 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/messages'
     | '/methodology'
-    | '/payment-receipts'
     | '/payments'
     | '/payroll'
     | '/platform'
@@ -784,12 +694,10 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/settings'
     | '/students'
-    | '/teacher-balance'
     | '/teacher-kpi'
     | '/teacher-panel'
     | '/teachers'
     | '/video-lessons'
-    | '/receipt/$id'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/settings/contact'
@@ -807,7 +715,6 @@ export interface FileRouteTypes {
     | '/settings/subjects'
     | '/settings/subscription'
     | '/settings/teachers'
-    | '/settings/telephony'
     | '/students/$id'
     | '/settings/'
     | '/api/public/cron/daily-report'
@@ -815,15 +722,11 @@ export interface FileRouteTypes {
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/payroll'
-    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
     | '/api/public/telegram/webhook'
-    | '/api/public/telephony/outbox'
-    | '/api/public/telephony/sip-webhook'
-    | '/api/public/telephony/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -836,7 +739,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/attendance'
     | '/behavior'
-    | '/calls'
     | '/cash-shifts'
     | '/checkin-locations'
     | '/dashboard'
@@ -852,7 +754,6 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/messages'
     | '/methodology'
-    | '/payment-receipts'
     | '/payments'
     | '/payroll'
     | '/platform'
@@ -861,12 +762,10 @@ export interface FileRouteTypes {
     | '/rooms'
     | '/schedule'
     | '/students'
-    | '/teacher-balance'
     | '/teacher-kpi'
     | '/teacher-panel'
     | '/teachers'
     | '/video-lessons'
-    | '/receipt/$id'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/settings/contact'
@@ -884,7 +783,6 @@ export interface FileRouteTypes {
     | '/settings/subjects'
     | '/settings/subscription'
     | '/settings/teachers'
-    | '/settings/telephony'
     | '/students/$id'
     | '/settings'
     | '/api/public/cron/daily-report'
@@ -892,15 +790,11 @@ export interface FileRouteTypes {
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/payroll'
-    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
     | '/api/public/telegram/webhook'
-    | '/api/public/telephony/outbox'
-    | '/api/public/telephony/sip-webhook'
-    | '/api/public/telephony/webhook'
   id:
     | '__root__'
     | '/'
@@ -914,7 +808,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/attendance'
     | '/_authenticated/behavior'
-    | '/_authenticated/calls'
     | '/_authenticated/cash-shifts'
     | '/_authenticated/checkin-locations'
     | '/_authenticated/dashboard'
@@ -930,7 +823,6 @@ export interface FileRouteTypes {
     | '/_authenticated/marketplace'
     | '/_authenticated/messages'
     | '/_authenticated/methodology'
-    | '/_authenticated/payment-receipts'
     | '/_authenticated/payments'
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
@@ -940,12 +832,10 @@ export interface FileRouteTypes {
     | '/_authenticated/schedule'
     | '/_authenticated/settings'
     | '/_authenticated/students'
-    | '/_authenticated/teacher-balance'
     | '/_authenticated/teacher-kpi'
     | '/_authenticated/teacher-panel'
     | '/_authenticated/teachers'
     | '/_authenticated/video-lessons'
-    | '/receipt/$id'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/settings/contact'
@@ -963,7 +853,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/subjects'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/teachers'
-    | '/_authenticated/settings/telephony'
     | '/_authenticated/students/$id'
     | '/_authenticated/settings/'
     | '/api/public/cron/daily-report'
@@ -971,15 +860,11 @@ export interface FileRouteTypes {
     | '/api/public/cron/notifications-dispatch'
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/payroll'
-    | '/api/public/cron/receipt-queue'
     | '/api/public/cron/reminders'
     | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
     | '/api/public/telegram/webhook'
-    | '/api/public/telephony/outbox'
-    | '/api/public/telephony/sip-webhook'
-    | '/api/public/telephony/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -992,7 +877,6 @@ export interface RootRouteChildren {
   UniRoute: typeof UniRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  ReceiptIdRoute: typeof ReceiptIdRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicCronDailyReportRoute: typeof ApiPublicCronDailyReportRoute
@@ -1000,15 +884,11 @@ export interface RootRouteChildren {
   ApiPublicCronNotificationsDispatchRoute: typeof ApiPublicCronNotificationsDispatchRoute
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
   ApiPublicCronPayrollRoute: typeof ApiPublicCronPayrollRoute
-  ApiPublicCronReceiptQueueRoute: typeof ApiPublicCronReceiptQueueRoute
   ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
   ApiPublicHealthConfigRoute: typeof ApiPublicHealthConfigRoute
   ApiPublicHealthLiveRoute: typeof ApiPublicHealthLiveRoute
   ApiPublicHealthReadyRoute: typeof ApiPublicHealthReadyRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
-  ApiPublicTelephonyOutboxRoute: typeof ApiPublicTelephonyOutboxRoute
-  ApiPublicTelephonySipWebhookRoute: typeof ApiPublicTelephonySipWebhookRoute
-  ApiPublicTelephonyWebhookRoute: typeof ApiPublicTelephonyWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1088,13 +968,6 @@ declare module '@tanstack/react-router' {
       path: '/behavior'
       fullPath: '/behavior'
       preLoaderRoute: typeof AuthenticatedBehaviorRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/calls': {
-      id: '/_authenticated/calls'
-      path: '/calls'
-      fullPath: '/calls'
-      preLoaderRoute: typeof AuthenticatedCallsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/cash-shifts': {
@@ -1202,13 +1075,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMethodologyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/payment-receipts': {
-      id: '/_authenticated/payment-receipts'
-      path: '/payment-receipts'
-      fullPath: '/payment-receipts'
-      preLoaderRoute: typeof AuthenticatedPaymentReceiptsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/payments': {
       id: '/_authenticated/payments'
       path: '/payments'
@@ -1272,13 +1138,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/teacher-balance': {
-      id: '/_authenticated/teacher-balance'
-      path: '/teacher-balance'
-      fullPath: '/teacher-balance'
-      preLoaderRoute: typeof AuthenticatedTeacherBalanceRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/teacher-kpi': {
       id: '/_authenticated/teacher-kpi'
       path: '/teacher-kpi'
@@ -1306,13 +1165,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/video-lessons'
       preLoaderRoute: typeof AuthenticatedVideoLessonsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/receipt/$id': {
-      id: '/receipt/$id'
-      path: '/receipt/$id'
-      fullPath: '/receipt/$id'
-      preLoaderRoute: typeof ReceiptIdRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
@@ -1440,13 +1292,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsTeachersRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
-    '/_authenticated/settings/telephony': {
-      id: '/_authenticated/settings/telephony'
-      path: '/telephony'
-      fullPath: '/settings/telephony'
-      preLoaderRoute: typeof AuthenticatedSettingsTelephonyRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
     '/_authenticated/students/$id': {
       id: '/_authenticated/students/$id'
       path: '/$id'
@@ -1489,13 +1334,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronPayrollRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/cron/receipt-queue': {
-      id: '/api/public/cron/receipt-queue'
-      path: '/api/public/cron/receipt-queue'
-      fullPath: '/api/public/cron/receipt-queue'
-      preLoaderRoute: typeof ApiPublicCronReceiptQueueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/cron/reminders': {
       id: '/api/public/cron/reminders'
       path: '/api/public/cron/reminders'
@@ -1531,27 +1369,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/telephony/outbox': {
-      id: '/api/public/telephony/outbox'
-      path: '/api/public/telephony/outbox'
-      fullPath: '/api/public/telephony/outbox'
-      preLoaderRoute: typeof ApiPublicTelephonyOutboxRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/telephony/sip-webhook': {
-      id: '/api/public/telephony/sip-webhook'
-      path: '/api/public/telephony/sip-webhook'
-      fullPath: '/api/public/telephony/sip-webhook'
-      preLoaderRoute: typeof ApiPublicTelephonySipWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/telephony/webhook': {
-      id: '/api/public/telephony/webhook'
-      path: '/api/public/telephony/webhook'
-      fullPath: '/api/public/telephony/webhook'
-      preLoaderRoute: typeof ApiPublicTelephonyWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -1571,7 +1388,6 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsSubjectsRoute: typeof AuthenticatedSettingsSubjectsRoute
   AuthenticatedSettingsSubscriptionRoute: typeof AuthenticatedSettingsSubscriptionRoute
   AuthenticatedSettingsTeachersRoute: typeof AuthenticatedSettingsTeachersRoute
-  AuthenticatedSettingsTelephonyRoute: typeof AuthenticatedSettingsTelephonyRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -1595,7 +1411,6 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsSubscriptionRoute:
     AuthenticatedSettingsSubscriptionRoute,
   AuthenticatedSettingsTeachersRoute: AuthenticatedSettingsTeachersRoute,
-  AuthenticatedSettingsTelephonyRoute: AuthenticatedSettingsTelephonyRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
 }
 
@@ -1620,7 +1435,6 @@ const AuthenticatedStudentsRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBehaviorRoute: typeof AuthenticatedBehaviorRoute
-  AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
   AuthenticatedCashShiftsRoute: typeof AuthenticatedCashShiftsRoute
   AuthenticatedCheckinLocationsRoute: typeof AuthenticatedCheckinLocationsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1636,7 +1450,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedMethodologyRoute: typeof AuthenticatedMethodologyRoute
-  AuthenticatedPaymentReceiptsRoute: typeof AuthenticatedPaymentReceiptsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
@@ -1646,7 +1459,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
-  AuthenticatedTeacherBalanceRoute: typeof AuthenticatedTeacherBalanceRoute
   AuthenticatedTeacherKpiRoute: typeof AuthenticatedTeacherKpiRoute
   AuthenticatedTeacherPanelRoute: typeof AuthenticatedTeacherPanelRoute
   AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
@@ -1656,7 +1468,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBehaviorRoute: AuthenticatedBehaviorRoute,
-  AuthenticatedCallsRoute: AuthenticatedCallsRoute,
   AuthenticatedCashShiftsRoute: AuthenticatedCashShiftsRoute,
   AuthenticatedCheckinLocationsRoute: AuthenticatedCheckinLocationsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -1672,7 +1483,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedMethodologyRoute: AuthenticatedMethodologyRoute,
-  AuthenticatedPaymentReceiptsRoute: AuthenticatedPaymentReceiptsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
@@ -1682,7 +1492,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedStudentsRoute: AuthenticatedStudentsRouteWithChildren,
-  AuthenticatedTeacherBalanceRoute: AuthenticatedTeacherBalanceRoute,
   AuthenticatedTeacherKpiRoute: AuthenticatedTeacherKpiRoute,
   AuthenticatedTeacherPanelRoute: AuthenticatedTeacherPanelRoute,
   AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
@@ -1703,7 +1512,6 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
-  ReceiptIdRoute: ReceiptIdRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicCronDailyReportRoute: ApiPublicCronDailyReportRoute,
@@ -1712,15 +1520,11 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicCronNotificationsDispatchRoute,
   ApiPublicCronParentDigestRoute: ApiPublicCronParentDigestRoute,
   ApiPublicCronPayrollRoute: ApiPublicCronPayrollRoute,
-  ApiPublicCronReceiptQueueRoute: ApiPublicCronReceiptQueueRoute,
   ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
   ApiPublicHealthConfigRoute: ApiPublicHealthConfigRoute,
   ApiPublicHealthLiveRoute: ApiPublicHealthLiveRoute,
   ApiPublicHealthReadyRoute: ApiPublicHealthReadyRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
-  ApiPublicTelephonyOutboxRoute: ApiPublicTelephonyOutboxRoute,
-  ApiPublicTelephonySipWebhookRoute: ApiPublicTelephonySipWebhookRoute,
-  ApiPublicTelephonyWebhookRoute: ApiPublicTelephonyWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
