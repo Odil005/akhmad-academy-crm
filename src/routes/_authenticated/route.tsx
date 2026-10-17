@@ -4,7 +4,6 @@ import {
   redirect,
   Link,
   useNavigate,
-  useRouter,
   useRouterState,
 } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,7 +46,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
-import { lazy, Suspense } from "react";
+import { JarvisLauncher } from '@/components/JarvisLauncher';
 import {
   isAdmin as hasAdminRole,
   isDirector as hasDirectorRole,
@@ -64,8 +63,6 @@ import { useLanguage } from "@/lib/i18n";
 
 import { TourProvider, useTour } from "@/components/tour/TourProvider";
 import { HelpCircle } from "lucide-react";
-// Jarvis is a heavy assistant panel — keep it out of the initial bundle.
-const Jarvis = lazy(() => import("@/components/Jarvis").then((m) => ({ default: m.Jarvis })));
 const logoAsset = { url: "/logo-256.webp" };
 
 export const Route = createFileRoute("/_authenticated")({
@@ -88,7 +85,6 @@ type NavItem = {
 function AuthenticatedLayout() {
   const { user, roles } = Route.useRouteContext();
   const navigate = useNavigate();
-  const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   const [open, setOpen] = useState(false);
@@ -115,17 +111,8 @@ function AuthenticatedLayout() {
     setOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    const preloadCoreRoutes = () => {
-      void Promise.all([
-        router.preloadRoute({ to: "/students" }),
-        router.preloadRoute({ to: "/groups" }),
-        router.preloadRoute({ to: "/schedule" }),
-      ]);
-    };
-    const timer = window.setTimeout(preloadCoreRoutes, 300);
-    return () => window.clearTimeout(timer);
-  }, [router]);
+  // Intent preloading already warms the destination on link hover/focus.
+  // Do not compete with the current page by loading three unrelated screens.
 
   const isStaff = hasStaffRole(roles);
   const isAdmin = hasAdminRole(roles);
@@ -391,11 +378,7 @@ function AuthenticatedLayout() {
         </main>
       </div>
 
-      {(isStaff || isTeacher) && (
-        <Suspense fallback={null}>
-          <Jarvis />
-        </Suspense>
-      )}
+      {(isStaff || isTeacher) && <JarvisLauncher />}
     </div>
     </TourProvider>
   );

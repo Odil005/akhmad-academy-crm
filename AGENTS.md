@@ -19,3 +19,5 @@
 - Unified face presence uses server-side identity matching and an atomic presence RPC with explicit direction and per-person locking; this prevents repeated camera frames from alternating arrival/departure or duplicating attendance.
 - Teacher phone activation accepts only Telegram-verified own contacts in private chats and an unambiguous staff phone/role match; an atomic service-only RPC preserves existing account links.
 - Accounting AI uses the shared tool authorization and an execution guard to deny financial mutations; aggregate context totals in the database to avoid capped row-transfer calculations.
+- Load the Jarvis panel on explicit launcher activation and keep route warming intent-based rather than preloading unrelated screens on mount, so primary content does not compete with unused modules.
+- Dispose the root auth subscription on unmount, including delayed subscription initialization, to prevent duplicate invalidations and repeated protected fetches.

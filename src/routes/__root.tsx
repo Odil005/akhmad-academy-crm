@@ -167,6 +167,7 @@ function RootComponent() {
 
   useEffect(() => {
     let mounted = true;
+    let unsubscribe: (() => void) | undefined;
     (async () => {
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -176,10 +177,12 @@ function RootComponent() {
         router.invalidate();
         if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
       });
-      return () => sub.subscription.unsubscribe();
+      unsubscribe = () => sub.subscription.unsubscribe();
+      if (!mounted) unsubscribe();
     })();
     return () => {
       mounted = false;
+      unsubscribe?.();
     };
   }, [router, queryClient]);
 
