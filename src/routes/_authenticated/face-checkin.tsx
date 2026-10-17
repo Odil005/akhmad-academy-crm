@@ -1,4 +1,4 @@
-import { isUsbCamera } from '@/features/face/camera';
+import { isUsbCamera, newlyConnected } from '@/features/face/camera';
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -101,14 +101,27 @@ function FaceCheckinPage() {
 
   useEffect(() => {
     loadRecent();
-    const refresh = () => navigator.mediaDevices?.enumerateDevices().then((all) => {
-      setDevices(all.filter((d) => d.kind === "videoinput" && isUsbCamera(d.label)));
-    });
-    void refresh();
-    // USB kamera ulanganda/chiqarilganda ro'yxat yangilanadi; tanlangan kamera qayta yoqiladi
+    let known: string[] = [];
+    const refresh = async () => {
+      const all = await navigator.mediaDevices?.enumerateDevices();
+      const cams = (all ?? []).filter((d) => d.kind === "videoinput" && isUsbCamera(d.label));
+      setDevices(cams);
+      return cams;
+    };
+    void refresh().then((cams) => { known = cams.map((d) => d.deviceId); });
+    // USB kamera ulanganda shu kameraga o'tadi; chiqarilsa qayta ulanguncha kutadi
     const onChange = async () => {
-      await refresh();
-      if (cameraWanted.current && !streamRef.current?.active) void startCamera(localStorage.getItem('face-camera-id') || undefined);
+      const cams = await refresh();
+      const fresh = known.length ? newlyConnected(known, cams) : null;
+      known = cams.map((d) => d.deviceId);
+      if (fresh) {
+        try { localStorage.setItem('face-camera-id', fresh); } catch { /* ignore */ }
+        setDeviceId(fresh);
+        toast.success("Yangi USB kamera ulandi");
+        void startCamera(fresh);
+      } else if (cameraWanted.current && !streamRef.current?.active) {
+        void startCamera(localStorage.getItem('face-camera-id') || undefined);
+      }
     };
     navigator.mediaDevices?.addEventListener?.('devicechange', onChange);
     // Saqlangan USB kamerani avtomatik yoqish (doimiy yoniq kiosk)

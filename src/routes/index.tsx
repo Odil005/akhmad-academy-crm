@@ -36,6 +36,8 @@ export const Route = createFileRoute("/")({
     { property: "og:description", content: "Akhmad Academy o‘quv markazi va fanlar." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
+    { property: "og:image", content: "https://akhmadacademy.life/logo.png" },
+    { name: "twitter:image", content: "https://akhmadacademy.life/logo.png" },
   ] }),
   component: Index,
 });
