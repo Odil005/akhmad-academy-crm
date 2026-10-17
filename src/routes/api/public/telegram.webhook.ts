@@ -143,7 +143,11 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           });
           if (!claim.error && !claim.data) return new Response("ok");
           if (claim.error && !["PGRST202", "42883"].includes(claim.error.code ?? "")) {
-            return new Response("Webhook vaqtincha band", { status: 503 });
+            // Backend vaqtincha ishlamayapti (tarmoq xatosi va h.k.) —
+            // 503 qaytarsak Telegram qayta-qayta yuborib xatoliklar to'planadi.
+            // 200 qaytarib, xabarni o'tkazib yuboramiz; foydalanuvchi qayta yozishi mumkin.
+            console.warn("telegram webhook: claim_telegram_update failed", claim.error.message);
+            return new Response("ok");
           }
         }
 
