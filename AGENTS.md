@@ -14,3 +14,4 @@
 - Mount the shared notification renderer once in the root and show managed-account creation errors inline; failed account creation must remain visible without weakening authentication protections.
 - Student biometric capture uses lazy browser-only face-api inference with same-origin model files; matching runs in an authenticated staff service and overdue access is enforced by a database trigger to avoid stale-client bypasses.
 - Student facial templates require three pose samples and recorded guardian-consent confirmation; preserve the enrollment photograph for the parent bot, but do not persist additional check-in photographs.
+- Vite must deduplicate React and pre-optimize the router with the renderer so dependency refreshes do not mix React hook dispatchers in the preview.
