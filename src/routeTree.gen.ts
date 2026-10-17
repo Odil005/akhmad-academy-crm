@@ -25,6 +25,7 @@ import { Route as AuthenticatedCashShiftsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCheckinLocationsRouteImport } from './routes/_authenticated/checkin-locations'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDebtorsRouteImport } from './routes/_authenticated/debtors'
+import { Route as AuthenticatedFaceCheckinRouteImport } from './routes/_authenticated/face-checkin'
 import { Route as AuthenticatedFaceIdRouteImport } from './routes/_authenticated/face-id'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
@@ -169,6 +170,12 @@ const AuthenticatedDebtorsRoute = AuthenticatedDebtorsRouteImport.update({
   path: '/debtors',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFaceCheckinRoute =
+  AuthenticatedFaceCheckinRouteImport.update({
+    id: '/face-checkin',
+    path: '/face-checkin',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFaceIdRoute = AuthenticatedFaceIdRouteImport.update({
   id: '/face-id',
   path: '/face-id',
@@ -525,6 +532,7 @@ export interface FileRoutesByFullPath {
   '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/debtors': typeof AuthenticatedDebtorsRoute
+  '/face-checkin': typeof AuthenticatedFaceCheckinRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
@@ -603,6 +611,7 @@ export interface FileRoutesByTo {
   '/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/debtors': typeof AuthenticatedDebtorsRoute
+  '/face-checkin': typeof AuthenticatedFaceCheckinRoute
   '/face-id': typeof AuthenticatedFaceIdRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/groups': typeof AuthenticatedGroupsRoute
@@ -682,6 +691,7 @@ export interface FileRoutesById {
   '/_authenticated/checkin-locations': typeof AuthenticatedCheckinLocationsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/debtors': typeof AuthenticatedDebtorsRoute
+  '/_authenticated/face-checkin': typeof AuthenticatedFaceCheckinRoute
   '/_authenticated/face-id': typeof AuthenticatedFaceIdRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
@@ -762,6 +772,7 @@ export interface FileRouteTypes {
     | '/checkin-locations'
     | '/dashboard'
     | '/debtors'
+    | '/face-checkin'
     | '/face-id'
     | '/finance'
     | '/groups'
@@ -840,6 +851,7 @@ export interface FileRouteTypes {
     | '/checkin-locations'
     | '/dashboard'
     | '/debtors'
+    | '/face-checkin'
     | '/face-id'
     | '/finance'
     | '/groups'
@@ -918,6 +930,7 @@ export interface FileRouteTypes {
     | '/_authenticated/checkin-locations'
     | '/_authenticated/dashboard'
     | '/_authenticated/debtors'
+    | '/_authenticated/face-checkin'
     | '/_authenticated/face-id'
     | '/_authenticated/finance'
     | '/_authenticated/groups'
@@ -1122,6 +1135,13 @@ declare module '@tanstack/react-router' {
       path: '/debtors'
       fullPath: '/debtors'
       preLoaderRoute: typeof AuthenticatedDebtorsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/face-checkin': {
+      id: '/_authenticated/face-checkin'
+      path: '/face-checkin'
+      fullPath: '/face-checkin'
+      preLoaderRoute: typeof AuthenticatedFaceCheckinRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/face-id': {
@@ -1624,6 +1644,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckinLocationsRoute: typeof AuthenticatedCheckinLocationsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDebtorsRoute: typeof AuthenticatedDebtorsRoute
+  AuthenticatedFaceCheckinRoute: typeof AuthenticatedFaceCheckinRoute
   AuthenticatedFaceIdRoute: typeof AuthenticatedFaceIdRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
@@ -1660,6 +1681,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckinLocationsRoute: AuthenticatedCheckinLocationsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDebtorsRoute: AuthenticatedDebtorsRoute,
+  AuthenticatedFaceCheckinRoute: AuthenticatedFaceCheckinRoute,
   AuthenticatedFaceIdRoute: AuthenticatedFaceIdRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
