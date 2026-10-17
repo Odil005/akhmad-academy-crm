@@ -447,11 +447,6 @@ function PaymentsPanel({ payments, debt }: { payments: Payment[]; debt: number }
             <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${p.status === "paid" ? "bg-green-500/15 text-green-600" : "bg-destructive/15 text-destructive"}`}>
               {p.status === "paid" ? "To'langan" : "Kutilmoqda"}
             </span>
-            {p.status === "paid" && (
-              <a href={`/receipt/${p.id}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline">
-                Chek
-              </a>
-            )}
           </div>
         ))}
       </div>

@@ -186,12 +186,6 @@ function PaymentsPage() {
                     <td className="px-4 py-3 text-muted-foreground">{new Date(r.paid_at ?? r.created_at).toLocaleDateString("uz-UZ")}</td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
-                        <IconBtn title="Chekni ko'rish" href={`/receipt/${r.id}`}><ExternalLink className="h-3.5 w-3.5" /></IconBtn>
-                        <IconBtn title="Chekni chiqarish" href={`/receipt/${r.id}`}><Printer className="h-3.5 w-3.5" /></IconBtn>
-                        <IconBtn title="Telegramga qayta yuborish" disabled={busy === r.id}
-                          onClick={() => act(r.id, () => resendReceiptTelegram({ data: { payment_id: r.id } }), "Telegramga yuborildi")}>
-                          <Send className="h-3.5 w-3.5" />
-                        </IconBtn>
                         {isDirector && r.status !== "refunded" && r.status !== "voided" && (
                           <IconBtn title="Qaytarish (director)" disabled={busy === r.id}
                             onClick={() => {
