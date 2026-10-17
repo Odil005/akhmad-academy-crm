@@ -17,6 +17,7 @@
 - [ ] Direktor paneli: tushum, qarz, o'sish/ketish, guruh to'liqligi
 - [ ] Oylik/fan/o'qituvchi bo'yicha hisobotlar va Excel eksport
 ### Yangi so'rovlar
+- [ ] CRM ichki dizaynini namuna palitrasida barcha rollar uchun yangilash; mavjud ruxsat va jarayonlarni saqlash
 - [~] Har bir o‘quvchining oylik to‘lovini alohida o‘zgartirish — qo‘shildi, 9 sinov o‘tdi; haqiqiy saqlashni tekshirish uchun preview’da admin/direktor kirishi kerak
 - [x] Har qanday Excel: barcha varaqlar o'qiladi, fan varaq/fayl nomi yoki sarlavhadan aniqlanadi, guruh avtomatik ochiladi
 - [x] Admin uchun bitta yagona boshqaruv paneli (AdminDesk — 12 ta tugma, tekshirildi)
