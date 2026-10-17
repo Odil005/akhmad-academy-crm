@@ -119,15 +119,6 @@ export const getSetupStatus = createServerFn({ method: "GET" })
         count: recipients,
         to: "/settings/director-report",
       },
-      {
-        key: "sip",
-        title: "IP telefoniya (SIP)",
-        hint: "Qo'ng'iroqlarni CRM ichidan qilish uchun SIP trunk ulang.",
-        done: sip > 0,
-        count: sip,
-        to: "/settings/telephony",
-        optional: true,
-      },
     ];
 
     const required = steps.filter((s) => !s.optional);
