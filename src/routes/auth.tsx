@@ -10,6 +10,10 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
+      { property: "og:title", content: 'Kirish — Akhmad Academy CRM' },
+      { property: "og:description", content: "Akhmad Academy CRM tizimiga kirish yoki ro'yxatdan o'tish." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Kirish — Akhmad Academy CRM" },
       { name: "description", content: "Akhmad Academy CRM tizimiga kirish yoki ro'yxatdan o'tish." },
     ],

@@ -44,6 +44,14 @@ type Enrollment = {
 };
 
 export const Route = createFileRoute("/_authenticated/groups")({
+  head: () => ({ meta: [
+    { title: 'Guruhlar | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — guruhlar va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Guruhlar | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — guruhlar va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: GroupsPage,
 });
 

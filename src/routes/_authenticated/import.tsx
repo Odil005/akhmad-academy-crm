@@ -31,6 +31,10 @@ export const Route = createFileRoute("/_authenticated/import")({
   component: ImportTabsPage,
   head: () => ({
     meta: [
+      { property: "og:title", content: 'Excel import — Akhmad Academy CRM' },
+      { property: "og:description", content: "Guruh ro'yxatlarini eski Excel formatida import qilish." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Excel import — Akhmad Academy CRM" },
       { name: "description", content: "Guruh ro'yxatlarini eski Excel formatida import qilish." },
     ],

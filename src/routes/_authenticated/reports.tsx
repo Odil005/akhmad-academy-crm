@@ -5,6 +5,14 @@ import { TrendingUp, Users, Wallet, ClipboardCheck, Trophy } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/reports")({
+  head: () => ({ meta: [
+    { title: 'Hisobotlar | Akhmad CRM' },
+    { name: "description", content: 'Akhmad CRM — hisobotlar va o‘quv markazini boshqarish.' },
+    { property: "og:title", content: 'Hisobotlar | Akhmad CRM' },
+    { property: "og:description", content: 'Akhmad CRM — hisobotlar va o‘quv markazini boshqarish.' },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   beforeLoad: ({ context }) => {
     const roles = (context as { roles?: string[] }).roles ?? [];
     if (!roles.includes("director")) throw redirect({ to: "/dashboard" });
