@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useServerFn } from '@tanstack/react-start';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { GuidedCapture } from '@/features/face/GuidedCapture';
+import { accessAllowed } from '@/features/face/domain';
+import { saveStudentFace, verifyStudentFace } from '@/lib/student-face.functions';
 import { Camera, CheckCircle2, Clock, ScanFace, Search, ShieldOff, ShieldCheck, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -32,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/face-checkin")({
 });
 
 function FaceCheckinPage() {
-  const { roles } = Route.useRouteContext();
+  const { roles, user } = Route.useRouteContext();
   const isStaff = roles.includes("admin") || roles.includes("director");
 
   const [query, setQuery] = useState("");
@@ -47,8 +53,17 @@ function FaceCheckinPage() {
   const [deviceId, setDeviceId] = useState<string>("");
   const [streaming, setStreaming] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<'enroll' | 'verify' | null>(null);
+  const [consent, setConsent] = useState(false);
+  const [hasTemplate, setHasTemplate] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const saveFace = useServerFn(saveStudentFace);
+  const verifyFace = useServerFn(verifyStudentFace);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const restartRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cameraWanted = useRef(false);
+  const cameraGeneration = useRef(0);
 
   const loadRecent = async () => {
     const { data } = await supabase
@@ -65,23 +80,28 @@ function FaceCheckinPage() {
       const cams = all.filter((d) => d.kind === "videoinput");
       setDevices(cams);
     });
-    return () => stopCamera();
+    const clock = setInterval(() => setNow(Date.now()), 1000);
+    return () => { clearInterval(clock); stopCamera(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startCamera = async (id?: string) => {
     try {
       stopCamera();
+      cameraWanted.current = true;
+      const generation = cameraGeneration.current;
       const s = await navigator.mediaDevices.getUserMedia({
-        video: id ? { deviceId: { exact: id } } : { facingMode: "user" },
+        video: { ...(id ? { deviceId: { exact: id } } : { facingMode: 'user' }), width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15, max: 20 } },
       });
+      if (!cameraWanted.current || generation !== cameraGeneration.current) { s.getTracks().forEach(t => t.stop()); return; }
       streamRef.current = s;
       // Kamera uzilib qolsa (USB chiqib ketsa) 3 soniyadan keyin o'zi qayta ulanadi
       s.getVideoTracks().forEach((t) => {
         t.onended = () => {
           if (streamRef.current !== s) return;
           setStreaming(false);
-          setTimeout(() => startCamera(id), 3000);
+          setMode(null);
+          restartRef.current = setTimeout(() => { if (cameraWanted.current) void startCamera(id); }, 3000);
         };
       });
       if (videoRef.current) {
@@ -97,19 +117,15 @@ function FaceCheckinPage() {
     }
   };
   const stopCamera = () => {
+    cameraWanted.current = false;
+    cameraGeneration.current++;
+    if (restartRef.current) clearTimeout(restartRef.current);
+    restartRef.current = null;
+    setMode(null);
+    streamRef.current?.getVideoTracks().forEach(t => { t.onended = null; });
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     setStreaming(false);
-  };
-
-  const capture = (): string | null => {
-    const v = videoRef.current;
-    if (!v || !v.videoWidth) return null;
-    const c = document.createElement("canvas");
-    c.width = v.videoWidth;
-    c.height = v.videoHeight;
-    c.getContext("2d")?.drawImage(v, 0, 0);
-    return c.toDataURL("image/jpeg", 0.8);
   };
 
   const search = async (q: string) => {
@@ -128,10 +144,11 @@ function FaceCheckinPage() {
   };
 
   const pick = async (s: Student) => {
+    setMode(null); setConsent(false); setHasTemplate(false); setEnrolled(null); setDebt(0); setOverrideUntil(null);
     setSelected(s);
     setStudents([]);
     setQuery(`${s.first_name} ${s.last_name}`);
-    const [{ data: enr }, { data: debts }, { data: ov }] = await Promise.all([
+    const [{ data: enr }, { data: debts }, { data: ov }, { data: template }] = await Promise.all([
       supabase.from("student_face_enrollments").select("image_url").eq("student_id", s.id).maybeSingle(),
       supabase
         .from("payments")
@@ -147,7 +164,9 @@ function FaceCheckinPage() {
         .order("expires_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabase.from('student_face_templates').select('student_id').eq('student_id', s.id).maybeSingle(),
     ]);
+    setHasTemplate(Boolean(template));
     setEnrolled(enr?.image_url ?? null);
     setDebt(
       ((debts as { amount: number; paid_amount: number | null }[] | null) ?? []).reduce(
@@ -158,22 +177,24 @@ function FaceCheckinPage() {
     setOverrideUntil(ov?.expires_at ?? null);
   };
 
-  const enroll = async () => {
-    if (!selected) return;
-    const img = capture();
-    if (!img) return;
+  const completeCapture = useCallback(async (samples: number[][], image: string) => {
+    if (!selected || !mode) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("student_face_enrollments")
-      .upsert({ student_id: selected.id, image_url: img, updated_at: new Date().toISOString() }, { onConflict: "student_id" });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    setEnrolled(img);
-    toast.success(`${selected.first_name} yuzi ro'yxatga olindi`);
-  };
+    try {
+      if (mode === 'enroll') {
+        await saveFace({ data: { studentId: selected.id, samples, image, consent: true } });
+        setEnrolled(image); setHasTemplate(true);
+        toast.success(`${selected.first_name} yuzi uch tomondan ro‘yxatga olindi`);
+      } else {
+        const result = await verifyFace({ data: { studentId: selected.id, samples, image } });
+        if (result.status === 'blocked') toast.error(`Kirish rad etildi — qarz: ${Number(result.debt_amount).toLocaleString()} so‘m`);
+        else toast.success(`${selected.first_name} ${selected.last_name} — yuz tasdiqlandi, kirish qayd etildi`);
+        await loadRecent();
+      }
+      setMode(null);
+    } catch (error) { throw error; }
+    finally { setBusy(false); }
+  }, [selected, mode, saveFace, verifyFace]);
 
   const grantOverride = async () => {
     if (!selected) return;
@@ -183,6 +204,7 @@ function FaceCheckinPage() {
       student_id: selected.id,
       expires_at: expires,
       reason: `${overrideDays} kunlik ruxsat`,
+      granted_by: user.id,
     });
     setBusy(false);
     if (error) {
@@ -193,48 +215,24 @@ function FaceCheckinPage() {
     toast.success(`Ruxsat berildi — ${new Date(expires).toLocaleDateString("uz-UZ")} gacha`);
   };
 
-  const checkin = async () => {
-    if (!selected) return;
-    const img = capture();
-    const blocked = debt > 0 && !overrideUntil;
-    setBusy(true);
-    const { error } = await supabase.from("student_face_checkins").insert({
-      student_id: selected.id,
-      photo_url: img,
-      status: blocked ? "blocked" : "allowed",
-      debt_amount: debt > 0 ? debt : null,
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    if (blocked) {
-      toast.error(`Kirish rad etildi — qarz: ${debt.toLocaleString()} so'm. Administrator ruxsati kerak.`);
-    } else {
-      toast.success(`${selected.first_name} ${selected.last_name} — kirish qayd etildi`);
-    }
-    loadRecent();
-  };
-
   if (!isStaff) {
     return <p className="text-sm text-muted-foreground">Bu bo'lim faqat administrator va direktor uchun.</p>;
   }
 
-  const blocked = debt > 0 && !overrideUntil;
+  const blocked = !accessAllowed(debt, overrideUntil, now);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">Face ID — o'quvchilar kirishi</h1>
         <p className="text-sm text-muted-foreground">
-          Kamera doim yoniq turadi — o'quvchi kelganda ismini yozing, yuzini solishtiring va kirishni qayd eting
+          Yuzni ro‘yxatga olish va kirish nazorati
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Kamera */}
-        <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm font-bold">
               <ScanFace className="h-4 w-4 text-primary" /> Kamera
@@ -258,30 +256,31 @@ function FaceCheckinPage() {
                 </select>
               )}
               {!streaming ? (
-                <button
+                <Button
                   onClick={() => startCamera(deviceId || undefined)}
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
                 >
                   <Camera className="h-4 w-4" /> Kamerani yoqish
-                </button>
+                </Button>
               ) : (
-                <button onClick={stopCamera} className="rounded-lg border border-border px-3 py-2 text-xs font-semibold">
+                <Button variant="outline" size="sm" onClick={stopCamera}>
                   To'xtatish
-                </button>
+                </Button>
               )}
             </div>
           </div>
-          <div className="relative overflow-hidden rounded-xl border border-border bg-black">
-            <video ref={videoRef} playsInline muted className="aspect-video w-full object-cover" />
+          <div className="relative overflow-hidden rounded-lg border border-border bg-muted">
+            <video ref={videoRef} playsInline muted className="aspect-video w-full object-cover -scale-x-100" />
             {!streaming && (
-              <div className="absolute inset-0 grid place-items-center text-xs text-white/70">Kamerani yoqing</div>
+              <div className="absolute inset-0 grid place-items-center text-xs text-muted-foreground">Kamerani yoqing</div>
             )}
           </div>
+          {mode && streaming && videoRef.current && <GuidedCapture video={videoRef.current} onComplete={completeCapture} onCancel={() => setMode(null)} />}
         </div>
 
         {/* O'quvchi tanlash va amallar */}
         <div className="space-y-4">
-          <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="rounded-lg border border-border bg-card p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-bold">
               <Search className="h-4 w-4 text-primary" /> O'quvchini toping (ism yoki familiya)
             </div>
@@ -295,7 +294,7 @@ function FaceCheckinPage() {
               <ul className="mt-2 divide-y divide-border rounded-lg border border-border">
                 {students.map((s) => (
                   <li key={s.id}>
-                    <button
+                    <Button variant="ghost"
                       onClick={() => pick(s)}
                       className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent"
                     >
@@ -303,7 +302,7 @@ function FaceCheckinPage() {
                         {s.first_name} {s.last_name}
                       </span>
                       <span className="text-xs text-muted-foreground">{s.status}</span>
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -311,17 +310,17 @@ function FaceCheckinPage() {
           </div>
 
           {selected && (
-            <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+            <div className="border-t border-border pt-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-bold">
                   {selected.first_name} {selected.last_name}
                 </div>
                 {enrolled ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Yuz ro'yxatda
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> {hasTemplate ? 'Yuz tasdiqlangan' : 'Faqat eski surat'}
                   </span>
                 ) : (
-                  <span className="text-xs font-semibold text-amber-600">Yuz ro'yxatda emas</span>
+                  <span className="text-xs font-semibold text-muted-foreground">Yuz ro'yxatda emas</span>
                 )}
               </div>
 
@@ -332,7 +331,7 @@ function FaceCheckinPage() {
               {debt > 0 && (
                 <div
                   className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
-                    blocked ? "border-destructive/40 bg-destructive/10 text-destructive" : "border-amber-300 bg-amber-50 text-amber-800"
+                    blocked ? "border-destructive/40 bg-destructive/10 text-destructive" : "border-primary/30 bg-primary/10 text-primary"
                   }`}
                 >
                   {blocked ? <ShieldOff className="mt-0.5 h-4 w-4 shrink-0" /> : <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />}
@@ -342,7 +341,7 @@ function FaceCheckinPage() {
                       <div className="text-xs">Face ID kirishga ruxsat bermaydi — administrator ruxsat berishi kerak</div>
                     ) : (
                       <div className="text-xs">
-                        Ruxsat berilgan: {new Date(overrideUntil!).toLocaleString("uz-UZ")} gacha
+                        Ruxsat berilgan: {overrideUntil ? new Date(overrideUntil).toLocaleString("uz-UZ") : '—'} gacha
                       </div>
                     )}
                   </div>
@@ -362,33 +361,20 @@ function FaceCheckinPage() {
                       </option>
                     ))}
                   </select>
-                  <button
+                  <Button variant="outline"
                     onClick={grantOverride}
                     disabled={busy}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400 px-3 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-60"
+                    className="h-auto min-h-9 whitespace-normal text-xs"
                   >
                     <Clock className="h-3.5 w-3.5" /> Vaqtinchalik ruxsat berish
-                  </button>
+                  </Button>
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={enroll}
-                  disabled={busy || !streaming}
-                  className="rounded-lg border border-border px-3 py-2.5 text-sm font-semibold hover:border-primary disabled:opacity-60"
-                >
-                  {enrolled ? "Yuzni yangilash" : "Yuzni ro'yxatga olish"}
-                </button>
-                <button
-                  onClick={checkin}
-                  disabled={busy || !streaming || !enrolled}
-                  className={`rounded-lg px-3 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60 ${
-                    blocked ? "bg-destructive" : "bg-primary"
-                  }`}
-                >
-                  {blocked ? "Kirishni rad etish" : "Kirishni qayd etish"}
-                </button>
+              <label className="flex items-start gap-2 text-sm"><Checkbox checked={consent} disabled={Boolean(mode)} onCheckedChange={value => setConsent(value === true)} aria-label="Ota-ona roziligi olingan" /><span>Ota-ona yoki qonuniy vakilning yuz ma’lumotini saqlashga roziligi olingan</span></label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button variant="outline" className="h-auto min-h-10 whitespace-normal" onClick={() => setMode('enroll')} disabled={busy || !streaming || !consent || Boolean(mode)}>{enrolled ? 'Yuzni qayta ro‘yxatga olish' : 'Yuzni ro‘yxatga olish'}</Button>
+                <Button className="h-auto min-h-10 whitespace-normal" onClick={() => setMode('verify')} disabled={busy || !streaming || !hasTemplate || Boolean(mode)}>Yuz bilan kirishni tekshirish</Button>
               </div>
             </div>
           )}
@@ -396,7 +382,7 @@ function FaceCheckinPage() {
       </div>
 
       {/* Oxirgi kirishlar */}
-      <div className="rounded-2xl border border-border bg-card">
+      <div className="border-t border-border">
         <div className="border-b border-border p-4 text-sm font-bold">Bugungi kirishlar</div>
         {recent.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">Hali kirish yozuvi yo'q</p>
@@ -405,7 +391,7 @@ function FaceCheckinPage() {
             {recent.map((c) => (
               <li key={c.id} className="flex items-center gap-3 p-3">
                 {c.status === "allowed" ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
                 ) : (
                   <XCircle className="h-4 w-4 shrink-0 text-destructive" />
                 )}

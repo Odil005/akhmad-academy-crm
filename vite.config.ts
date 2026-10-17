@@ -24,6 +24,14 @@ export default defineConfig({
   // These are public browser credentials (database access remains protected by RLS),
   // and defining them here prevents production hydration/auth from crashing.
   vite: {
+    // Keep router hooks and the renderer on one React instance, including
+    // lazy-loaded camera code after dependency optimization changes.
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime', '@tanstack/react-router'],
+    },
     define: {
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(publicBackendUrl),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(publicBackendKey),

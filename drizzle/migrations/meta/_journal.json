@@ -57,6 +57,20 @@
       "when": 1792231184378,
       "tag": "0007_speed_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792233331991,
+      "tag": "0008_student_face_templates_and_access_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792233397657,
+      "tag": "0009_atomic_student_biometric_enrollment",
+      "breakpoints": true
     }
   ]
 }
