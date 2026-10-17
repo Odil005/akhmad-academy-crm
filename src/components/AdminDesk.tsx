@@ -70,7 +70,6 @@ export function AdminDesk() {
   const [selected, setSelected] = useState<StudentIndexRow | null>(null);
   const [payFor, setPayFor] = useState<string | null>(null);
   const [newTeacher, setNewTeacher] = useState(false);
-  const boxRef = useRef<HTMLDivElement>(null);
 
   const refreshMetrics = useCallback(async (force = false) => {
     setMetricsLoading(true);
@@ -102,21 +101,6 @@ export function AdminDesk() {
   useEffect(() => {
     void refreshMetrics();
   }, [refreshMetrics]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(query), 280);
-    return () => clearTimeout(t);
-  }, [query]);
-
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpenList(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
-
-  const results = useMemo(() => searchIndex(index, debounced, 10), [index, debounced]);
 
   const refreshAll = useCallback(async () => {
     await Promise.all([refreshIndex(true), refreshMetrics(true)]);
