@@ -2,15 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Printer, Send, ExternalLink, Undo2, Ban, History } from "lucide-react";
+import { Plus, Undo2, Ban, History } from "lucide-react";
 import { PaymentModal } from "@/components/PaymentModal";
-import { resendReceiptTelegram, refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
+import { refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
 
 type AuditRow = { id: string; action: string; old_data: unknown; new_data: unknown; created_at: string; user_name: string };
 const ACTION_LABEL: Record<string, string> = {
   refunded: "Qaytarildi",
   voided: "Bekor qilindi",
-  receipt_resent: "Chek qayta yuborildi",
   created: "Yaratildi",
 };
 
@@ -112,7 +111,7 @@ function PaymentsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">To'lovlar</h1>
-          <p className="text-sm text-muted-foreground">Kassa, cheklar va ota-onaga xabarlar</p>
+          <p className="text-sm text-muted-foreground">Kassa va ota-onaga xabarlar</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
