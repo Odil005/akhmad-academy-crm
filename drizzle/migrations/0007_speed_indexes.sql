@@ -1,0 +1,15 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA extensions;
+CREATE INDEX IF NOT EXISTS payments_status_paid_at_idx ON public.payments (status, paid_at);
+CREATE INDEX IF NOT EXISTS payments_student_period_idx ON public.payments (student_id, period_month);
+CREATE INDEX IF NOT EXISTS students_status_enum_idx ON public.students (status_enum);
+CREATE INDEX IF NOT EXISTS students_parent_chat_idx ON public.students (parent_telegram_chat_id);
+CREATE INDEX IF NOT EXISTS enroll_student_status_idx ON public.student_enrollments (student_id, status);
+CREATE INDEX IF NOT EXISTS enroll_group_status_idx ON public.student_enrollments (group_id, status);
+CREATE INDEX IF NOT EXISTS attendance_lesson_date_idx ON public.attendance (lesson_id, date);
+CREATE INDEX IF NOT EXISTS teacher_checkins_user_time_idx ON public.teacher_checkins (user_id, checked_in_at);
+CREATE INDEX IF NOT EXISTS face_enroll_student_idx ON public.student_face_enrollments (student_id);
+CREATE INDEX IF NOT EXISTS students_name_trgm_idx ON public.students USING gin ((coalesce(full_name,'') || ' ' || coalesce(first_name,'') || ' ' || coalesce(last_name,'')) extensions.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS students_full_name_trgm_idx ON public.students USING gin (full_name extensions.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS profiles_full_name_trgm_idx ON public.profiles USING gin (full_name extensions.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS leads_name_trgm_idx ON public.leads USING gin (name extensions.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS groups_name_trgm_idx ON public.groups USING gin (name extensions.gin_trgm_ops);
