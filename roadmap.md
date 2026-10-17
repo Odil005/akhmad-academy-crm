@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Face ID — 2026-10-17
+- [ ] Ichki Face ID tasdig‘ini o‘quvchining bugungi guruh darsi davomatiga aniq, takrorsiz bog‘lash
 - [~] Haqiqiy yuz solishtirish va old/o‘ng/chap avtomatik ro‘yxatga olish qo‘shildi; 6 qoida sinovi o‘tdi; haqiqiy o‘quvchi va USB kamera bilan aniqlik tekshiruvi kerak
 - [x] OneID/MyID rasmiy imkoniyatlari tekshirildi; MyID biometrika, OneID kirish uchun; amaliy ulanish provayder shartnomasi, kirish ma’lumotlari va voyaga yetmaganlar talablari tasdig‘ini kutadi
 
