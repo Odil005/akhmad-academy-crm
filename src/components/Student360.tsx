@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { initialsOf, shortId, type StudentIndexRow } from "@/lib/admin-search";
 import { STATUS_META } from "@/lib/status";
+import { StudentFeeEditor } from "@/components/StudentFeeEditor";
 
 const fmt = (n: number) => Number(n || 0).toLocaleString("uz-UZ");
 const monthKeyOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -226,7 +227,7 @@ export function Student360({
         {!loading && !error && data && (
           <>
             {(tab === "Umumiy" || tab === "Kurslar") && (
-              <CourseCards enrollments={data.enrollments} payments={data.payments} student={data.student} onPay={() => onPay(row.id)} />
+              <CourseCards enrollments={data.enrollments} payments={data.payments} student={data.student} onPay={() => onPay(row.id)} onChanged={async () => { await load(); onChanged(); }} />
             )}
             {(tab === "Umumiy" || tab === "Davomat") && <AttendanceCalendar rows={data.attendance} />}
             {(tab === "Umumiy" || tab === "To'lovlar") && <PaymentsPanel payments={data.payments} debt={debt} />}
@@ -292,8 +293,8 @@ function payStateFor(payments: Payment[], groupId: string | null) {
 }
 
 function CourseCards({
-  enrollments, payments, student, onPay,
-}: { enrollments: Enrollment[]; payments: Payment[]; student: any; onPay: () => void }) {
+  enrollments, payments, student, onPay, onChanged,
+}: { enrollments: Enrollment[]; payments: Payment[]; student: any; onPay: () => void; onChanged: () => Promise<void> }) {
   const active = enrollments.filter((e) => e.status === "active");
   const list = active.length ? active : enrollments;
 
@@ -301,6 +302,7 @@ function CourseCards({
     return (
       <div className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
         O'quvchi hech qaysi guruhga biriktirilmagan.
+        <div className="mt-3"><StudentFeeEditor studentId={student.id} amount={Number(student.monthly_fee ?? 0)} label={student.full_name ?? "O‘quvchi"} onSaved={onChanged} /></div>
       </div>
     );
   }
@@ -344,6 +346,7 @@ function CourseCards({
               <Info label="Keyingi to'lov" value={st.nextDue ? new Date(st.nextDue).toLocaleDateString("uz-UZ") : "—"} />
               <Info label="Qarz" value={`${fmt(st.debt)} so'm`} />
             </dl>
+            {e.status === "active" && <StudentFeeEditor studentId={student.id} enrollmentId={e.id} amount={Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0)} label={e.group?.name ?? "Guruh"} onSaved={onChanged} />}
             <button onClick={onPay} className="w-full rounded-xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:opacity-90">
               To'lov olish
             </button>

@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Individual tuition edits use the authenticated student-fees service and shared StudentFeeEditor; update enrollment prices (student fallback without active groups), never group defaults or existing invoices, to preserve other students and payment history.
