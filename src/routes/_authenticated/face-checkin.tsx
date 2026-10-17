@@ -1,4 +1,4 @@
-import { isUsbCamera } from '@/features/face/camera';
+import { isUsbCamera, newlyConnected } from '@/features/face/camera';
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
