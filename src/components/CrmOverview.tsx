@@ -63,7 +63,7 @@ export function CrmOverview() {
     { label: "Bugungi davomat", value: data?.attendance == null ? "—" : `${data.attendance}%`, suffix: "", icon: ScanFace, tone: "text-success", to: "/attendance" },
   ];
   return <div className="space-y-4">
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       {cards.map((c,i) => <Link key={c.label} to={c.to} className={`crm-panel group min-w-0 p-4 transition-colors hover:border-primary/60 ${i === 0 ? "border-primary/40 bg-primary/5" : ""}`}>
         <div className="flex items-center justify-between gap-2"><span className="text-xs text-muted-foreground">{c.label}</span><c.icon className={`h-4 w-4 shrink-0 ${c.tone}`} /></div>
         <div className="mt-3 break-words text-2xl font-extrabold tabular-nums">{c.value} <span className="text-xs font-medium text-muted-foreground">{c.suffix}</span></div>
