@@ -65,8 +65,7 @@ async function buildBusinessContext(supabase: any, userId: string, roles: Jarvis
     { count: studentsCount },
     { count: groupsCount },
     { data: debtors },
-    { data: monthPayments },
-    { data: monthExpenses },
+    { data: financeTotals, error: financeError },
     { data: recentLeads },
     { count: unreadMessages },
     { count: failedTelegram },
@@ -79,13 +78,7 @@ async function buildBusinessContext(supabase: any, userId: string, roles: Jarvis
       .lt("balance", 0)
       .order("balance", { ascending: true })
       .limit(10),
-    supabase
-      .from("payments")
-      .select("amount")
-      .eq("status", "paid")
-      .gte("paid_at", monthISO)
-      .limit(2000),
-    supabase.from("expenses").select("amount").gte("paid_at", monthISO).limit(2000),
+    supabase.rpc("finance_context_totals", { p_since: monthISO }),
     supabase
       .from("leads")
       .select("name, course, status, created_at")
@@ -102,14 +95,9 @@ async function buildBusinessContext(supabase: any, userId: string, roles: Jarvis
       .in("status", ["failed", "error"]),
   ]);
 
-  const totalIncome = (monthPayments ?? []).reduce(
-    (s: number, p: any) => s + Number(p.amount ?? 0),
-    0,
-  );
-  const totalExpense = (monthExpenses ?? []).reduce(
-    (s: number, e: any) => s + Number(e.amount ?? 0),
-    0,
-  );
+  if (financeError) throw new Error(financeError.message);
+  const totalIncome = Number(financeTotals?.[0]?.income ?? 0);
+  const totalExpense = Number(financeTotals?.[0]?.expense ?? 0);
   const totalDebt = (debtors ?? []).reduce(
     (s: number, d: any) => s + Math.abs(Number(d.balance ?? 0)),
     0,
@@ -441,6 +429,9 @@ async function runTool(
   args: any,
   actor: JarvisActor,
 ): Promise<{ result: any; navigate?: string }> {
+  if (name === "record_payment" || name === "generate_invoices") {
+    return { result: { error: "AI faqat hisob-kitobni tahlil qiladi. To‘lov va hisoblarni tegishli sahifada qo‘lda kiriting." } };
+  }
   if (!canUseJarvisTool(actor.roles, name)) {
     return { result: { error: "Bu amal sizning rolingiz uchun ruxsat etilmagan" } };
   }

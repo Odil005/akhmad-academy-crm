@@ -1396,6 +1396,19 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               await reply(chatId, "Telefon raqam noto'g'ri. Qayta urinib ko'ring.", contactPrompt);
               return new Response("ok");
             }
+            // Only Telegram's own verified contact reaches here; typed numbers never activate staff.
+            const activation = await supabaseAdmin.rpc("activate_teacher_contact", { p_phone: phone, p_chat: String(chatId) });
+            if (activation.error) throw new Error(activation.error.message);
+            const activationResult = activation.data as { status?: string } | null;
+            if (activationResult?.status === "linked") {
+              const teacher = await linkedStaff(chatId);
+              if (teacher) await handleStaffCommand(teacher, chatId, "/start");
+              return new Response("ok");
+            }
+            if (activationResult?.status === "ambiguous" || activationResult?.status === "conflict") {
+              await reply(chatId, "Bu raqam yoki akkaunt bir nechta yozuvga bog‘langan. Administrator tekshirishi kerak.");
+              return new Response("ok");
+            }
             const phoneLookup = await supabaseAdmin.rpc("telegram_students_by_parent_phone", {
               p_phone: phone,
             });

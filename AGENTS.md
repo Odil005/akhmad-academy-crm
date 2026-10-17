@@ -16,3 +16,6 @@
 - Student facial templates require three pose samples and recorded guardian-consent confirmation; preserve the enrollment photograph for the parent bot, but do not persist additional check-in photographs.
 - Vite must deduplicate React and pre-optimize the router with the renderer so dependency refreshes do not mix React hook dispatchers in the preview.
 - Verified student face events link to attendance transactionally in an invoker trigger after debt checks; resolve only one current enrolled lesson in Tashkent time, preserve manual marks, and expose unresolved outcomes rather than guess.
+- Unified face presence uses server-side identity matching and an atomic presence RPC with explicit direction and per-person locking; this prevents repeated camera frames from alternating arrival/departure or duplicating attendance.
+- Teacher phone activation accepts only Telegram-verified own contacts in private chats and an unambiguous staff phone/role match; an atomic service-only RPC preserves existing account links.
+- Accounting AI uses the shared tool authorization and an execution guard to deny financial mutations; aggregate context totals in the database to avoid capped row-transfer calculations.

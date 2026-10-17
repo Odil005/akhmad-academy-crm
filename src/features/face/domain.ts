@@ -35,3 +35,12 @@ export function classifyPose(noseX: number, leftX: number, rightX: number): Pose
 export function accessAllowed(debt: number, expiresAt: string | null, now: number): boolean {
   return debt <= 0 || (expiresAt !== null && Date.parse(expiresAt) > now);
 }
+
+export function identifyFace(samples: number[][], candidates: { id: string; descriptors: number[][] }[]): { id: string; score: number } | null {
+  const ranked = candidates.map(candidate => ({ id: candidate.id, score: matchSamples(samples, candidate.descriptors) })).sort((a, b) => a.score - b.score);
+  const best = ranked[0];
+  if (!best || best.score >= MATCH_LIMIT) return null;
+  // Similar identities require manual review, not a guessed attendance mark.
+  if (ranked[1] && ranked[1].score - best.score < 0.06) return null;
+  return best;
+}

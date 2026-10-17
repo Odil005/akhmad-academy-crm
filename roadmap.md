@@ -1,5 +1,12 @@
 # Roadmap
 
+## Bot, hisob va yagona Face ID — 2026-10-17
+- [ ] O‘qituvchi o‘z telefon kontaktini yuborganda xavfsiz bot ulanishi
+- [ ] AI hisob-kitobni faqat tahlil qiladi; pul amallari qo‘lda
+- [ ] Bir martalik o‘quvchi/xodim ro‘yxati, avtomatik tanish va kirish/chiqish rejimi
+- [ ] Tezlikni o‘lchash, aniqlangan ortiqcha yukni kamaytirish
+- [ ] Sinovlar va qolgan kamchiliklar haqida aniq xulosa
+
 ## Face ID — 2026-10-17
 - [~] Ichki Face ID bugungi faol enrollment darsi davomatiga tranzaksiyada bog‘landi; takroriy va noaniq darslarda yangi davomat yozilmaydi, qo‘lda yozilgan belgilar saqlanadi; 15 qoida sinovi va admin ekran/kamera boshqaruvi tekshirildi. Bazada o‘quvchi yo‘q — haqiqiy o‘quvchi va USB kamera bilan to‘liq sinov kutilmoqda
 - [~] Haqiqiy yuz solishtirish va old/o‘ng/chap avtomatik ro‘yxatga olish qo‘shildi; 6 qoida sinovi o‘tdi; haqiqiy o‘quvchi va USB kamera bilan aniqlik tekshiruvi kerak

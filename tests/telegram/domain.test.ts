@@ -24,6 +24,10 @@ describe("Telegram domain", () => {
     expect(isOwnTelegramContact(12345, 12345, 12345)).toBe(true);
     expect(isOwnTelegramContact(99999, 12345, 12345)).toBe(false);
   });
+  it("does not accept a typed or forwarded staff phone as verified contact", () => {
+    expect(isOwnTelegramContact(undefined, 12345, 12345)).toBe(false);
+    expect(isOwnTelegramContact(12345, 12345, -10012345)).toBe(false);
+  });
 
   it("packs two UUIDs into a Telegram-safe callback", () => {
     const teacherId = "123e4567-e89b-42d3-a456-426614174000";

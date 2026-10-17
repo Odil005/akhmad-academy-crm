@@ -58,6 +58,8 @@ export function isJarvisMutatingTool(tool: string): boolean {
 }
 
 export function canUseJarvisTool(roles: JarvisRole[], tool: string): boolean {
+  // Accounting is analysis-only even for an explicit administrator request.
+  if (["record_payment", "generate_invoices"].includes(tool)) return false;
   const isManager = roles.includes("director") || roles.includes("admin");
   const isTeacher = roles.includes("teacher");
   if (ADMIN_ONLY_TOOLS.has(tool)) return roles.includes("admin");
