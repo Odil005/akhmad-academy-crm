@@ -1016,6 +1016,57 @@ export type Database = {
           },
         ]
       }
+      face_presence_events: {
+        Row: {
+          attendance_result: string | null
+          created_at: string
+          direction: string
+          id: string
+          match_distance: number
+          recorded_by: string
+          status: string
+          student_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attendance_result?: string | null
+          created_at?: string
+          direction: string
+          id?: string
+          match_distance: number
+          recorded_by: string
+          status: string
+          student_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attendance_result?: string | null
+          created_at?: string
+          direction?: string
+          id?: string
+          match_distance?: number
+          recorded_by?: string
+          status?: string
+          student_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "face_presence_events_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "face_presence_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiscal_receipts: {
         Row: {
           cashbox_id: string | null
@@ -2775,6 +2826,41 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_face_templates: {
+        Row: {
+          consent_confirmed_at: string
+          consent_confirmed_by: string
+          descriptors: Json
+          image_url: string
+          model_version: string
+          user_id: string
+        }
+        Insert: {
+          consent_confirmed_at?: string
+          consent_confirmed_by: string
+          descriptors: Json
+          image_url: string
+          model_version?: string
+          user_id: string
+        }
+        Update: {
+          consent_confirmed_at?: string
+          consent_confirmed_by?: string
+          descriptors?: Json
+          image_url?: string
+          model_version?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_face_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_salaries: {
         Row: {
           created_at: string
@@ -3952,6 +4038,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_teacher_contact: {
+        Args: { p_chat: string; p_phone: string }
+        Returns: Json
+      }
       admin_desk_metrics: {
         Args: never
         Returns: {
@@ -4003,6 +4093,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      face_presence_repeat_status: {
+        Args: {
+          p_direction: string
+          p_last_at: string
+          p_last_direction: string
+          p_now: string
+        }
+        Returns: string
+      }
+      finance_context_totals: {
+        Args: { p_since: string }
+        Returns: {
+          expense: number
+          income: number
+        }[]
+      }
       finish_telegram_update: {
         Args: { p_error: string; p_success: boolean; p_update_id: number }
         Returns: undefined
@@ -4013,6 +4119,19 @@ export type Database = {
           created_count: number
           total_amount: number
         }[]
+      }
+      record_face_presence: {
+        Args: {
+          p_direction: string
+          p_kind: string
+          p_person_id: string
+          p_score: number
+        }
+        Returns: Json
+      }
+      save_staff_biometric_enrollment: {
+        Args: { p_descriptors: Json; p_image: string; p_user_id: string }
+        Returns: undefined
       }
       save_student_biometric_enrollment: {
         Args: { p_descriptors: Json; p_image: string; p_student_id: string }

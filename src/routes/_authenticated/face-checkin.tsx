@@ -7,6 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { GuidedCapture } from '@/features/face/GuidedCapture';
 import { accessAllowed } from '@/features/face/domain';
 import { saveStudentFace, verifyStudentFace } from '@/lib/student-face.functions';
+import { saveStaffFace, recognizeFacePresence } from '@/lib/face-presence.functions';
+import { PresenceCamera } from '@/features/face/PresenceCamera';
 import { Camera, CheckCircle2, Clock, ScanFace, Search, ShieldOff, ShieldCheck, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { tashkentDate } from '@/features/face/attendance';
@@ -35,6 +37,8 @@ type CheckinRow = {
   created_at: string;
   attendance_result: string | null;
   students?: { first_name: string; last_name: string } | null;
+  profiles?: { full_name: string | null } | null;
+  direction?: string;
 };
 
 export const Route = createFileRoute("/_authenticated/face-checkin")({
@@ -68,6 +72,11 @@ function FaceCheckinPage() {
   const [mode, setMode] = useState<'enroll' | 'verify' | null>(null);
   const [consent, setConsent] = useState(false);
   const [hasTemplate, setHasTemplate] = useState(false);
+  const [personKind, setPersonKind] = useState<'student' | 'staff'>('student');
+  const [direction, setDirection] = useState<'in' | 'out'>('in');
+  const [panel, setPanel] = useState<'presence' | 'enrollment'>('presence');
+  const saveEmployee = useServerFn(saveStaffFace);
+  const recognize = useServerFn(recognizeFacePresence);
   const [now, setNow] = useState(Date.now());
   const saveFace = useServerFn(saveStudentFace);
   const verifyFace = useServerFn(verifyStudentFace);
@@ -76,11 +85,13 @@ function FaceCheckinPage() {
   const restartRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cameraWanted = useRef(false);
   const cameraGeneration = useRef(0);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const searchVersion = useRef(0);
 
   const loadRecent = async () => {
     const { data } = await supabase
-      .from("student_face_checkins")
-      .select("id, student_id, status, debt_amount, created_at, attendance_result, students(first_name, last_name)")
+      .from("face_presence_events")
+      .select("id, student_id, status, direction, created_at, attendance_result, students(first_name, last_name), profiles!face_presence_events_user_id_fkey(full_name)")
       .gte('created_at', `${tashkentDate(new Date())}T00:00:00+05:00`)
       .order("created_at", { ascending: false })
       .limit(15);
@@ -94,7 +105,7 @@ function FaceCheckinPage() {
       setDevices(cams);
     });
     const clock = setInterval(() => setNow(Date.now()), 1000);
-    return () => { clearInterval(clock); stopCamera(); };
+    return () => { clearInterval(clock); clearTimeout(searchTimer.current); stopCamera(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -142,18 +153,23 @@ function FaceCheckinPage() {
   };
 
   const search = async (q: string) => {
-    setQuery(q);
+    const version = searchVersion.current;
     if (q.trim().length < 2) {
       setStudents([]);
+      return;
+    }
+    if (personKind === 'staff') {
+      const { data } = await supabase.from('profiles').select('id, full_name').ilike('full_name', `%${q.replace(/[,()%]/g, '')}%`).limit(10);
+      if (version === searchVersion.current) setStudents((data ?? []).map(p => ({ id: p.id, first_name: p.full_name ?? '', last_name: '', status: 'Xodim' })));
       return;
     }
     const { data } = await supabase
       .from("students")
       .select("id, first_name, last_name, status")
-      .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%`)
+      .or(`first_name.ilike.%${q.replace(/[,()%]/g, '')}%,last_name.ilike.%${q.replace(/[,()%]/g, '')}%`)
       .neq("status", "archived")
       .limit(10);
-    setStudents((data as Student[] | null) ?? []);
+    if (version === searchVersion.current) setStudents((data as Student[] | null) ?? []);
   };
 
   const pick = async (s: Student) => {
@@ -161,6 +177,12 @@ function FaceCheckinPage() {
     setSelected(s);
     setStudents([]);
     setQuery(`${s.first_name} ${s.last_name}`);
+    if (personKind === 'staff') {
+      const { data, error } = await supabase.from('staff_face_templates').select('image_url').eq('user_id', s.id).maybeSingle();
+      if (error) { toast.error(error.message); return; }
+      setHasTemplate(Boolean(data)); setEnrolled(data?.image_url ?? null);
+      return;
+    }
     const [{ data: enr }, { data: debts }, { data: ov }, { data: template }] = await Promise.all([
       supabase.from("student_face_enrollments").select("image_url").eq("student_id", s.id).maybeSingle(),
       supabase
@@ -195,7 +217,8 @@ function FaceCheckinPage() {
     setBusy(true);
     try {
       if (mode === 'enroll') {
-        await saveFace({ data: { studentId: selected.id, samples, image, consent: true } });
+        if (personKind === 'staff') await saveEmployee({ data: { userId: selected.id, samples, image, consent: true } });
+        else await saveFace({ data: { studentId: selected.id, samples, image, consent: true } });
         setEnrolled(image); setHasTemplate(true);
         toast.success(`${selected.first_name} yuzi uch tomondan ro‘yxatga olindi`);
       } else {
@@ -208,7 +231,7 @@ function FaceCheckinPage() {
       setMode(null);
     } catch (error) { throw error; }
     finally { setBusy(false); }
-  }, [selected, mode, saveFace, verifyFace]);
+  }, [selected, mode, saveFace, verifyFace, personKind, saveEmployee]);
 
   const grantOverride = async () => {
     if (!selected) return;
@@ -238,10 +261,16 @@ function FaceCheckinPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">Face ID — o‘quvchilar davomati</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">Face ID — davomat</h1>
         <p className="text-sm text-muted-foreground">
                   Akhmad CRM
         </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant={panel === 'presence' ? 'default' : 'outline'} onClick={() => { setPanel('presence'); setMode(null); }}>Keldi / ketdi</Button>
+        <Button variant={panel === 'enrollment' ? 'default' : 'outline'} onClick={() => { setPanel('enrollment'); setMode(null); }}>Yuzni ro‘yxatga olish</Button>
+        {panel === 'presence' && <><Button variant={direction === 'in' ? 'default' : 'outline'} onClick={() => setDirection('in')}>Kirish</Button><Button variant={direction === 'out' ? 'default' : 'outline'} onClick={() => setDirection('out')}>Chiqish</Button></>}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -290,17 +319,26 @@ function FaceCheckinPage() {
             )}
           </div>
           {mode && streaming && videoRef.current && <GuidedCapture video={videoRef.current} onComplete={completeCapture} onCancel={() => setMode(null)} />}
+          {panel === 'presence' && streaming && videoRef.current && <PresenceCamera video={videoRef.current} direction={direction} onRecognize={async samples => {
+            const result = await recognize({ data: { samples, direction } });
+            await loadRecent();
+            const status = result.event.status;
+            if (status === 'blocked') return `${result.name} — kirish rad etildi, qarz: ${result.event.debt_amount ?? 0}`;
+            if (status === 'duplicate' || status === 'cooldown') return `${result.name} — avval qayd etilgan`;
+            return `${result.name} — ${direction === 'in' ? 'keldi' : 'ketdi'} · ${attendanceLabels[result.event.attendance_result ?? ''] ?? result.event.attendance_result ?? ''}`;
+          }} />}
         </div>
 
         {/* O'quvchi tanlash va amallar */}
-        <div className="space-y-4">
+        <div className="space-y-4" hidden={panel !== 'enrollment'}>
           <div className="rounded-lg border border-border bg-card p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-bold">
-              <Search className="h-4 w-4 text-primary" /> O'quvchini toping (ism yoki familiya)
+              <Search className="h-4 w-4 text-primary" /> Ism yoki familiya
             </div>
+            <div className="mb-3 flex gap-2">{(['student', 'staff'] as const).map(kind => <Button key={kind} size="sm" variant={personKind === kind ? 'default' : 'outline'} onClick={() => { setPersonKind(kind); setSelected(null); setStudents([]); setQuery(''); setMode(null); }}>{kind === 'student' ? 'O‘quvchi' : 'Xodim / o‘qituvchi'}</Button>)}</div>
             <input
               value={query}
-              onChange={(e) => search(e.target.value)}
+              onChange={(e) => { const value = e.target.value; setQuery(value); searchVersion.current++; clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => { void search(value); }, 300); }}
               placeholder="Masalan: Jasur yoki Karimov"
               className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
             />
@@ -385,10 +423,9 @@ function FaceCheckinPage() {
                 </div>
               )}
 
-              <label className="flex items-start gap-2 text-sm"><Checkbox checked={consent} disabled={Boolean(mode)} onCheckedChange={value => setConsent(value === true)} aria-label="Ota-ona roziligi olingan" /><span>Ota-ona yoki qonuniy vakilning yuz ma’lumotini saqlashga roziligi olingan</span></label>
+              {!hasTemplate && <label className="flex items-start gap-2 text-sm"><Checkbox checked={consent} disabled={Boolean(mode)} onCheckedChange={value => setConsent(value === true)} aria-label="Yuz ma’lumotiga rozilik" /><span>{personKind === 'student' ? 'Ota-ona yoki qonuniy vakil' : 'Xodim'} yuz ma’lumotini saqlashga rozilik bergan</span></label>}
               <div className="grid gap-2 sm:grid-cols-2">
-                <Button variant="outline" className="h-auto min-h-10 whitespace-normal" onClick={() => setMode('enroll')} disabled={busy || !streaming || !consent || Boolean(mode)}>{enrolled ? 'Yuzni qayta ro‘yxatga olish' : 'Yuzni ro‘yxatga olish'}</Button>
-                <Button className="h-auto min-h-10 whitespace-normal" onClick={() => setMode('verify')} disabled={busy || !streaming || !hasTemplate || Boolean(mode)}>Yuz bilan kirishni tekshirish</Button>
+                {!hasTemplate ? <Button variant="outline" className="h-auto min-h-10 whitespace-normal" onClick={() => setMode('enroll')} disabled={busy || !streaming || !consent || Boolean(mode)}>Yuzni ro‘yxatga olish</Button> : <p className="text-sm text-primary">Ro‘yxatga olingan</p>}
               </div>
             </div>
           )}
@@ -397,7 +434,7 @@ function FaceCheckinPage() {
 
       {/* Oxirgi kirishlar */}
       <div className="border-t border-border">
-        <div className="border-b border-border p-4 text-sm font-bold">Bugungi kirishlar</div>
+        <div className="border-b border-border p-4 text-sm font-bold">Bugungi kirish va chiqishlar</div>
         {recent.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">Hali kirish yozuvi yo'q</p>
         ) : (
@@ -411,10 +448,11 @@ function FaceCheckinPage() {
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold">
-                    {c.students ? `${c.students.first_name} ${c.students.last_name}` : "—"}
+                    {c.students ? `${c.students.first_name} ${c.students.last_name}` : c.profiles?.full_name ?? "—"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(c.created_at).toLocaleString("uz-UZ")}
+                    {c.direction === 'out' ? ' · ketdi' : ' · keldi'}
                     {c.status === "blocked" && c.debt_amount != null
                       ? ` · rad etildi — qarz ${Number(c.debt_amount).toLocaleString()} so'm`
                       : ""}

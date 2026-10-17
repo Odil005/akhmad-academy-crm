@@ -8,6 +8,17 @@ import {
 } from "../../src/features/jarvis/domain";
 
 describe("Jarvis action safety", () => {
+  it("never allows AI to record payments", () => {
+    expect(canUseJarvisTool(["admin"], "record_payment")).toBe(false);
+    expect(canUseJarvisTool(["director"], "record_payment")).toBe(false);
+  });
+  it("never allows AI to create invoices", () => {
+    expect(canUseJarvisTool(["admin"], "generate_invoices")).toBe(false);
+  });
+  it("keeps financial analysis available", () => {
+    expect(canUseJarvisTool(["admin"], "business_report")).toBe(true);
+    expect(canUseJarvisTool(["director"], "teacher_payroll")).toBe(true);
+  });
   it("manager can repair queues but teacher cannot", () => {
     expect(canUseJarvisTool(["admin"], "repair_system_queues")).toBe(true);
     expect(canUseJarvisTool(["teacher"], "repair_system_queues")).toBe(false);

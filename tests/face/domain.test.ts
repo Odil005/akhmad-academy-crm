@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { acceptsMatch, accessAllowed, classifyPose, samplesSchema } from '../../src/features/face/domain';
+import { acceptsMatch, accessAllowed, classifyPose, identifyFace, samplesSchema } from '../../src/features/face/domain';
 
 const face = Array.from({ length: 128 }, (_, i) => Math.sin(i) / 10);
 describe('Student Face ID rules', () => {
+  it('identifies an enrolled person without selecting their name', () => {
+    expect(identifyFace([face, face, face], [{ id: 'student', descriptors: [face, face, face] }])?.id).toBe('student');
+  });
+  it('does not guess between similar enrolled identities', () => {
+    expect(identifyFace([face, face, face], [{ id: 'one', descriptors: [face, face, face] }, { id: 'two', descriptors: [face, face, face] }])).toBeNull();
+  });
   it('accepts matching front, right and left samples', () => {
     expect(acceptsMatch([face, face, face], [face, face, face])).toBe(true);
   });
