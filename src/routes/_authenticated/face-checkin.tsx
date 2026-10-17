@@ -148,7 +148,8 @@ function FaceCheckinPage() {
       const all = await navigator.mediaDevices.enumerateDevices();
       setDevices(all.filter((d) => d.kind === "videoinput"));
     } catch {
-      toast.error("Kameraga ruxsat berilmadi yoki kamera topilmadi");
+      if (id) { try { localStorage.removeItem('face-camera-id'); } catch { /* ignore */ } setDeviceId(''); return startCamera(); }
+      toast.error("Kameraga ruxsat berilmadi yoki USB kamera topilmadi");
     }
   };
   const stopCamera = () => {
