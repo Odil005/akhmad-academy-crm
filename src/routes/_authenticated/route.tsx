@@ -58,6 +58,9 @@ import {
 } from "@/lib/authenticated-route-cache";
 import { SystemAlertIndicator } from "@/components/SystemAlertIndicator";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getPlatformAccess } from "@/lib/platform.functions";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
 
@@ -119,6 +122,9 @@ function AuthenticatedLayout() {
   const isDirector = hasDirectorRole(roles);
   const isTeacher = roles.includes("teacher");
   const canSeeGroups = isStaff || isTeacher;
+  const fetchPlatformAccess = useServerFn(getPlatformAccess);
+  const platformAccess = useQuery({ queryKey: ["platform", "access"], queryFn: () => fetchPlatformAccess(), staleTime: 300_000 });
+  const isPlatformOwner = Boolean(platformAccess.data?.isOwner);
 
   const nav: NavItem[] = [
     { to: "/teacher-panel", label: "O'qituvchi paneli", icon: Users, show: isTeacher },
@@ -168,7 +174,7 @@ function AuthenticatedLayout() {
     { to: "/marketplace", label: "Marketplace", icon: ShoppingBag, show: true },
     { to: "/reports", label: "Hisobotlar", icon: BarChart3, show: isDirector },
     { to: "/import", label: "Excel import", icon: Upload, show: isStaff },
-    { to: "/platform", label: "UNI CRM platforma", icon: Building2, show: isDirector },
+    { to: "/platform", label: "UNI CRM Super Admin", icon: Building2, show: isDirector || isPlatformOwner },
     { to: "/settings", label: "Sozlamalar", icon: Settings, show: isStaff },
   ];
 
