@@ -1,8 +1,9 @@
 # Roadmap
 
 ## 2026-10-19 guruh haftalik jadvali
-- [ ] Guruhda hafta kunlari, boshlanish va tugash vaqtini belgilash; darslarni avtomatik bog‘lash.
-- [ ] Jadvalni qayta yuklamasdan yangilash va sinovdan o‘tkazish.
+- [x] Guruhda hafta kunlari, boshlanish/tugash tanlovi; darslar guruh saqlanishi bilan tranzaksiyada yaratiladi. Jadval o‘zgarsa eski darslar o‘chirilmaydi, faol bo‘lmagan holda saqlanadi, qo‘lda kiritilgan darslar saqlanadi.
+- [x] Guruh/dars hodisalari ochiq jadvalni yangilaydi; oynaga qaytilganda qayta o‘qiladi. 12 qoida sinovi o‘tdi; bazada Du/Chor/Ju 08–10 avtomatik yaratish va Se/Pay 10–12 ga o‘zgartirish tekshirildi, sinov guruhi tozalandi. Yig‘ilish xatosiz.
+- [ ] Administrator oynasidan guruh yaratib boshqa ochiq jadvalda ko‘rishni yakuniy tekshirish — preview administrator sifatida kirilmagan.
 
 ## 2026-10-19 nom va o‘quvchi qo‘shish
 - [x] Akhmad Academy nomi va mavjud to‘g‘ri logolar tekshirildi; eski saqlangan belgilar yangilanishi uchun rasm havolalari yangilandi. EduNest ekranda yo‘q, eski login domeni kirish mosligi uchun saqlandi.
