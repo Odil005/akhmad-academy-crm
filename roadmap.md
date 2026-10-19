@@ -1,8 +1,9 @@
 # Roadmap
 
 ## 2026-10-19 nom va o‘quvchi qo‘shish
-- [ ] Sayt va CRMdagi eski nom/logolarni Akhmad Academy bilan almashtirish.
-- [ ] Guruh ichidan mavjud yoki yangi o‘quvchini qo‘shishni soddalashtirish va tekshirish.
+- [x] Akhmad Academy nomi va mavjud to‘g‘ri logolar tekshirildi; eski saqlangan belgilar yangilanishi uchun rasm havolalari yangilandi. EduNest ekranda yo‘q, eski login domeni kirish mosligi uchun saqlandi.
+- [x] Guruh kartasidan mavjud yoki yangi o‘quvchini qo‘shish oynasi qo‘shildi; yangi o‘quvchi asosiy guruh triggeri bilan tranzaksiyada biriktiriladi, login talab qilinmaydi. 4 mavjud guruh sinovi o‘tdi, sahifa yig‘ilishi xatosiz.
+- [ ] Administrator sessiyasida yangi o‘quvchini saqlab guruh ro‘yxatidan qayta o‘qishni tekshirish — preview kirilmagan, o‘z akkaunti bilan avtomatik kirish mavjud emas; administrator previewga kirishi kerak.
 
 ## 2026-10-19 guruh, kamera va hisobot
 - [x] Saqlangan 24 ta asosiy guruh biriktirishi tiklandi; import vaqtni hisobga oladi va noaniq moslikni rad etadi. Guruh tahriri saqlandi; individual oylik va tarixiy to‘lovlar o‘zgarmaydi. Mahalliy preview boshqa nusxa/ko‘rinishdan faqat bitta o‘quvchini o‘qidi; real 24 kishilik ro‘yxatni ekran orqali tekshirish hali tasdiqlanmagan.
