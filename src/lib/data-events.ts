@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
  * When a record type changes on one page (for example a new group), every other
  * open page and browser tab refreshes its own copy instead of showing stale data.
  */
-export type DataTopic = "groups" | "students" | "teachers" | "subjects";
+export type DataTopic = "groups" | "students" | "teachers" | "subjects" | "lessons";
 
 const EVENT_NAME = "akhmad:data-changed";
 const CHANNEL_NAME = "akhmad:data-events";

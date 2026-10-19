@@ -175,6 +175,17 @@ function SchedulePage() {
   }, [load]);
 
   useDataEvent("groups", load);
+  useDataEvent("lessons", load);
+  useEffect(() => {
+    // Refresh on returning to an already-open timetable, including another device's changes.
+    const refresh = () => { if (document.visibilityState === 'visible') void load(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [load]);
 
   useEffect(() => {
     let cancelled = false;
