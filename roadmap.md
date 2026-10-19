@@ -1,5 +1,9 @@
 # Roadmap
 
+## 2026-10-19 nom va o‘quvchi qo‘shish
+- [ ] Sayt va CRMdagi eski nom/logolarni Akhmad Academy bilan almashtirish.
+- [ ] Guruh ichidan mavjud yoki yangi o‘quvchini qo‘shishni soddalashtirish va tekshirish.
+
 ## 2026-10-19 guruh, kamera va hisobot
 - [x] Saqlangan 24 ta asosiy guruh biriktirishi tiklandi; import vaqtni hisobga oladi va noaniq moslikni rad etadi. Guruh tahriri saqlandi; individual oylik va tarixiy to‘lovlar o‘zgarmaydi. Mahalliy preview boshqa nusxa/ko‘rinishdan faqat bitta o‘quvchini o‘qidi; real 24 kishilik ro‘yxatni ekran orqali tekshirish hali tasdiqlanmagan.
 - [x] USB va telefon/ichki kameralar qo‘llandi; kamera 640×480 da ishladi va 390×844 ekran sig‘di. Haqiqiy telefon kamerasi/yuzni tanish foydalanuvchi qurilmasida tekshirilishi kerak.
