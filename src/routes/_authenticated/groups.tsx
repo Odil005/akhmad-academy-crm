@@ -15,6 +15,8 @@ import {
 import { toast } from "sonner";
 import { GroupStudentDialog } from "@/components/GroupStudentDialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { GROUP_WEEK_DAYS, groupWeekSchedule } from "@/features/schedule/group-week";
 import { TelegramIdButton } from "@/components/TelegramIdButton";
 import { LowIncomeBadge } from "@/components/LowIncomeBadge";
 import { emitDataChanged, useDataEvent } from "@/lib/data-events";
@@ -26,6 +28,9 @@ type Group = {
   name: string;
   monthly_fee: number;
   schedule: string | null;
+  schedule_days: number[];
+  schedule_start: string | null;
+  schedule_end: string | null;
   subject_id: string | null;
   teacher_id: string | null;
   subject: { id: string; name: string } | null;
@@ -76,7 +81,7 @@ function GroupsPage() {
       supabase
         .from("groups")
         .select(
-          "id, name, monthly_fee, schedule, subject_id, teacher_id, subject:subjects(id, name)",
+          "id, name, monthly_fee, schedule, schedule_days, schedule_start, schedule_end, subject_id, teacher_id, subject:subjects(id, name)",
         )
         .order("name"),
       supabase.from("subjects").select("id, name").order("name"),
@@ -423,6 +428,9 @@ function GroupModal({
     teacher_id: initial?.teacher_id ?? "",
     monthly_fee: initial?.monthly_fee ?? 400000,
     schedule: initial?.schedule ?? "",
+    schedule_days: initial?.schedule_days ?? [],
+    schedule_start: initial?.schedule_start?.slice(0, 5) ?? "",
+    schedule_end: initial?.schedule_end?.slice(0, 5) ?? "",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -443,12 +451,21 @@ function GroupModal({
     e.preventDefault();
     setLoading(true);
     setError(null);
+    let weekly;
+    try {
+      weekly = groupWeekSchedule(form.schedule_days, form.schedule_start, form.schedule_end);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Jadvalni tekshiring');
+      setLoading(false);
+      return;
+    }
     const payload = {
       name: form.name.trim(),
       subject_id: form.subject_id || null,
       teacher_id: form.teacher_id || null,
       monthly_fee: form.monthly_fee,
-      schedule: form.schedule.trim() || null,
+      ...weekly,
+      schedule: weekly.schedule ?? (form.schedule.trim() || null),
     };
     const { error } = initial
       ? await supabase.from("groups").update(payload).eq("id", initial.id).select('id').single()
@@ -460,12 +477,13 @@ function GroupModal({
     }
     toast.success(initial ? "Yangilandi" : "Guruh qo'shildi");
     emitDataChanged("groups");
+    emitDataChanged("lessons");
     onDone();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6">
+      <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-lg border border-border bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">{initial ? "Guruhni tahrirlash" : "Yangi guruh"}</h2>
           <button onClick={onClose}>
@@ -564,29 +582,31 @@ function GroupModal({
                 className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
               />
             </label>
-            <label className="block text-sm">
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Jadval
-              </div>
-              <input
-                value={form.schedule}
-                onChange={(e) => setForm({ ...form, schedule: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2.5"
-                placeholder="Du/Chor/Ju 18:00"
-              />
-            </label>
           </div>
+          <fieldset className="space-y-3">
+            <legend className="mb-2 text-sm font-semibold">Hafta kunlari</legend>
+            <div className="flex flex-wrap gap-3">
+              {GROUP_WEEK_DAYS.map((day, index) => <label key={day} className="flex items-center gap-1.5 text-sm">
+                <Checkbox checked={form.schedule_days.includes(index + 1)} onCheckedChange={checked => setForm(f => ({ ...f, schedule_days: checked ? [...f.schedule_days, index + 1] : f.schedule_days.filter(d => d !== index + 1) }))} />{day}
+              </label>)}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block text-sm">Boshlanish<input type="time" required={form.schedule_days.length > 0} value={form.schedule_start} onChange={e => setForm({ ...form, schedule_start: e.target.value })} className="mt-1 w-full min-w-0 rounded-md border border-border bg-background px-2 py-2" /></label>
+              <label className="block text-sm">Tugash<input type="time" required={form.schedule_days.length > 0} value={form.schedule_end} onChange={e => setForm({ ...form, schedule_end: e.target.value })} className="mt-1 w-full min-w-0 rounded-md border border-border bg-background px-2 py-2" /></label>
+            </div>
+            {initial?.schedule && !initial.schedule_days?.length && <p className="text-xs text-muted-foreground">Avvalgi jadval: {initial.schedule}</p>}
+          </fieldset>
           {error && (
             <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
               {error}
             </p>
           )}
-          <button
+          <Button
             disabled={loading}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
             {loading ? "..." : initial ? "Saqlash" : "Qo'shish"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

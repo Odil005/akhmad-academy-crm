@@ -1214,6 +1214,9 @@ export type Database = {
           monthly_fee: number
           name: string
           schedule: string | null
+          schedule_days: number[]
+          schedule_end: string | null
+          schedule_start: string | null
           subject_id: string | null
           teacher_id: string | null
         }
@@ -1224,6 +1227,9 @@ export type Database = {
           monthly_fee?: number
           name: string
           schedule?: string | null
+          schedule_days?: number[]
+          schedule_end?: string | null
+          schedule_start?: string | null
           subject_id?: string | null
           teacher_id?: string | null
         }
@@ -1234,6 +1240,9 @@ export type Database = {
           monthly_fee?: number
           name?: string
           schedule?: string | null
+          schedule_days?: number[]
+          schedule_end?: string | null
+          schedule_start?: string | null
           subject_id?: string | null
           teacher_id?: string | null
         }
@@ -1560,6 +1569,7 @@ export type Database = {
           day_of_week: number
           end_time: string
           group_id: string
+          group_schedule_generated: boolean
           id: string
           is_active: boolean
           notes: string | null
@@ -1575,6 +1585,7 @@ export type Database = {
           day_of_week: number
           end_time: string
           group_id: string
+          group_schedule_generated?: boolean
           id?: string
           is_active?: boolean
           notes?: string | null
@@ -1590,6 +1601,7 @@ export type Database = {
           day_of_week?: number
           end_time?: string
           group_id?: string
+          group_schedule_generated?: boolean
           id?: string
           is_active?: boolean
           notes?: string | null
