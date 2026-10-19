@@ -647,6 +647,7 @@ export type Database = {
           address: string | null
           created_at: string
           id: string
+          is_flagship: boolean
           logo_url: string | null
           name: string
           notes: string | null
@@ -661,6 +662,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           id?: string
+          is_flagship?: boolean
           logo_url?: string | null
           name: string
           notes?: string | null
@@ -675,6 +677,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           id?: string
+          is_flagship?: boolean
           logo_url?: string | null
           name?: string
           notes?: string | null
