@@ -248,6 +248,14 @@ export const setCenterStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const admin = await requirePlatformOwner(context);
+    const { data: target } = await admin
+      .from("centers")
+      .select("is_flagship")
+      .eq("id", data.center_id)
+      .maybeSingle();
+    if (target?.is_flagship && data.status !== "active") {
+      throw new Error("Akhmad Academy bosh markaz — uni bloklab bo'lmaydi");
+    }
     const { error } = await admin
       .from("centers")
       .update({ status: data.status })

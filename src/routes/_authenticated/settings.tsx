@@ -60,7 +60,6 @@ function SettingsLayout() {
     { to: "/settings/integrations", label: "AI / Telegram / SMS", icon: MessageSquare, show: true },
     { to: "/settings/director-report", label: "Direktor hisoboti", icon: Send, show: isDirector },
     { to: "/settings/donation", label: "Donat / Homiylik", icon: Heart, show: isDirector },
-    { to: "/settings/subscription", label: "Abonent (UNI CRM)", icon: Building2, show: true },
     { to: "/settings/reports", label: "Excel & Word", icon: FileSpreadsheet, show: true },
   ];
 
