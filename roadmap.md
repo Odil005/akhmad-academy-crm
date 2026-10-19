@@ -1,9 +1,9 @@
 # Roadmap
 
 ## 2026-10-19 guruh, kamera va hisobot
-- [ ] Guruh tarkibi va tahrirlashni tekshirish; fan/o‘qituvchi/vaqt bo‘yicha aniq mos o‘quvchilarni biriktirish
-- [ ] USB va telefon/ichki kameralarni Face ID uchun qo‘llash
-- [ ] Ahmad direktorga bot orqali hozir sinov hisobotini yuborish
+- [x] Saqlangan 24 ta asosiy guruh biriktirishi tiklandi; import vaqtni hisobga oladi va noaniq moslikni rad etadi. Guruh tahriri saqlandi; individual oylik va tarixiy to‘lovlar o‘zgarmaydi. Mahalliy preview boshqa nusxa/ko‘rinishdan faqat bitta o‘quvchini o‘qidi; real 24 kishilik ro‘yxatni ekran orqali tekshirish hali tasdiqlanmagan.
+- [x] USB va telefon/ichki kameralar qo‘llandi; kamera 640×480 da ishladi va 390×844 ekran sig‘di. Haqiqiy telefon kamerasi/yuzni tanish foydalanuvchi qurilmasida tekshirilishi kerak.
+- [x] Akhmad Director bilan bog‘langan Telegram chatiga 19.10.2026 haqiqiy jami raqamlar bilan sinov hisoboti yuborildi; Telegram success va message_id 159 qaytardi.
 
 ## O‘lchangan tezlik — 2026-10-17
 - [x] Admin sessiyasida mahalliy oldin/keyin o‘lchandi: Face ID 2.888→2.159 s, O‘quvchilar 1.279→0.966 s, To‘lovlar 1.669→0.962 s. Bitta juft o‘lchov, yuk ostidagi yoki published tezlik kafolati emas; 100X tasdiqlanmadi
