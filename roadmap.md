@@ -1,5 +1,10 @@
 # Roadmap
 
+## 2026-10-19 guruh, kamera va hisobot
+- [ ] Guruh tarkibi va tahrirlashni tekshirish; fan/o‘qituvchi/vaqt bo‘yicha aniq mos o‘quvchilarni biriktirish
+- [ ] USB va telefon/ichki kameralarni Face ID uchun qo‘llash
+- [ ] Ahmad direktorga bot orqali hozir sinov hisobotini yuborish
+
 ## O‘lchangan tezlik — 2026-10-17
 - [x] Admin sessiyasida mahalliy oldin/keyin o‘lchandi: Face ID 2.888→2.159 s, O‘quvchilar 1.279→0.966 s, To‘lovlar 1.669→0.962 s. Bitta juft o‘lchov, yuk ostidagi yoki published tezlik kafolati emas; 100X tasdiqlanmadi
 - [x] Jarvis faqat tugma bosilganda yuklanadi; keraksiz uch sahifa preloaddi olib tashlandi, root auth subscription tozalanadi. Boshlang‘ich so‘rovlar 12–17 taga kamaydi; kirish/ruxsatlar o‘zgarmadi

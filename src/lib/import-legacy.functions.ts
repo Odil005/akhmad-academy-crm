@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { extractPhones, parseAmount, parseSchedule, parseStartDate, splitFullName } from "@/lib/import-parse";
+import { matchingGroups, scheduleTime } from '@/features/schedule/group-assignment';
 
 async function requireStaff(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -61,7 +62,7 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
     // ---- Lookups used for automatic subject / teacher / group assignment ----
     const [{ data: subjRows }, { data: groupRows }, { data: roleRows }] = await Promise.all([
       supabase.from("subjects").select("id, name"),
-      supabase.from("groups").select("id, name, monthly_fee, subject_id, teacher_id"),
+      supabase.from("groups").select("id, name, schedule, monthly_fee, subject_id, teacher_id"),
       supabase.from("user_roles").select("user_id").eq("role", "teacher"),
     ]);
     const teacherIds = (roleRows ?? []).map((r: any) => r.user_id);
@@ -73,7 +74,7 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
     (subjRows ?? []).forEach((s: any) => subjectByName.set(key(s.name), s.id));
     const subjectName = new Map<string, string>();
     (subjRows ?? []).forEach((s: any) => subjectName.set(s.id, s.name));
-    type G = { id: string; name: string; monthly_fee: number | null; subject_id: string | null; teacher_id: string | null };
+    type G = { id: string; name: string; schedule: string | null; monthly_fee: number | null; subject_id: string | null; teacher_id: string | null };
     const groupsAll: G[] = (groupRows ?? []) as G[];
     const teacherList = (teacherProfiles ?? []).map((t: any) => ({ id: t.id as string, name: key(t.full_name) }));
     const teacherNameById = new Map<string, string>(
@@ -87,8 +88,8 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
       if (exact) return exact.id;
       // Tolerate "Familiya Ism" vs "Ism Familiya" and partial names.
       const parts = k.split(" ");
-      const loose = teacherList.find((t) => parts.every((p) => t.name.includes(p)));
-      return loose?.id ?? null;
+      const loose = teacherList.filter((t) => parts.every((p) => t.name.includes(p)));
+      return loose.length === 1 ? loose[0]?.id ?? null : null;
     };
 
     const ensureSubject = async (raw: string | null) => {
@@ -112,22 +113,28 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
       }
       const sched = !row.subject_name && row.schedule_raw ? parseSchedule(row.schedule_raw) : null;
       const subjRaw = row.subject_name ?? sched?.subject_name ?? null;
-      const cacheKey = `${key(row.group_name)}|${key(subjRaw)}|${key(row.teacher_name)}`;
+      const time = scheduleTime(row.lesson_time) ?? scheduleTime(row.schedule_raw) ?? scheduleTime(row.group_name);
+      const cacheKey = `${key(row.group_name)}|${key(subjRaw)}|${key(row.teacher_name)}|${time ?? ''}`;
       const cached = routeCache.get(cacheKey);
       if (cached) return { group: cached };
 
       const subjectId = await ensureSubject(subjRaw);
       const teacherId = findTeacher(row.teacher_name ?? null);
+      if (row.teacher_name && !teacherId) return { group: null, note: `O‘qituvchi aniq topilmadi: ${row.teacher_name}. Biriktirishni tekshiring.` };
       const note = row.teacher_name && !teacherId
         ? `O'qituvchi topilmadi: ${row.teacher_name} — guruh o'qituvchisiz qoldi`
         : undefined;
 
       let g: G | undefined;
-      if (row.group_name) g = groupsAll.find((x) => key(x.name) === key(row.group_name));
+      if (row.group_name) {
+        const exact = groupsAll.filter(x => key(x.name) === key(row.group_name) && (!subjectId || x.subject_id === subjectId) && (!teacherId || x.teacher_id === teacherId));
+        if (exact.length > 1) return { group: null, note: 'Guruh nomi bir nechta guruhga mos — administrator tekshirishi kerak.' };
+        g = exact[0];
+      }
       if (!g && subjectId) {
-        g = groupsAll.find(
-          (x) => x.subject_id === subjectId && (teacherId ? x.teacher_id === teacherId : true),
-        );
+        const candidates = matchingGroups(groupsAll, subjectId, teacherId, time);
+        if (candidates.length > 1) return { group: null, note: 'Fan/o‘qituvchi/vaqt bo‘yicha bir nechta guruh mos — biriktirishni tekshiring.' };
+        g = candidates[0];
       }
       if (g) {
         const patch: { subject_id?: string; teacher_id?: string } = {};
@@ -140,13 +147,13 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
       } else if (row.group_name || subjectId) {
         const name =
           row.group_name?.trim() ||
-          [subjectName.get(subjectId!), teacherId ? teacherNameById.get(teacherId) : null]
+          [subjectId ? subjectName.get(subjectId) : null, time, teacherId ? teacherNameById.get(teacherId) : null]
             .filter(Boolean)
             .join(" — ");
         const { data: made } = await supabase
           .from("groups")
-          .insert({ name, subject_id: subjectId, teacher_id: teacherId, monthly_fee: 0 })
-          .select("id, name, monthly_fee, subject_id, teacher_id")
+          .insert({ name, subject_id: subjectId, teacher_id: teacherId, schedule: row.schedule_raw || time, monthly_fee: 0 })
+          .select("id, name, schedule, monthly_fee, subject_id, teacher_id")
           .single();
         if (made) {
           g = made as G;
@@ -294,7 +301,10 @@ export const importLegacyStudents = createServerFn({ method: "POST" })
           started_at: startedAt,
           status: "active",
         }));
-        if (enrollments.length) await supabase.from("student_enrollments").insert(enrollments);
+        if (enrollments.length) {
+          const { error: enrollmentError } = await supabase.from("student_enrollments").upsert(enrollments, { onConflict: 'student_id,group_id', ignoreDuplicates: true });
+          if (enrollmentError) details.push({ row: 0, level: 'error', message: `Guruhga biriktirilmadi: ${enrollmentError.message}` });
+        }
       }
     }
 

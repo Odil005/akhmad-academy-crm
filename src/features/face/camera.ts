@@ -14,3 +14,11 @@ export function isUsbCamera(label: string) {
 export function newlyConnected(before: string[], after: { deviceId: string }[]) {
   return after.find((d) => !before.includes(d.deviceId))?.deviceId ?? null;
 }
+
+/** Keep saved choices; prefer an external camera, then a phone's front camera. */
+export function chooseCamera<T extends { deviceId: string; label: string }>(devices: T[], saved?: string) {
+  return devices.find(d => d.deviceId === saved)
+    ?? devices.find(d => isUsbCamera(d.label))
+    ?? devices.find(d => /front|facetime/i.test(d.label))
+    ?? devices[0];
+}
