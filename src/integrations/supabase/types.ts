@@ -694,6 +694,7 @@ export type Database = {
         Row: {
           active: boolean
           address: string | null
+          center_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -706,6 +707,7 @@ export type Database = {
         Insert: {
           active?: boolean
           address?: string | null
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -718,6 +720,7 @@ export type Database = {
         Update: {
           active?: boolean
           address?: string | null
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -727,7 +730,15 @@ export type Database = {
           radius_m?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "checkin_locations_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       design_settings: {
         Row: {
@@ -857,6 +868,7 @@ export type Database = {
       }
       director_report_recipients: {
         Row: {
+          center_id: string | null
           created_at: string
           full_name: string
           id: string
@@ -866,6 +878,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           full_name: string
           id?: string
@@ -875,6 +888,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           full_name?: string
           id?: string
@@ -883,12 +897,21 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "director_report_recipients_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       discount_rules: {
         Row: {
           active: boolean
           auto_apply: boolean
+          center_id: string | null
           code: string | null
           created_at: string
           id: string
@@ -901,6 +924,7 @@ export type Database = {
         Insert: {
           active?: boolean
           auto_apply?: boolean
+          center_id?: string | null
           code?: string | null
           created_at?: string
           id?: string
@@ -913,6 +937,7 @@ export type Database = {
         Update: {
           active?: boolean
           auto_apply?: boolean
+          center_id?: string | null
           code?: string | null
           created_at?: string
           id?: string
@@ -922,7 +947,15 @@ export type Database = {
           updated_at?: string
           value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "discount_rules_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {
@@ -1434,6 +1467,7 @@ export type Database = {
       import_batches: {
         Row: {
           academic_year: string | null
+          center_id: string | null
           created_at: string
           created_by: string | null
           details: Json
@@ -1452,6 +1486,7 @@ export type Database = {
         }
         Insert: {
           academic_year?: string | null
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           details?: Json
@@ -1470,6 +1505,7 @@ export type Database = {
         }
         Update: {
           academic_year?: string | null
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           details?: Json
@@ -1487,6 +1523,13 @@ export type Database = {
           warnings?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "import_batches_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "import_batches_group_id_fkey"
             columns: ["group_id"]
@@ -2274,6 +2317,7 @@ export type Database = {
       }
       payment_plans: {
         Row: {
+          center_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -2284,6 +2328,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -2294,6 +2339,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -2304,6 +2350,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_plans_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_plans_student_id_fkey"
             columns: ["student_id"]
@@ -2908,6 +2961,7 @@ export type Database = {
       }
       staff_salaries: {
         Row: {
+          center_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -2920,6 +2974,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -2932,6 +2987,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -2943,7 +2999,15 @@ export type Database = {
           staff_name?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "staff_salaries_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff_telegram_links: {
         Row: {
@@ -3608,6 +3672,7 @@ export type Database = {
       teacher_checkins: {
         Row: {
           accuracy_m: number | null
+          center_id: string | null
           checked_in_at: string
           created_at: string
           distance_m: number | null
@@ -3623,6 +3688,7 @@ export type Database = {
         }
         Insert: {
           accuracy_m?: number | null
+          center_id?: string | null
           checked_in_at?: string
           created_at?: string
           distance_m?: number | null
@@ -3638,6 +3704,7 @@ export type Database = {
         }
         Update: {
           accuracy_m?: number | null
+          center_id?: string | null
           checked_in_at?: string
           created_at?: string
           distance_m?: number | null
@@ -3652,6 +3719,13 @@ export type Database = {
           within_zone?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "teacher_checkins_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "teacher_checkins_lesson_id_fkey"
             columns: ["lesson_id"]
@@ -3721,6 +3795,7 @@ export type Database = {
       teacher_salary_payments: {
         Row: {
           amount: number
+          center_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -3730,6 +3805,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -3739,6 +3815,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -3746,7 +3823,15 @@ export type Database = {
           paid_at?: string
           teacher_user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teacher_salary_payments_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teacher_ui_settings: {
         Row: {

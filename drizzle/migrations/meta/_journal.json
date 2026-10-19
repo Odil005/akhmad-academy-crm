@@ -141,6 +141,13 @@
       "when": 1792392032296,
       "tag": "0019_face_center_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792392222855,
+      "tag": "0020_center_isolation_staff_tables",
+      "breakpoints": true
     }
   ]
 }
