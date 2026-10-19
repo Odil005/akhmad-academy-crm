@@ -986,6 +986,7 @@ export type Database = {
       }
       face_access_overrides: {
         Row: {
+          center_id: string | null
           created_at: string
           expires_at: string
           granted_by: string | null
@@ -994,6 +995,7 @@ export type Database = {
           student_id: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           expires_at: string
           granted_by?: string | null
@@ -1002,6 +1004,7 @@ export type Database = {
           student_id: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           expires_at?: string
           granted_by?: string | null
@@ -1010,6 +1013,13 @@ export type Database = {
           student_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "face_access_overrides_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "face_access_overrides_student_id_fkey"
             columns: ["student_id"]
@@ -1022,6 +1032,7 @@ export type Database = {
       face_presence_events: {
         Row: {
           attendance_result: string | null
+          center_id: string | null
           created_at: string
           direction: string
           id: string
@@ -1033,6 +1044,7 @@ export type Database = {
         }
         Insert: {
           attendance_result?: string | null
+          center_id?: string | null
           created_at?: string
           direction: string
           id?: string
@@ -1044,6 +1056,7 @@ export type Database = {
         }
         Update: {
           attendance_result?: string | null
+          center_id?: string | null
           created_at?: string
           direction?: string
           id?: string
@@ -1054,6 +1067,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "face_presence_events_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "face_presence_events_student_id_fkey"
             columns: ["student_id"]
@@ -2843,6 +2863,7 @@ export type Database = {
       }
       staff_face_templates: {
         Row: {
+          center_id: string | null
           consent_confirmed_at: string
           consent_confirmed_by: string
           descriptors: Json
@@ -2851,6 +2872,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          center_id?: string | null
           consent_confirmed_at?: string
           consent_confirmed_by: string
           descriptors: Json
@@ -2859,6 +2881,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          center_id?: string | null
           consent_confirmed_at?: string
           consent_confirmed_by?: string
           descriptors?: Json
@@ -2867,6 +2890,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "staff_face_templates_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "staff_face_templates_user_id_fkey"
             columns: ["user_id"]
@@ -3067,6 +3097,7 @@ export type Database = {
         Row: {
           attendance_id: string | null
           attendance_result: string | null
+          center_id: string | null
           created_at: string
           debt_amount: number | null
           id: string
@@ -3079,6 +3110,7 @@ export type Database = {
         Insert: {
           attendance_id?: string | null
           attendance_result?: string | null
+          center_id?: string | null
           created_at?: string
           debt_amount?: number | null
           id?: string
@@ -3091,6 +3123,7 @@ export type Database = {
         Update: {
           attendance_id?: string | null
           attendance_result?: string | null
+          center_id?: string | null
           created_at?: string
           debt_amount?: number | null
           id?: string
@@ -3106,6 +3139,13 @@ export type Database = {
             columns: ["attendance_id"]
             isOneToOne: false
             referencedRelation: "attendance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_face_checkins_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
             referencedColumns: ["id"]
           },
           {
@@ -3158,6 +3198,7 @@ export type Database = {
       }
       student_face_templates: {
         Row: {
+          center_id: string | null
           consent_confirmed_at: string
           consent_confirmed_by: string
           descriptors: Json
@@ -3166,6 +3207,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           consent_confirmed_at?: string
           consent_confirmed_by: string
           descriptors: Json
@@ -3174,6 +3216,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           consent_confirmed_at?: string
           consent_confirmed_by?: string
           descriptors?: Json
@@ -3182,6 +3225,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "student_face_templates_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "student_face_templates_student_id_fkey"
             columns: ["student_id"]
