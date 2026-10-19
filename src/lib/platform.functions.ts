@@ -426,3 +426,29 @@ export const generateCenterInvoice = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { invoice_id: inv.id as string, created: true };
   });
+
+/** Owner: record which website address (domain) a center uses. */
+export const setCenterDomain = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        center_id: z.string().uuid(),
+        domain: z
+          .string()
+          .trim()
+          .toLowerCase()
+          .transform((v) => v.replace(/^https?:\/\//, "").replace(/\/.*$/, ""))
+          .refine((v) => v === "" || /^([a-z0-9-]+\.)+[a-z]{2,}$/.test(v), "Domen noto'g'ri, masalan: markaz.uz"),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const admin = await requirePlatformOwner(context);
+    const { error } = await admin
+      .from("centers")
+      .update({ custom_domain: data.domain || null })
+      .eq("id", data.center_id);
+    if (error) throw new Error(error.code === "23505" ? "Bu domen boshqa markazga biriktirilgan" : error.message);
+    return { ok: true };
+  });
