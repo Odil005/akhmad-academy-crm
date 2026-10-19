@@ -13,6 +13,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { GroupStudentDialog } from "@/components/GroupStudentDialog";
+import { Button } from "@/components/ui/button";
 import { TelegramIdButton } from "@/components/TelegramIdButton";
 import { LowIncomeBadge } from "@/components/LowIncomeBadge";
 import { emitDataChanged, useDataEvent } from "@/lib/data-events";
@@ -66,6 +68,7 @@ function GroupsPage() {
   const [editing, setEditing] = useState<Group | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [addingTo, setAddingTo] = useState<Group | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -152,6 +155,7 @@ function GroupsPage() {
               isTeacher={isTeacher}
               isOpen={expanded === g.id}
               onToggle={() => setExpanded(expanded === g.id ? null : g.id)}
+              onAdd={() => setAddingTo(g)}
               onEdit={() => setEditing(g)}
               onDelete={() => remove(g.id)}
               teachers={teachers}
@@ -160,6 +164,7 @@ function GroupsPage() {
         </div>
       )}
 
+      {addingTo && <GroupStudentDialog group={addingTo} onClose={() => setAddingTo(null)} onDone={() => setExpanded(addingTo.id)} />}
       {open && (
         <GroupModal
           subjects={subjects}
@@ -194,6 +199,7 @@ function GroupCard({
   isOpen,
   onToggle,
   onEdit,
+  onAdd,
   onDelete,
   teachers,
 }: {
@@ -203,6 +209,7 @@ function GroupCard({
   isOpen: boolean;
   onToggle: () => void;
   onEdit: () => void;
+  onAdd: () => void;
   onDelete: () => void;
   teachers: Teacher[];
 }) {
@@ -264,12 +271,14 @@ function GroupCard({
         {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
       </button>
 
+      {isStaff && <Button variant="outline" className="mt-2 w-full" onClick={onAdd}><UserPlus /> O‘quvchi qo‘shish</Button>}
       {isOpen && (
         <GroupRoster
           group={group}
           isStaff={isStaff}
           canGenerateTelegram={isStaff || isTeacher}
           teachers={teachers}
+          onAdd={onAdd}
         />
       )}
     </div>
@@ -277,6 +286,7 @@ function GroupCard({
 }
 
 function GroupRoster({
+  onAdd,
   group,
   isStaff,
   canGenerateTelegram,
@@ -285,13 +295,11 @@ function GroupRoster({
   group: Group;
   isStaff: boolean;
   canGenerateTelegram: boolean;
+  onAdd: () => void;
   teachers: Teacher[];
 }) {
   const [rows, setRows] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(false);
-  const [candidates, setCandidates] = useState<StudentLite[]>([]);
-  const [search, setSearch] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -310,50 +318,7 @@ function GroupRoster({
     load();
   }, [load]);
 
-  const loadCandidates = async (term: string) => {
-    // Sanitize like search page: strip PostgREST/SQL wildcards
-    const clean = term
-      .replace(/[,()%_]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 64);
-    if (clean.length < 2) {
-      setCandidates([]);
-      return;
-    }
-    const like = `%${clean}%`;
-    const { data } = await supabase
-      .from("students")
-      .select("id, first_name, last_name, parent_phone")
-      .or(`first_name.ilike.${like},last_name.ilike.${like},parent_phone.ilike.${like}`)
-      .limit(10);
-    // filter out those already enrolled in this group
-    const already = new Set(rows.map((r) => r.student_id));
-    setCandidates(((data ?? []) as StudentLite[]).filter((s) => !already.has(s.id)));
-  };
-
-  const enroll = async (student_id: string) => {
-    const { data: previous, error: readError } = await supabase.from('student_enrollments').select('id, monthly_fee').eq('student_id', student_id).eq('group_id', group.id).maybeSingle();
-    if (readError) return toast.error(readError.message);
-    const payload = {
-      student_id,
-      group_id: group.id,
-      subject_id: group.subject_id,
-      teacher_user_id: group.teacher_id,
-      monthly_fee: previous?.monthly_fee ?? group.monthly_fee,
-      status: "active",
-      ended_at: null,
-    };
-    const { error } = previous
-      ? await supabase.from('student_enrollments').update(payload).eq('id', previous.id).select('id').single()
-      : await supabase.from('student_enrollments').insert(payload).select('id').single();
-    if (error) return toast.error(error.message);
-    toast.success("O'quvchi guruhga qo'shildi");
-    emitDataChanged('students');
-    setSearch("");
-    setCandidates([]);
-    load();
-  };
+  useDataEvent("students", load);
 
   const unenroll = async (id: string) => {
     if (!confirm("O'quvchi guruhdan chiqarilsinmi?")) return;
@@ -434,61 +399,7 @@ function GroupRoster({
         </div>
       )}
 
-      {isStaff && (
-        <>
-          {!adding ? (
-            <button
-              onClick={() => setAdding(true)}
-              className="inline-flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-border px-2 py-1.5 text-xs hover:border-primary"
-            >
-              <UserPlus className="h-3.5 w-3.5" /> O'quvchi qo'shish
-            </button>
-          ) : (
-            <div className="space-y-2">
-              <input
-                autoFocus
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  loadCandidates(e.target.value);
-                }}
-                placeholder="Ism yoki telefon bo'yicha qidirish..."
-                className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs"
-              />
-              {candidates.length > 0 && (
-                <ul className="max-h-40 space-y-1 overflow-auto rounded-md border border-border bg-card p-1">
-                  {candidates.map((c) => (
-                    <li key={c.id}>
-                      <button
-                        onClick={() => enroll(c.id)}
-                        className="flex w-full items-center justify-between gap-2 rounded px-2 py-1 text-left text-xs hover:bg-primary/10"
-                      >
-                        <span className="truncate">
-                          {c.first_name} {c.last_name ?? ""}
-                          {c.parent_phone && (
-                            <span className="ml-1 text-muted-foreground">· {c.parent_phone}</span>
-                          )}
-                        </span>
-                        <UserPlus className="h-3 w-3 text-primary" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <button
-                onClick={() => {
-                  setAdding(false);
-                  setSearch("");
-                  setCandidates([]);
-                }}
-                className="w-full rounded-md border border-border px-2 py-1 text-xs hover:border-primary"
-              >
-                Yopish
-              </button>
-            </div>
-          )}
-        </>
-      )}
+      {isStaff && rows.length === 0 && <Button size="sm" variant="outline" className="w-full" onClick={onAdd}><UserPlus /> O‘quvchi qo‘shish</Button>}
     </div>
   );
 }

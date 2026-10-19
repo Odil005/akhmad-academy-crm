@@ -63,7 +63,7 @@ import { useLanguage } from "@/lib/i18n";
 
 import { TourProvider, useTour } from "@/components/tour/TourProvider";
 import { HelpCircle } from "lucide-react";
-const logoAsset = { url: "/logo-256.webp" };
+const logoAsset = { url: "/logo-256.webp?v=akhmad-20261019" };
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -207,10 +207,10 @@ function AuthenticatedLayout() {
         />
         <div className={`min-w-0 leading-tight ${collapsed ? "lg:hidden" : ""}`}>
           <div className="text-sm font-extrabold text-sidebar-primary">
-            AKHMAD CRM
+            AKHMAD ACADEMY
           </div>
           <div className="text-[10px] font-medium text-sidebar-foreground/60">
-            Academy
+            CRM
           </div>
         </div>
         <Button variant="ghost"
