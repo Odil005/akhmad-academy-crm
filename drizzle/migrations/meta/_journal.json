@@ -120,6 +120,13 @@
       "when": 1792388306904,
       "tag": "0016_synchronize_student_group_enrollments",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792389383108,
+      "tag": "0017_group_weekly_schedule",
+      "breakpoints": true
     }
   ]
 }
