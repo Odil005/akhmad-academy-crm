@@ -37,6 +37,15 @@ function SubscriptionPage() {
     return <p className="text-sm text-muted-foreground">Markaz ma'lumoti topilmadi.</p>;
   }
 
+  if (data.center?.is_flagship) {
+    return (
+      <div className="flex items-start gap-2 rounded-2xl border border-border bg-card p-4 text-sm">
+        <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
+        {data.center?.name} — bosh markaz. Abonent to'lovi, cheklov va bloklash qo'llanilmaydi.
+      </div>
+    );
+  }
+
   const sub = data.subscription;
   const end = sub?.current_period_end ? new Date(String(sub.current_period_end)) : null;
   const daysLeft = end ? Math.ceil((end.getTime() - Date.now()) / 86400000) : null;
