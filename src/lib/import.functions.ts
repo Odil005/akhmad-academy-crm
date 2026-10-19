@@ -181,7 +181,8 @@ export const bulkImport = createServerFn({ method: "POST" })
             status: "active",
           }));
         if (enrollments.length) {
-          await supabase.from("student_enrollments").insert(enrollments);
+          const { error: enrollmentError } = await supabase.from("student_enrollments").upsert(enrollments, { onConflict: 'student_id,group_id', ignoreDuplicates: true });
+          if (enrollmentError) errors.push({ row: 0, message: `Guruhga biriktirilmadi: ${enrollmentError.message}` });
         }
       }
     }
