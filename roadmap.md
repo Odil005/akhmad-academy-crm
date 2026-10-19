@@ -1,5 +1,9 @@
 # Roadmap
 
+## 2026-10-19 guruh haftalik jadvali
+- [ ] Guruhda hafta kunlari, boshlanish va tugash vaqtini belgilash; darslarni avtomatik bog‘lash.
+- [ ] Jadvalni qayta yuklamasdan yangilash va sinovdan o‘tkazish.
+
 ## 2026-10-19 nom va o‘quvchi qo‘shish
 - [x] Akhmad Academy nomi va mavjud to‘g‘ri logolar tekshirildi; eski saqlangan belgilar yangilanishi uchun rasm havolalari yangilandi. EduNest ekranda yo‘q, eski login domeni kirish mosligi uchun saqlandi.
 - [x] Guruh kartasidan mavjud yoki yangi o‘quvchini qo‘shish oynasi qo‘shildi; yangi o‘quvchi asosiy guruh triggeri bilan tranzaksiyada biriktiriladi, login talab qilinmaydi. 4 mavjud guruh sinovi o‘tdi, sahifa yig‘ilishi xatosiz.
