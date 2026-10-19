@@ -26,3 +26,4 @@
 - Camera selection preserves the saved device, prefers external hardware, and falls back to built-in/front cameras; browser device labels are not a transport guarantee.
 - GroupStudentDialog owns group-side student addition; create a student with the selected primary group so the existing enrollment trigger saves both atomically, without requiring a login.
 - Structured group weekdays and time ranges sync lessons through an invoker trigger in the group-write transaction; archive generated slots rather than deleting attendance history, and broadcast lesson changes to open timetables.
+- The flagship center is never billed, limited or suspended; tenant data (including biometric tables) carries center_id with restrictive own-center RLS so centers stay isolated in one database.
