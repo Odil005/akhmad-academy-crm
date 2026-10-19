@@ -1,4 +1,4 @@
-import { isUsbCamera, newlyConnected } from '@/features/face/camera';
+import { chooseCamera, newlyConnected } from '@/features/face/camera';
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -104,7 +104,7 @@ function FaceCheckinPage() {
     let known: string[] = [];
     const refresh = async () => {
       const all = await navigator.mediaDevices?.enumerateDevices();
-      const cams = (all ?? []).filter((d) => d.kind === "videoinput" && isUsbCamera(d.label));
+      const cams = (all ?? []).filter((d) => d.kind === "videoinput");
       setDevices(cams);
       return cams;
     };
@@ -117,7 +117,7 @@ function FaceCheckinPage() {
       if (fresh) {
         try { localStorage.setItem('face-camera-id', fresh); } catch { /* ignore */ }
         setDeviceId(fresh);
-        toast.success("Yangi USB kamera ulandi");
+        toast.success("Yangi kamera ulandi");
         void startCamera(fresh);
       } else if (cameraWanted.current && !streamRef.current?.active) {
         void startCamera(localStorage.getItem('face-camera-id') || undefined);
@@ -139,22 +139,22 @@ function FaceCheckinPage() {
       stopCamera();
       cameraWanted.current = true;
       const generation = cameraGeneration.current;
-      // Faqat USB kamera: nomlarni o'qish uchun ruxsat olib, birinchi USB kamerani tanlaymiz
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error('Kamera uchun xavfsiz HTTPS sahifa va kamera qo‘llaydigan brauzer kerak.');
+      // Permission reveals labels on mobile and desktop; release the probe before opening the selected device.
       let list = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput");
       if (list.length && !list.some((d) => d.label)) {
         const probe = await navigator.mediaDevices.getUserMedia({ video: true });
         probe.getTracks().forEach((t) => t.stop());
         list = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput");
       }
-      const usb = list.filter((d) => isUsbCamera(d.label));
-      setDevices(usb);
-      const chosen = usb.find((d) => d.deviceId === id) ?? usb[0];
-      if (!chosen) { cameraWanted.current = true; setStreaming(false); toast.error("USB kamera topilmadi. Face ID faqat USB kamera bilan ishlaydi — kamerani ulang."); return; }
-      id = chosen.deviceId;
-      setDeviceId(id);
+      setDevices(list);
+      const chosen = chooseCamera(list, id);
+      id = chosen?.deviceId || undefined;
+      setDeviceId(id ?? '');
       if (generation !== cameraGeneration.current) return;
       const s = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: id }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15, max: 20 } },
+        video: { ...(id ? { deviceId: { exact: id } } : { facingMode: { ideal: 'user' } }), width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15 } },
+        audio: false,
       });
       if (!cameraWanted.current || generation !== cameraGeneration.current) { s.getTracks().forEach(t => t.stop()); return; }
       streamRef.current = s;
@@ -175,8 +175,10 @@ function FaceCheckinPage() {
       // USB kamera ulangach ro'yxatni yangilash
       const all = await navigator.mediaDevices.enumerateDevices();
       setDevices(all.filter((d) => d.kind === "videoinput"));
-    } catch {
-      toast.error("Kameraga ruxsat berilmadi yoki USB kamera topilmadi");
+    } catch (error) {
+      setStreaming(false);
+      const name = error instanceof Error ? error.name : '';
+      toast.error(name === 'NotAllowedError' ? 'Kameraga ruxsat bering. Telefon sozlamalarida ushbu sayt uchun kamerani yoqing.' : name === 'NotReadableError' ? 'Kamera boshqa dasturda band. Uni yoping va qayta yoqing.' : error instanceof Error ? error.message : 'Kamera topilmadi');
     }
   };
   const stopCamera = () => {
@@ -319,19 +321,19 @@ function FaceCheckinPage() {
             <div className="flex items-center gap-2 text-sm font-bold">
               <ScanFace className="h-4 w-4 text-primary" /> Kamera
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               {(
                 <select
-                  aria-label="USB kamerani tanlash"
+                  aria-label="Kamerani tanlash"
                   value={deviceId}
                   onChange={(e) => {
                     setDeviceId(e.target.value);
                     try { localStorage.setItem('face-camera-id', e.target.value); } catch { /* ignore */ }
                     startCamera(e.target.value || undefined);
                   }}
-                  className="rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+                  className="max-w-full min-w-0 rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
                 >
-                  {!devices.length && <option value="">USB kamera ulanmagan</option>}
+                  {!devices.length && <option value="">Telefon / standart kamera</option>}
                   {devices.map((d, i) => (
                     <option key={d.deviceId} value={d.deviceId}>
                       {d.label || `Kamera ${i + 1}`}
