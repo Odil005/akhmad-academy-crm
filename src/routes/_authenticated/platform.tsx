@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   Building2,
   CheckCircle2,
+  Globe,
   CreditCard,
   Loader2,
   Lock,
@@ -23,6 +24,7 @@ import {
   getPlatformOverview,
   recordCenterPayment,
   setApplicationStatus,
+  setCenterDomain,
   setCenterStatus,
 } from "@/lib/platform.functions";
 
@@ -103,6 +105,16 @@ function PlatformPage() {
     onSuccess: () => {
       toast.success("Yangi o'quv markaz qo'shildi");
       setForm({ name: "", slug: "", phone: "", address: "", plan_id: "" });
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saveDomain = useServerFn(setCenterDomain);
+  const domainMutation = useMutation({
+    mutationFn: (input: { center_id: string; domain: string }) => saveDomain({ data: input }),
+    onSuccess: () => {
+      toast.success("Domen saqlandi");
       refresh();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -221,6 +233,17 @@ function PlatformPage() {
         />
       </div>
 
+      <section className="rounded-2xl border border-border bg-card p-4 text-sm">
+        <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+          <Globe className="h-4 w-4" /> Markazga domen olish va ulash
+        </h2>
+        <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
+          <li>Domen tanlash va sotib olish: Lovable loyihasi → Settings → Domains → «Buy new domain» (masalan: markaznomi.uz yoki .com).</li>
+          <li>Sotib olingan yoki mavjud domenni shu yerda «Connect domain» orqali ulang — DNS va SSL avtomatik sozlanadi.</li>
+          <li>Keyin quyidagi jadvalda markaz qatoridagi «Domen» tugmasini bosib, shu domenni markazga biriktiring.</li>
+        </ol>
+      </section>
+
       <section className="rounded-2xl border border-border bg-card p-4">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
           <Plus className="h-4 w-4" /> Yangi o'quv markaz
@@ -297,6 +320,12 @@ function PlatformPage() {
                       <td className="px-4 py-2">
                         <p className="font-semibold">{c.name}</p>
                         <p className="text-xs text-muted-foreground">{c.slug ?? "—"}</p>
+                        {c.custom_domain && (
+                          <a href={`https://${c.custom_domain}`} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+                            {c.custom_domain}
+                          </a>
+                        )}
+                        {c.is_flagship && <p className="text-[10px] font-bold uppercase text-primary">Bosh markaz</p>}
                       </td>
                       <td className="px-4 py-2">
                         <span className={`rounded-md px-2 py-1 text-xs font-semibold ${meta.className}`}>
@@ -328,7 +357,16 @@ function PlatformPage() {
                           >
                             <CreditCard className="h-3 w-3" /> To'lov
                           </button>
-                          {c.status === "suspended" ? (
+                          <button
+                            onClick={() => {
+                              const domain = window.prompt("Markaz sayt manzili (masalan: markaz.uz). O'chirish uchun bo'sh qoldiring.", c.custom_domain ?? "");
+                              if (domain !== null) domainMutation.mutate({ center_id: c.id, domain });
+                            }}
+                            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-semibold hover:border-primary/60"
+                          >
+                            <Globe className="h-3 w-3" /> Domen
+                          </button>
+                          {c.is_flagship ? null : c.status === "suspended" ? (
                             <button
                               onClick={() => statusMutation.mutate({ center_id: c.id, status: "active" })}
                               className="inline-flex items-center gap-1 rounded-md border border-emerald-500/40 px-2 py-1 text-xs font-semibold text-emerald-300"

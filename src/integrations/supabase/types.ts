@@ -657,6 +657,7 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
+          custom_domain: string | null
           id: string
           is_flagship: boolean
           logo_url: string | null
@@ -672,6 +673,7 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string
+          custom_domain?: string | null
           id?: string
           is_flagship?: boolean
           logo_url?: string | null
@@ -687,6 +689,7 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string
+          custom_domain?: string | null
           id?: string
           is_flagship?: boolean
           logo_url?: string | null
