@@ -295,15 +295,16 @@ function GroupRoster({
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("student_enrollments")
       .select("id, student_id, status, student:students(id, first_name, last_name, parent_phone, low_income, low_income_note)")
       .eq("group_id", group.id)
       .in("status", ["active", "trial"])
       .order("started_at", { ascending: false });
+    if (error) toast.error(`Guruh tarkibi yuklanmadi: ${error.message}`);
     setRows((data as never) ?? []);
     setLoading(false);
-  }, [group.id]);
+  }, [group.id, group.teacher_id, group.subject_id]);
 
   useEffect(() => {
     load();
@@ -332,16 +333,23 @@ function GroupRoster({
   };
 
   const enroll = async (student_id: string) => {
-    const { error } = await supabase.from("student_enrollments").insert({
+    const { data: previous, error: readError } = await supabase.from('student_enrollments').select('id, monthly_fee').eq('student_id', student_id).eq('group_id', group.id).maybeSingle();
+    if (readError) return toast.error(readError.message);
+    const payload = {
       student_id,
       group_id: group.id,
       subject_id: group.subject_id,
       teacher_user_id: group.teacher_id,
-      monthly_fee: group.monthly_fee,
+      monthly_fee: previous?.monthly_fee ?? group.monthly_fee,
       status: "active",
-    });
+      ended_at: null,
+    };
+    const { error } = previous
+      ? await supabase.from('student_enrollments').update(payload).eq('id', previous.id).select('id').single()
+      : await supabase.from('student_enrollments').insert(payload).select('id').single();
     if (error) return toast.error(error.message);
     toast.success("O'quvchi guruhga qo'shildi");
+    emitDataChanged('students');
     setSearch("");
     setCandidates([]);
     load();
@@ -532,8 +540,8 @@ function GroupModal({
       schedule: form.schedule.trim() || null,
     };
     const { error } = initial
-      ? await supabase.from("groups").update(payload).eq("id", initial.id)
-      : await supabase.from("groups").insert(payload);
+      ? await supabase.from("groups").update(payload).eq("id", initial.id).select('id').single()
+      : await supabase.from("groups").insert(payload).select('id').single();
     if (error) {
       setError(error.message);
       setLoading(false);

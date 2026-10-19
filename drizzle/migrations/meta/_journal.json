@@ -113,6 +113,13 @@
       "when": 1792241331192,
       "tag": "0015_rooms_read_staff_only",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792388306904,
+      "tag": "0016_synchronize_student_group_enrollments",
+      "breakpoints": true
     }
   ]
 }
