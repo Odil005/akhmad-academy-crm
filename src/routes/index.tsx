@@ -18,7 +18,7 @@ import {
   Instagram,
   Heart,
 } from "lucide-react";
-const logoAsset = { url: "/logo.png", webp: "/logo-256.webp" };
+const logoAsset = { url: "/logo.png?v=akhmad-20261019", webp: "/logo-256.webp?v=akhmad-20261019" };
 import heroClassroom from "@/assets/hero-classroom.webp";
 import heroClassroom640 from "@/assets/hero-classroom-640.webp";
 import { useState } from "react";
@@ -36,8 +36,8 @@ export const Route = createFileRoute("/")({
     { property: "og:description", content: "Akhmad Academy o‘quv markazi va fanlar." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
-    { property: "og:image", content: "https://akhmadacademy.life/logo.png" },
-    { name: "twitter:image", content: "https://akhmadacademy.life/logo.png" },
+    { property: "og:image", content: "https://akhmadacademy.life/logo.png?v=akhmad-20261019" },
+    { name: "twitter:image", content: "https://akhmadacademy.life/logo.png?v=akhmad-20261019" },
   ] }),
   component: Index,
 });
