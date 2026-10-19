@@ -107,6 +107,7 @@ export type Database = {
       }
       banners: {
         Row: {
+          center_id: string | null
           created_at: string
           id: string
           image_url: string
@@ -117,6 +118,7 @@ export type Database = {
           title: string | null
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           id?: string
           image_url: string
@@ -127,6 +129,7 @@ export type Database = {
           title?: string | null
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           id?: string
           image_url?: string
@@ -136,7 +139,15 @@ export type Database = {
           sort_order?: number
           title?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "banners_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       behavior_evaluations: {
         Row: {
@@ -744,6 +755,7 @@ export type Database = {
         Row: {
           animated_bg_url: string | null
           animation_enabled: boolean
+          center_id: string | null
           hero_image_url: string | null
           id: string
           is_active: boolean
@@ -757,6 +769,7 @@ export type Database = {
         Insert: {
           animated_bg_url?: string | null
           animation_enabled?: boolean
+          center_id?: string | null
           hero_image_url?: string | null
           id?: string
           is_active?: boolean
@@ -770,6 +783,7 @@ export type Database = {
         Update: {
           animated_bg_url?: string | null
           animation_enabled?: boolean
+          center_id?: string | null
           hero_image_url?: string | null
           id?: string
           is_active?: boolean
@@ -780,7 +794,15 @@ export type Database = {
           secondary_color?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "design_settings_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       director_credentials: {
         Row: {
@@ -1403,6 +1425,7 @@ export type Database = {
       }
       homepage_courses: {
         Row: {
+          center_id: string | null
           created_at: string
           description: string
           id: string
@@ -1413,6 +1436,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           description?: string
           id?: string
@@ -1423,6 +1447,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           description?: string
           id?: string
@@ -1432,10 +1457,19 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "homepage_courses_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       homepage_sections: {
         Row: {
+          center_id: string | null
           content: Json
           id: string
           is_visible: boolean
@@ -1445,6 +1479,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string | null
           content?: Json
           id?: string
           is_visible?: boolean
@@ -1454,6 +1489,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string | null
           content?: Json
           id?: string
           is_visible?: boolean
@@ -1462,7 +1498,15 @@ export type Database = {
           title?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "homepage_sections_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       import_batches: {
         Row: {
@@ -1928,6 +1972,7 @@ export type Database = {
       news: {
         Row: {
           body: string | null
+          center_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -1938,6 +1983,7 @@ export type Database = {
         }
         Insert: {
           body?: string | null
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1948,6 +1994,7 @@ export type Database = {
         }
         Update: {
           body?: string | null
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1956,7 +2003,15 @@ export type Database = {
           published_at?: string
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "news_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_queue: {
         Row: {
