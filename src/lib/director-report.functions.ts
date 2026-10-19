@@ -28,10 +28,22 @@ export const sendDirectorReportTest = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!rec?.telegram_chat_id) return { ok: false as const, error: "Chat ID topilmadi" };
 
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date());
+    const [totals, students, groups, attendance] = await Promise.all([
+      supabase.rpc('finance_context_totals', { p_since: `${today}T00:00:00+05:00` }),
+      supabase.from('students').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+      supabase.from('groups').select('id', { count: 'exact', head: true }),
+      supabase.from('attendance').select('id', { count: 'exact', head: true }).eq('date', today).in('status', ['present', 'late']),
+    ]);
+    for (const result of [totals, students, groups, attendance]) if (result.error) throw new Error(result.error.message);
+    const total = totals.data?.[0];
+    const income = Number(total?.income ?? 0);
+    const expense = Number(total?.expense ?? 0);
+    const fmt = (value: number) => value.toLocaleString('uz-UZ');
     const { sendTelegramText } = await import("@/lib/telegram.server");
     const result = await sendTelegramText(
       rec.telegram_chat_id,
-      `✅ Akhmad Academy: kunlik direktor hisoboti uchun ulanish tasdiqlandi.\nQabul qiluvchi: ${rec.full_name}\nHisobot har kuni 21:00 (Toshkent) da shu chatga keladi.`,
+      `📊 Akhmad Academy — sinov hisoboti\n📅 ${today} (Toshkent, hozirgacha)\nQabul qiluvchi: ${rec.full_name}\n\n💰 Daromad: ${fmt(income)} so‘m\n💸 Xarajat: ${fmt(expense)} so‘m\n📈 Sof natija: ${fmt(income - expense)} so‘m\n🎓 Faol o‘quvchilar: ${students.count ?? 0}\n👥 Guruhlar: ${groups.count ?? 0}\n✅ Bugungi kelgan davomat: ${attendance.count ?? 0}`,
     );
     if (result.ok) return { ok: true as const };
     const error = result.error;

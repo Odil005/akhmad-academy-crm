@@ -21,3 +21,6 @@
 - Accounting AI uses the shared tool authorization and an execution guard to deny financial mutations; aggregate context totals in the database to avoid capped row-transfer calculations.
 - Load the Jarvis panel on explicit launcher activation and keep route warming intent-based rather than preloading unrelated screens on mount, so primary content does not compete with unused modules.
 - Dispose the root auth subscription on unmount, including delayed subscription initialization, to prevent duplicate invalidations and repeated protected fetches.
+- Primary student group writes create missing enrollments transactionally through an invoker trigger; active group subject/teacher edits synchronize enrollments without changing individual prices or payment history.
+- Import group resolution keys include lesson time and reject ambiguous teacher/group matches, preventing different time slots from sharing the first matching group.
+- Camera selection preserves the saved device, prefers external hardware, and falls back to built-in/front cameras; browser device labels are not a transport guarantee.
