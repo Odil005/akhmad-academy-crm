@@ -64,3 +64,9 @@
 - [x] Admin ham Telegram (avvaldan qo0027llab-quvvatlangan, username orqali ulanadi) botdan foydalana olsin
 - [ ] O'qituvchi balansi o'rniga Oylik katalogi: o'qituvchi/admin/oshpaz/farrosh
 - [ ] Face ID: o'qituvchi 10 daqiqada kirmasa, o'quvchiga oylik yozilmasin
+
+## 2026-10-20 tenant domen, logo, guruh
+- [x] Markaz domeni (masalan ilmnuri.xyz) ochilganda o‘sha markaz nomi va kirish sahifasi chiqadi; CRM yon panelida foydalanuvchi markazi nomi.
+- [x] EduNest logo/nomi tekshirildi: fayllar, sahifalar va bazada yo‘q; faqat Telegram eski preview keshi.
+- [x] Guruhlar: bitta "O‘quvchi qo‘shish" tugmasi (guruh tanlanadi); global qidiruvdagi guruh shu guruhni ochadi.
+- [ ] ILM NURI markaziga direktor/xodim akkaunti biriktirish — hozir markazda foydalanuvchi yo‘q.

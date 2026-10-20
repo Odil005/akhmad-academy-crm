@@ -10,18 +10,21 @@ import { emitDataChanged } from '@/lib/data-events';
 type Group = { id: string; name: string; monthly_fee: number; subject_id: string | null; teacher_id: string | null };
 type Candidate = { id: string; first_name: string | null; last_name: string | null; parent_phone: string | null };
 
-export function GroupStudentDialog({ group, onClose, onDone }: { group: Group; onClose: () => void; onDone: () => void }) {
+export function GroupStudentDialog({ groups, initialGroupId, onClose, onDone }: { groups: Group[]; initialGroupId?: string | null; onClose: () => void; onDone: (groupId: string) => void }) {
+  const [groupId, setGroupId] = useState(initialGroupId ?? groups[0]?.id ?? '');
+  const group = groups.find(g => g.id === groupId) ?? groups[0];
   const [mode, setMode] = useState<'existing' | 'new'>('existing');
   const [search, setSearch] = useState('');
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [searching, setSearching] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ first: '', last: '', phone: '', fee: String(group.monthly_fee) });
+  const [form, setForm] = useState({ first: '', last: '', phone: '', fee: String(group?.monthly_fee ?? 0) });
+  useEffect(() => { if (group) setForm(f => ({ ...f, fee: String(group.monthly_fee) })); }, [group?.id]);
 
   useEffect(() => {
     let cancelled = false;
-    if (mode !== 'existing') return;
+    if (mode !== 'existing' || !group) return;
     const timer = setTimeout(async () => {
       setSearching(true);
       setError('');
@@ -39,17 +42,17 @@ export function GroupStudentDialog({ group, onClose, onDone }: { group: Group; o
       setSearching(false);
     }, 250);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [search, group.id, mode]);
+  }, [search, group?.id, mode]);
 
   const complete = () => {
     emitDataChanged('students');
     toast.success('O‘quvchi guruhga qo‘shildi');
-    onDone();
+    onDone(group!.id);
     onClose();
   };
 
   const enroll = async (studentId: string) => {
-    if (busy) return;
+    if (busy || !group) return;
     setBusy(true);
     setError('');
     try {
@@ -67,7 +70,7 @@ export function GroupStudentDialog({ group, onClose, onDone }: { group: Group; o
 
   const create = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (busy) return;
+    if (busy || !group) return;
     if (!form.first.trim() || !form.last.trim()) { setError('Ism va familiyani kiriting'); return; }
     setBusy(true);
     setError('');
@@ -86,7 +89,11 @@ export function GroupStudentDialog({ group, onClose, onDone }: { group: Group; o
   return <Dialog open onOpenChange={open => { if (!open && !busy) onClose(); }}>
     <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
       <DialogHeader><DialogTitle>O‘quvchi qo‘shish</DialogTitle></DialogHeader>
-      <p className="break-words text-sm font-semibold text-primary">{group.name}</p>
+      <label className="block space-y-1 text-sm">Guruh
+        <select aria-label="Guruh" value={groupId} onChange={e => setGroupId(e.target.value)} disabled={busy} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+          {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+        </select>
+      </label>
       <div className="grid grid-cols-2 gap-2" role="tablist" aria-label="O‘quvchi tanlash">
         <Button role="tab" aria-selected={mode === 'existing'} variant={mode === 'existing' ? 'default' : 'outline'} disabled={busy} onClick={() => { setMode('existing'); setError(''); }}><Search /> Mavjud o‘quvchi</Button>
         <Button role="tab" aria-selected={mode === 'new'} variant={mode === 'new' ? 'default' : 'outline'} disabled={busy} onClick={() => { setMode('new'); setError(''); }}><UserPlus /> Yangi o‘quvchi</Button>

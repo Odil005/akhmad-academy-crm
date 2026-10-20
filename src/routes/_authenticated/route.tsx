@@ -61,6 +61,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getPlatformAccess } from "@/lib/platform.functions";
+import { getMyCenterBrand } from "@/lib/tenant.functions";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
 
@@ -123,6 +124,8 @@ function AuthenticatedLayout() {
   const isTeacher = roles.includes("teacher");
   const canSeeGroups = isStaff || isTeacher;
   const fetchPlatformAccess = useServerFn(getPlatformAccess);
+  const fetchBrand = useServerFn(getMyCenterBrand);
+  const { data: brand } = useQuery({ queryKey: ["center-brand"], queryFn: () => fetchBrand(), staleTime: 600_000 });
   const platformAccess = useQuery({ queryKey: ["platform", "access"], queryFn: () => fetchPlatformAccess(), staleTime: 300_000 });
   const isPlatformOwner = Boolean(platformAccess.data?.isOwner);
 
@@ -196,6 +199,7 @@ function AuthenticatedLayout() {
   };
 
   const primaryRole = roles[0] ?? "student";
+  const brandName = brand && !brand.is_flagship ? brand.name : "Akhmad Academy";
   const fullName = profile?.full_name ?? user.email ?? "";
   const initials = fullName.trim().slice(0, 2).toUpperCase();
 
@@ -203,8 +207,8 @@ function AuthenticatedLayout() {
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-3 border-b border-sidebar-border px-3 py-4">
         <img
-          src={logoAsset.url}
-          alt="Akhmad Academy"
+          src={brand && !brand.is_flagship ? (brand.logo_url ?? "/favicon.png") : logoAsset.url}
+          alt={brandName}
           className="h-9 w-9 rounded-full object-cover"
           width={44}
           height={44}
@@ -213,7 +217,7 @@ function AuthenticatedLayout() {
         />
         <div className={`min-w-0 leading-tight ${collapsed ? "lg:hidden" : ""}`}>
           <div className="text-sm font-extrabold text-sidebar-primary">
-            AKHMAD ACADEMY
+            {brandName.toUpperCase()}
           </div>
           <div className="text-[10px] font-medium text-sidebar-foreground/60">
             CRM

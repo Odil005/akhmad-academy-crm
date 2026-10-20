@@ -59,6 +59,10 @@ export const Route = createFileRoute("/_authenticated/groups")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
   ] }),
+  validateSearch: (search: Record<string, unknown>): { group?: string; add?: boolean } => ({
+    group: typeof search.group === "string" ? search.group : undefined,
+    add: search.add === true || search.add === "1" || search.add === "true" ? true : undefined,
+  }),
   component: GroupsPage,
 });
 
@@ -73,7 +77,16 @@ function GroupsPage() {
   const [editing, setEditing] = useState<Group | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [addingTo, setAddingTo] = useState<Group | null>(null);
+  const search = Route.useSearch();
+  const [addingTo, setAddingTo] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!search.group) return;
+    setExpanded(search.group);
+    if (search.add) setAddingTo(search.group);
+    const t = setTimeout(() => document.getElementById(`group-${search.group}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
+    return () => clearTimeout(t);
+  }, [search.group, search.add]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -135,12 +148,17 @@ function GroupsPage() {
           <p className="text-sm text-muted-foreground">Fan · O'qituvchi · O'quvchilar bir joyda</p>
         </div>
         {isStaff && (
+          <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setAddingTo(null)} disabled={groups.length === 0}>
+            <UserPlus className="h-4 w-4" /> O‘quvchi qo‘shish
+          </Button>
           <button
             onClick={() => setOpen(true)}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
           >
             <Plus className="h-4 w-4" /> Guruh qo'shish
           </button>
+          </div>
         )}
       </div>
 
@@ -160,7 +178,7 @@ function GroupsPage() {
               isTeacher={isTeacher}
               isOpen={expanded === g.id}
               onToggle={() => setExpanded(expanded === g.id ? null : g.id)}
-              onAdd={() => setAddingTo(g)}
+              onAdd={() => setAddingTo(g.id)}
               onEdit={() => setEditing(g)}
               onDelete={() => remove(g.id)}
               teachers={teachers}
@@ -169,7 +187,7 @@ function GroupsPage() {
         </div>
       )}
 
-      {addingTo && <GroupStudentDialog group={addingTo} onClose={() => setAddingTo(null)} onDone={() => setExpanded(addingTo.id)} />}
+      {addingTo !== undefined && groups.length > 0 && <GroupStudentDialog groups={groups} initialGroupId={addingTo} onClose={() => setAddingTo(undefined)} onDone={(id) => setExpanded(id)} />}
       {open && (
         <GroupModal
           subjects={subjects}
@@ -219,7 +237,7 @@ function GroupCard({
   teachers: Teacher[];
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
+    <div id={`group-${group.id}`} className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="flex items-start justify-between">
         <BookOpen className="h-8 w-8 text-primary" />
         {isStaff && (
@@ -276,7 +294,6 @@ function GroupCard({
         {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
       </button>
 
-      {isStaff && <Button variant="outline" className="mt-2 w-full" onClick={onAdd}><UserPlus /> O‘quvchi qo‘shish</Button>}
       {isOpen && (
         <GroupRoster
           group={group}
@@ -404,7 +421,7 @@ function GroupRoster({
         </div>
       )}
 
-      {isStaff && rows.length === 0 && <Button size="sm" variant="outline" className="w-full" onClick={onAdd}><UserPlus /> O‘quvchi qo‘shish</Button>}
+      {isStaff && <Button size="sm" variant="outline" className="w-full" onClick={onAdd}><UserPlus /> Shu guruhga o‘quvchi qo‘shish</Button>}
     </div>
   );
 }

@@ -152,9 +152,17 @@ export function GlobalSearch() {
         onFocus={() => setOpen(true)}
         onKeyDown={(e) => {
           if (e.key === "Escape") close();
-          if (e.key === "Enter" && students[0]) {
-            close();
-            navigate({ to: "/students/$id", params: { id: students[0].id } });
+          if (e.key === "Enter") {
+            if (students[0]) {
+              close();
+              navigate({ to: "/students/$id", params: { id: students[0].id } });
+            } else if (groups[0]) {
+              close();
+              navigate({ to: "/groups", search: { group: groups[0].id } });
+            } else if (leads[0]) {
+              close();
+              navigate({ to: "/leads" });
+            }
           }
         }}
         placeholder="Tizim bo‘ylab qidirish…"
@@ -243,6 +251,7 @@ export function GlobalSearch() {
                 <Link
                   key={g.id}
                   to="/groups"
+                  search={{ group: g.id }}
                   onClick={close}
                   className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-secondary"
                 >
