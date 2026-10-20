@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeHost } from "../src/lib/tenant.functions";
+import { normalizeHost } from "../src/lib/tenant-host";
 
 describe("normalizeHost", () => {
   it("strips www, port and casing so ilmnuri.xyz matches its center", () => {

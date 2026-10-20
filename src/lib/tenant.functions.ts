@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { normalizeHost } from "@/lib/tenant-host";
 
 export type SiteTenant = {
   id: string;
@@ -13,15 +14,6 @@ export type SiteTenant = {
 };
 
 const SAFE = "id, name, logo_url, phone, address, is_flagship, status";
-
-export function normalizeHost(host: string | null | undefined): string {
-  return String(host ?? "")
-    .toLowerCase()
-    .split(",")[0]!
-    .trim()
-    .replace(/:\d+$/, "")
-    .replace(/^www\./, "");
-}
 
 /** Public: which center owns the website address this request came to. Null = flagship site. */
 export const getSiteTenant = createServerFn({ method: "GET" }).handler(async (): Promise<SiteTenant | null> => {
