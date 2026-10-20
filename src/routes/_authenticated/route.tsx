@@ -61,6 +61,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getPlatformAccess } from "@/lib/platform.functions";
+import { getMyCenterBrand } from "@/lib/tenant.functions";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
 
@@ -123,6 +124,8 @@ function AuthenticatedLayout() {
   const isTeacher = roles.includes("teacher");
   const canSeeGroups = isStaff || isTeacher;
   const fetchPlatformAccess = useServerFn(getPlatformAccess);
+  const fetchBrand = useServerFn(getMyCenterBrand);
+  const { data: brand } = useQuery({ queryKey: ["center-brand"], queryFn: () => fetchBrand(), staleTime: 600_000 });
   const platformAccess = useQuery({ queryKey: ["platform", "access"], queryFn: () => fetchPlatformAccess(), staleTime: 300_000 });
   const isPlatformOwner = Boolean(platformAccess.data?.isOwner);
 
