@@ -26,10 +26,23 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
+import { getSiteTenant, type SiteTenant } from "@/lib/tenant.functions";
 
 
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [
+  loader: () => getSiteTenant().catch(() => null),
+  head: ({ loaderData }) => loaderData ? ({ meta: [
+    { title: `${loaderData.name} | O‘quv markazi` },
+    { name: "description", content: `${loaderData.name} o‘quv markazi — kabinetga kirish va aloqa.` },
+    { property: "og:title", content: loaderData.name },
+    { property: "og:description", content: `${loaderData.name} o‘quv markazi.` },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    ...(loaderData.logo_url?.startsWith("https://") ? [
+      { property: "og:image", content: loaderData.logo_url },
+      { name: "twitter:image", content: loaderData.logo_url },
+    ] : []),
+  ] }) : ({ meta: [
     { title: "Akhmad Academy | O‘quv markazi" },
     { name: "description", content: "Akhmad Academy fanlari, o‘qituvchilari va o‘quv markazi bilan aloqa." },
     { property: "og:title", content: "Akhmad Academy" },
@@ -613,7 +626,41 @@ function Footer() {
   );
 }
 
+function TenantHome({ tenant }: { tenant: SiteTenant }) {
+  const initials = tenant.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
+      <div className="w-full max-w-md space-y-6 rounded-2xl border border-border bg-card p-8 text-center">
+        {tenant.logo_url ? (
+          <img src={tenant.logo_url} alt={tenant.name} className="mx-auto h-20 w-20 rounded-full object-cover" />
+        ) : (
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-2xl font-extrabold text-primary-foreground">{initials}</div>
+        )}
+        <div>
+          <h1 className="text-2xl font-extrabold">{tenant.name}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">O‘quv markazi</p>
+        </div>
+        {tenant.status === "suspended" ? (
+          <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">Markaz vaqtincha faol emas.</p>
+        ) : (
+          <Link to="/auth" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground">
+            <LogIn className="h-4 w-4" /> Kabinetga kirish
+          </Link>
+        )}
+        {(tenant.phone || tenant.address) && (
+          <div className="space-y-1 text-sm text-muted-foreground">
+            {tenant.phone && <p className="flex items-center justify-center gap-2"><Phone className="h-4 w-4" /> {tenant.phone}</p>}
+            {tenant.address && <p className="flex items-center justify-center gap-2"><MapPin className="h-4 w-4" /> {tenant.address}</p>}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
 function Index() {
+  const tenant = Route.useLoaderData();
+  if (tenant) return <TenantHome tenant={tenant} />;
   return (
     <main className="relative min-h-screen bg-transparent text-foreground">
       <BackgroundAnimation variant="hero" />
