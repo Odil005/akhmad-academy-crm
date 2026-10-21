@@ -1,0 +1,2 @@
+DELETE FROM public.user_centers WHERE user_id='46e3bb80-491e-4cbc-b47b-22bc0379b2c2';
+INSERT INTO public.user_centers(user_id, center_id) VALUES ('46e3bb80-491e-4cbc-b47b-22bc0379b2c2','af068e85-9934-4784-a6ae-cb272ab2e39e');
