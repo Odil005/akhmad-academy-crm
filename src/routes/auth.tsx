@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GraduationCap, ArrowLeft, User, Mail } from "lucide-react";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
+import { getSiteTenant, type SiteTenant } from "@/lib/tenant.functions";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: { next?: unknown }): { next?: string } => ({
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Akhmad Academy CRM tizimiga kirish yoki ro'yxatdan o'tish." },
     ],
   }),
+  loader: () => getSiteTenant().catch(() => null),
   component: AuthPage,
 });
 
@@ -27,6 +29,7 @@ type Tab = "username" | "email";
 function AuthPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
+  const tenant = Route.useLoaderData() as SiteTenant | null;
   const goAfterAuth = () => {
     if (next) {
       window.location.href = next;
@@ -120,12 +123,18 @@ function AuthPage() {
         </Link>
         <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary">
-              <GraduationCap className="h-6 w-6" />
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-primary">
+              {tenant?.logo_url ? (
+                <img src={tenant.logo_url} alt={tenant.name} className="h-full w-full object-cover" />
+              ) : tenant ? (
+                <span className="text-lg font-bold">{tenant.name.charAt(0)}</span>
+              ) : (
+                <GraduationCap className="h-6 w-6" />
+              )}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Akhmad Academy CRM</h1>
-              <p className="text-xs text-muted-foreground">Kabinetga kirish</p>
+              <h1 className="text-xl font-bold text-foreground">{tenant ? tenant.name : "Akhmad Academy CRM"}</h1>
+              <p className="text-xs text-muted-foreground">{tenant ? "UNI CRM · Kabinetga kirish" : "Kabinetga kirish"}</p>
             </div>
           </div>
 
