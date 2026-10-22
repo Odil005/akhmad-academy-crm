@@ -37,7 +37,7 @@ function TeacherProfile() {
       const [p, g, c] = await Promise.all([
         supabase.from("profiles").select("full_name, phone, teacher_level, avatar_url").eq("id", id).maybeSingle(),
         supabase.from("groups").select("id, name, schedule_days, schedule_start, schedule_end, monthly_fee").eq("teacher_id", id).order("name"),
-        supabase.from("teacher_checkins").select("created_at").eq("teacher_user_id", id).order("created_at", { ascending: false }).limit(10),
+        supabase.from("teacher_checkins").select("created_at:checked_in_at").eq("user_id", id).order("checked_in_at", { ascending: false }).limit(10),
       ]);
       const gs = (g.data ?? []) as Group[];
       let st: Student[] = [];
