@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { GraduationCap, KeyRound, Loader2, Plus, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
@@ -297,7 +297,9 @@ function TeachersPage() {
                             {row.full_name.slice(0, 1)}
                           </span>
                         )}
-                        {row.full_name}
+                        <Link to="/teachers/$id" params={{ id: row.user_id }} className="hover:text-primary hover:underline">
+                          {row.full_name}
+                        </Link>
                       </span>
                     </td>
                     <td className="py-3 pr-3">
