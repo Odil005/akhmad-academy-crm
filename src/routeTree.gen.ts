@@ -68,6 +68,7 @@ import { Route as AuthenticatedSettingsSubjectsRouteImport } from './routes/_aut
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings.subscription'
 import { Route as AuthenticatedSettingsTeachersRouteImport } from './routes/_authenticated/settings.teachers'
 import { Route as AuthenticatedStudentsIdRouteImport } from './routes/_authenticated/students.$id'
+import { Route as AuthenticatedTeachersIdRouteImport } from './routes/_authenticated/teachers_.$id'
 import { Route as ApiPublicCronDailyReportRouteImport } from './routes/api/public/cron.daily-report'
 import { Route as ApiPublicCronMonthlyInvoicesRouteImport } from './routes/api/public/cron.monthly-invoices'
 import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes/api/public/cron.notifications-dispatch'
@@ -399,6 +400,11 @@ const AuthenticatedStudentsIdRoute = AuthenticatedStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedStudentsRoute,
 } as any)
+const AuthenticatedTeachersIdRoute = AuthenticatedTeachersIdRouteImport.update({
+  id: '/teachers_/$id',
+  path: '/teachers/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicCronDailyReportRoute =
   ApiPublicCronDailyReportRouteImport.update({
     id: '/api/public/cron/daily-report',
@@ -513,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
   '/students/$id': typeof AuthenticatedStudentsIdRoute
+  '/teachers/$id': typeof AuthenticatedTeachersIdRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
@@ -582,6 +589,7 @@ export interface FileRoutesByTo {
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
   '/students/$id': typeof AuthenticatedStudentsIdRoute
+  '/teachers/$id': typeof AuthenticatedTeachersIdRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
@@ -654,6 +662,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
   '/_authenticated/students/$id': typeof AuthenticatedStudentsIdRoute
+  '/_authenticated/teachers_/$id': typeof AuthenticatedTeachersIdRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
   '/api/public/cron/monthly-invoices': typeof ApiPublicCronMonthlyInvoicesRoute
@@ -726,6 +735,7 @@ export interface FileRouteTypes {
     | '/settings/subscription'
     | '/settings/teachers'
     | '/students/$id'
+    | '/teachers/$id'
     | '/settings/'
     | '/api/public/cron/daily-report'
     | '/api/public/cron/monthly-invoices'
@@ -795,6 +805,7 @@ export interface FileRouteTypes {
     | '/settings/subscription'
     | '/settings/teachers'
     | '/students/$id'
+    | '/teachers/$id'
     | '/settings'
     | '/api/public/cron/daily-report'
     | '/api/public/cron/monthly-invoices'
@@ -866,6 +877,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/teachers'
     | '/_authenticated/students/$id'
+    | '/_authenticated/teachers_/$id'
     | '/_authenticated/settings/'
     | '/api/public/cron/daily-report'
     | '/api/public/cron/monthly-invoices'
@@ -1318,6 +1330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsIdRouteImport
       parentRoute: typeof AuthenticatedStudentsRoute
     }
+    '/_authenticated/teachers_/$id': {
+      id: '/_authenticated/teachers_/$id'
+      path: '/teachers/$id'
+      fullPath: '/teachers/$id'
+      preLoaderRoute: typeof AuthenticatedTeachersIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/cron/daily-report': {
       id: '/api/public/cron/daily-report'
       path: '/api/public/cron/daily-report'
@@ -1483,6 +1502,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTeacherPanelRoute: typeof AuthenticatedTeacherPanelRoute
   AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
   AuthenticatedVideoLessonsRoute: typeof AuthenticatedVideoLessonsRoute
+  AuthenticatedTeachersIdRoute: typeof AuthenticatedTeachersIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1517,6 +1537,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTeacherPanelRoute: AuthenticatedTeacherPanelRoute,
   AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
   AuthenticatedVideoLessonsRoute: AuthenticatedVideoLessonsRoute,
+  AuthenticatedTeachersIdRoute: AuthenticatedTeachersIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
