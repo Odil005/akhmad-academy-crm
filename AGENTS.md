@@ -28,3 +28,5 @@
 - Structured group weekdays and time ranges sync lessons through an invoker trigger in the group-write transaction; archive generated slots rather than deleting attendance history, and broadcast lesson changes to open timetables.
 - The flagship center is never billed, limited or suspended; tenant data (including biometric tables) carries center_id with restrictive own-center RLS so centers stay isolated in one database.
 - Super Admin (/platform) access is the platform_owners row claimed once by a director; each center's website address is stored on the center and connected through Lovable domain settings.
+
+- Markaz profili (nom/logo/telefon/manzil) faqat `updateMyCenter` server function orqali o'zgartiriladi — rol (director/admin) `context.supabase` bilan tekshiriladi va faqat o'z markazi (`user_centers` havolasi) yangilanadi; boshqa markazlarga yozish yo'q.
