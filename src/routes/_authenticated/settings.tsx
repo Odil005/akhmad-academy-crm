@@ -44,6 +44,7 @@ function SettingsLayout() {
   const tabs = [
     { to: "/settings/setup", label: "Tizimni ishga tushirish", icon: Rocket, show: true },
     { to: "/settings/credentials", label: "Login generator", icon: KeyRound, show: true },
+    { to: "/settings/center", label: "Markaz profili", icon: Building2, show: true },
     { to: "/settings/subjects", label: "Fanlar", icon: BookOpen, show: isDirector },
     {
       to: "/settings/homepage-courses",
