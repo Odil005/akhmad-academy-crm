@@ -286,7 +286,7 @@ function StudentProfile() {
             </button>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => setAssignOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-xs font-semibold uppercase text-primary-foreground">
-                <UserPlus className="h-3.5 w-3.5" /> Guruhga qo'shish
+                <Users className="h-3.5 w-3.5" /> Guruhlarni boshqarish
               </button>
               <button onClick={() => setPayOpen("pay")} className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 px-3 py-2.5 text-xs font-semibold uppercase text-primary hover:bg-primary/5">
                 <Wallet className="h-3.5 w-3.5" /> To'lov qilish
@@ -345,7 +345,7 @@ function StudentProfile() {
             <div className="rounded-2xl border border-border bg-card p-8 text-center">
               <p className="text-sm text-muted-foreground">Hech qaysi guruhga yozilmagan</p>
               <button onClick={() => setAssignOpen(true)} className="mt-3 inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
-                <UserPlus className="h-3.5 w-3.5" /> Guruhga qo'shish
+                <UserPlus className="h-3.5 w-3.5" /> Guruhlarni boshqarish
               </button>
             </div>
           )}
@@ -515,12 +515,12 @@ function StudentProfile() {
 
 
       {assignOpen && (
-        <AssignGroupModal
-          existingGroupIds={enrollments.map((e) => e.group_id)}
+        <GroupManageModal
+          studentId={id}
+          enrollments={enrollments}
           groups={groups}
           onClose={() => setAssignOpen(false)}
           onSaved={() => { setAssignOpen(false); load(); }}
-          studentId={id}
         />
       )}
       {payOpen && (
