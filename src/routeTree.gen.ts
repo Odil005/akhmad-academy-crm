@@ -52,6 +52,7 @@ import { Route as AuthenticatedVideoLessonsRouteImport } from './routes/_authent
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedSettingsCenterRouteImport } from './routes/_authenticated/settings.center'
 import { Route as AuthenticatedSettingsContactRouteImport } from './routes/_authenticated/settings.contact'
 import { Route as AuthenticatedSettingsCredentialsRouteImport } from './routes/_authenticated/settings.credentials'
 import { Route as AuthenticatedSettingsDesignRouteImport } from './routes/_authenticated/settings.design'
@@ -305,6 +306,12 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsCenterRoute =
+  AuthenticatedSettingsCenterRouteImport.update({
+    id: '/center',
+    path: '/center',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsContactRoute =
   AuthenticatedSettingsContactRouteImport.update({
     id: '/contact',
@@ -503,6 +510,7 @@ export interface FileRoutesByFullPath {
   '/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/settings/center': typeof AuthenticatedSettingsCenterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -573,6 +581,7 @@ export interface FileRoutesByTo {
   '/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/settings/center': typeof AuthenticatedSettingsCenterRoute
   '/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -646,6 +655,7 @@ export interface FileRoutesById {
   '/_authenticated/video-lessons': typeof AuthenticatedVideoLessonsRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/settings/center': typeof AuthenticatedSettingsCenterRoute
   '/_authenticated/settings/contact': typeof AuthenticatedSettingsContactRoute
   '/_authenticated/settings/credentials': typeof AuthenticatedSettingsCredentialsRoute
   '/_authenticated/settings/design': typeof AuthenticatedSettingsDesignRoute
@@ -719,6 +729,7 @@ export interface FileRouteTypes {
     | '/video-lessons'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/settings/center'
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
@@ -789,6 +800,7 @@ export interface FileRouteTypes {
     | '/video-lessons'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/settings/center'
     | '/settings/contact'
     | '/settings/credentials'
     | '/settings/design'
@@ -861,6 +873,7 @@ export interface FileRouteTypes {
     | '/_authenticated/video-lessons'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/settings/center'
     | '/_authenticated/settings/contact'
     | '/_authenticated/settings/credentials'
     | '/_authenticated/settings/design'
@@ -1218,6 +1231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/center': {
+      id: '/_authenticated/settings/center'
+      path: '/center'
+      fullPath: '/settings/center'
+      preLoaderRoute: typeof AuthenticatedSettingsCenterRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/contact': {
       id: '/_authenticated/settings/contact'
       path: '/contact'
@@ -1411,6 +1431,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsCenterRoute: typeof AuthenticatedSettingsCenterRoute
   AuthenticatedSettingsContactRoute: typeof AuthenticatedSettingsContactRoute
   AuthenticatedSettingsCredentialsRoute: typeof AuthenticatedSettingsCredentialsRoute
   AuthenticatedSettingsDesignRoute: typeof AuthenticatedSettingsDesignRoute
@@ -1430,6 +1451,7 @@ interface AuthenticatedSettingsRouteChildren {
 }
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsCenterRoute: AuthenticatedSettingsCenterRoute,
   AuthenticatedSettingsContactRoute: AuthenticatedSettingsContactRoute,
   AuthenticatedSettingsCredentialsRoute: AuthenticatedSettingsCredentialsRoute,
   AuthenticatedSettingsDesignRoute: AuthenticatedSettingsDesignRoute,

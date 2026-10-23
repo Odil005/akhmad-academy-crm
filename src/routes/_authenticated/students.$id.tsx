@@ -286,7 +286,7 @@ function StudentProfile() {
             </button>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => setAssignOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-xs font-semibold uppercase text-primary-foreground">
-                <UserPlus className="h-3.5 w-3.5" /> Guruhga qo'shish
+                <Users className="h-3.5 w-3.5" /> Guruhlarni boshqarish
               </button>
               <button onClick={() => setPayOpen("pay")} className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 px-3 py-2.5 text-xs font-semibold uppercase text-primary hover:bg-primary/5">
                 <Wallet className="h-3.5 w-3.5" /> To'lov qilish
@@ -345,7 +345,7 @@ function StudentProfile() {
             <div className="rounded-2xl border border-border bg-card p-8 text-center">
               <p className="text-sm text-muted-foreground">Hech qaysi guruhga yozilmagan</p>
               <button onClick={() => setAssignOpen(true)} className="mt-3 inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
-                <UserPlus className="h-3.5 w-3.5" /> Guruhga qo'shish
+                <UserPlus className="h-3.5 w-3.5" /> Guruhlarni boshqarish
               </button>
             </div>
           )}
@@ -515,12 +515,12 @@ function StudentProfile() {
 
 
       {assignOpen && (
-        <AssignGroupModal
-          existingGroupIds={enrollments.map((e) => e.group_id)}
+        <GroupManageModal
+          studentId={id}
+          enrollments={enrollments}
           groups={groups}
           onClose={() => setAssignOpen(false)}
           onSaved={() => { setAssignOpen(false); load(); }}
-          studentId={id}
         />
       )}
       {payOpen && (
@@ -593,40 +593,140 @@ function buildMonth(now: Date) {
   return { days, label: now.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" }) };
 }
 
-function AssignGroupModal({ studentId, existingGroupIds, groups, onClose, onSaved }: { studentId: string; existingGroupIds: string[]; groups: Group[]; onClose: () => void; onSaved: () => void }) {
-  const [gid, setGid] = useState("");
-  const [saving, setSaving] = useState(false);
-  const available = groups.filter((g) => !existingGroupIds.includes(g.id));
+function GroupManageModal({ studentId, enrollments, groups, onClose, onSaved }: { studentId: string; enrollments: Enrollment[]; groups: Group[]; onClose: () => void; onSaved: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [swapFor, setSwapFor] = useState<string | null>(null);
+  const [swapGid, setSwapGid] = useState("");
+  const [newGid, setNewGid] = useState("");
+  const [error, setError] = useState("");
+
+  const active = enrollments.filter((e) => e.status === "active" || e.status === "trial");
+  const activeIds = active.map((e) => e.group_id);
+  const available = groups.filter((g) => !activeIds.includes(g.id));
+  const endedDate = new Date().toISOString().slice(0, 10);
+
+  const run = async (task: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try { await task(); }
+    catch (err) { setError(err instanceof Error ? err.message : (err as { message?: string }).message ?? "Saqlanmadi"); }
+    finally { setBusy(false); }
+  };
+
+  const endEnrollment = (enrollmentId: string) =>
+    run(async () => {
+      if (!window.confirm("O'quvchini guruhdan chiqaramizmi? Eski to'lovlar va davomat saqlanadi.")) return;
+      const { error: err } = await supabase.from("student_enrollments").update({ status: "ended", ended_at: endedDate }).eq("id", enrollmentId);
+      if (err) throw err;
+      toast.success("Guruhdan chiqarildi");
+      onSaved();
+    });
+
+  const addTo = (gid: string) =>
+    run(async () => {
+      const g = groups.find((x) => x.id === gid);
+      const { error: err } = await supabase.from("student_enrollments").insert({
+        student_id: studentId,
+        group_id: gid,
+        subject_id: g?.subject_id ?? null,
+        teacher_user_id: g?.teacher_id ?? null,
+        monthly_fee: g?.monthly_fee ?? null,
+        status: "active",
+        ended_at: null,
+      });
+      if (err) throw err;
+      toast.success("Yangi guruhga qo'shildi");
+      onSaved();
+    });
+
+  const swap = (enrollmentId: string, toGid: string) =>
+    run(async () => {
+      const g = groups.find((x) => x.id === toGid);
+      const { error: endErr } = await supabase.from("student_enrollments").update({ status: "ended", ended_at: endedDate }).eq("id", enrollmentId);
+      if (endErr) throw endErr;
+      const { error: insErr } = await supabase.from("student_enrollments").insert({
+        student_id: studentId,
+        group_id: toGid,
+        subject_id: g?.subject_id ?? null,
+        teacher_user_id: g?.teacher_id ?? null,
+        monthly_fee: g?.monthly_fee ?? null,
+        status: "active",
+        ended_at: null,
+      });
+      if (insErr) throw insErr;
+      toast.success("Guruh almashtirildi");
+      onSaved();
+    });
+
   return (
-    <Modal title="Guruhga qo'shish" onClose={onClose}>
-      {available.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Barcha guruhlarga yozilgan. Yangi guruh yarating.</p>
-      ) : (
-        <>
-          <select value={gid} onChange={(e) => setGid(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm">
-            <option value="">— Guruh tanlang —</option>
-            {available.map((g) => <option key={g.id} value={g.id}>{g.name} — {Number(g.monthly_fee).toLocaleString()} so'm/oy</option>)}
-          </select>
-          <button
-            disabled={saving || !gid}
-            onClick={async () => {
-              setSaving(true);
-              const g = groups.find((x) => x.id === gid);
-              const { error } = await supabase.from("student_enrollments").insert({
-                student_id: studentId,
-                group_id: gid,
-                subject_id: g?.subject_id ?? null,
-                teacher_user_id: g?.teacher_id ?? null,
-                monthly_fee: g?.monthly_fee ?? null,
-              });
-              if (error) toast.error(error.message);
-              else { toast.success("Qo'shildi"); onSaved(); }
-              setSaving(false);
-            }}
-            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-          >Qo'shish</button>
-        </>
-      )}
+    <Modal title="Guruhlarni boshqarish" onClose={onClose}>
+      <div className="max-h-[60dvh] space-y-4 overflow-y-auto">
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Joriy guruhlar</h3>
+          {active.length === 0 && <p className="text-sm text-muted-foreground">Hech qaysi guruhda emas.</p>}
+          {active.map((e) => {
+            const g = groups.find((x) => x.id === e.group_id);
+            return (
+              <div key={e.id} className="rounded-lg border border-border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold">{g?.name ?? e.group?.name ?? "Guruh"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {Number(e.monthly_fee ?? g?.monthly_fee ?? 0).toLocaleString("uz-UZ")} so'm/oy
+                      {e.group?.subject?.name ? ` · ${e.group.subject.name}` : ""}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={busy || available.length === 0}
+                      onClick={() => { setSwapFor(swapFor === e.id ? null : e.id); setSwapGid(""); }}
+                      className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold hover:border-primary/50 disabled:opacity-50"
+                    >Almashtirish</button>
+                    <button
+                      disabled={busy}
+                      onClick={() => endEnrollment(e.id)}
+                      className="rounded-lg border border-destructive/40 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/5 disabled:opacity-50"
+                    >Chiqarish</button>
+                  </div>
+                </div>
+                {swapFor === e.id && (
+                  <div className="mt-3 space-y-2">
+                    <select value={swapGid} onChange={(ev) => setSwapGid(ev.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm">
+                      <option value="">— Yangi guruh tanlang —</option>
+                      {available.map((g2) => <option key={g2.id} value={g2.id}>{g2.name} — {Number(g2.monthly_fee).toLocaleString()} so'm/oy</option>)}
+                    </select>
+                    <button
+                      disabled={busy || !swapGid}
+                      onClick={() => swap(e.id, swapGid)}
+                      className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                    >Almashtirish</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="space-y-2 border-t border-border pt-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Yangi guruhga qo'shish</h3>
+          {available.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Barcha guruhlarga yozilgan. Yangi guruh yarating.</p>
+          ) : (
+            <>
+              <select value={newGid} onChange={(ev) => setNewGid(ev.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm">
+                <option value="">— Guruh tanlang —</option>
+                {available.map((g) => <option key={g.id} value={g.id}>{g.name} — {Number(g.monthly_fee).toLocaleString()} so'm/oy</option>)}
+              </select>
+              <button
+                disabled={busy || !newGid}
+                onClick={() => addTo(newGid)}
+                className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              >Qo'shish</button>
+            </>
+          )}
+        </div>
+      </div>
+      {error && <p role="alert" className="break-words text-sm text-destructive">{error}</p>}
     </Modal>
   );
 }

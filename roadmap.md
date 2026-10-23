@@ -69,4 +69,8 @@
 - [x] Markaz domeni (masalan ilmnuri.xyz) ochilganda o‘sha markaz nomi va kirish sahifasi chiqadi; CRM yon panelida foydalanuvchi markazi nomi.
 - [x] EduNest logo/nomi tekshirildi: fayllar, sahifalar va bazada yo‘q; faqat Telegram eski preview keshi.
 - [x] Guruhlar: bitta "O‘quvchi qo‘shish" tugmasi (guruh tanlanadi); global qidiruvdagi guruh shu guruhni ochadi.
-- [ ] ILM NURI markaziga direktor/xodim akkaunti biriktirish — hozir markazda foydalanuvchi yo‘q.
+- [x] ILM NURI direktor logini markazga biriktirildi (0023); admin logini hali yaratilmagan — Sozlamalar → Loginlar orqali.
+- [x] ILM NURI: naqd/karta/bank kassalari yaratildi (0024); logo, manzil, fanlar markaz tomonidan o'zi to'ldiriladi.
+- [x] Sozlamalarda "Markaz profili": nom, logo, telefon, manzil tahriri (updateMyCenter, rol + o'z markazi tekshiriladi).
+- [x] O'quvchi profili: bitta "Guruhlarni boshqarish" oynasi — joriy guruhlar, chiqarish, almashtirish, yangi guruhga qo'shish.
+- [ ] ilmnuri.xyz jonli trafikda qayta tekshirish (nashrdan keyin).
