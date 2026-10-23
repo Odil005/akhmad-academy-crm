@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { normalizeHost } from "@/lib/tenant-host";
+import { z } from "zod";
 
 export type SiteTenant = {
   id: string;
