@@ -1,5 +1,9 @@
 # Roadmap
 
+## 2026-10-24 CRM tezligi va 50 GB
+- [ ] Asosiy sahifalar va ortiqcha so‘rovlarni o‘lchash, aniqlangan sekinlikni tuzatish va qayta tekshirish.
+- [ ] 50 GB joy so‘rovi: joriy disk holatini tekshirish; disk to‘lmagan bo‘lsa avtomatik kattalashtirish vositasi qo‘llanmaydi, foydalanuvchiga boshqaruvdagi yo‘l ko‘rsatiladi.
+
 ## 2026-10-19 guruh haftalik jadvali
 - [x] Guruhda hafta kunlari, boshlanish/tugash tanlovi; darslar guruh saqlanishi bilan tranzaksiyada yaratiladi. Jadval o‘zgarsa eski darslar o‘chirilmaydi, faol bo‘lmagan holda saqlanadi, qo‘lda kiritilgan darslar saqlanadi.
 - [x] Guruh/dars hodisalari ochiq jadvalni yangilaydi; oynaga qaytilganda qayta o‘qiladi. 12 qoida sinovi o‘tdi; bazada Du/Chor/Ju 08–10 avtomatik yaratish va Se/Pay 10–12 ga o‘zgartirish tekshirildi, sinov guruhi tozalandi. Yig‘ilish xatosiz.
