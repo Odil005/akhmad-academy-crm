@@ -1,7 +1,7 @@
 # Roadmap
 
 ## 2026-10-24 CRM tezligi va 50 GB
-- [ ] Asosiy sahifalar va ortiqcha so‘rovlarni o‘lchash, aniqlangan sekinlikni tuzatish va qayta tekshirish.
+- [ ] Asosiy sahifalar va ortiqcha so‘rovlarni o‘lchash, aniqlangan sekinlikni tuzatish va qayta tekshirish; eskirgan qidiruvlarni bekor qilish va tarix o‘sishida ortiqcha yuklanishni oldini olish.
 - [ ] 50 GB joy so‘rovi: joriy disk holatini tekshirish; disk to‘lmagan bo‘lsa avtomatik kattalashtirish vositasi qo‘llanmaydi, foydalanuvchiga boshqaruvdagi yo‘l ko‘rsatiladi.
 
 ## 2026-10-19 guruh haftalik jadvali

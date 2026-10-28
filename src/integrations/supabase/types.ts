@@ -4272,6 +4272,14 @@ export type Database = {
         Args: { p_chat_id: string; p_update_id: number; p_update_kind: string }
         Returns: boolean
       }
+      crm_chart_monthly_totals: {
+        Args: { p_boundaries: string[] }
+        Returns: {
+          bucket: number
+          expense: number
+          income: number
+        }[]
+      }
       debtors_overview: {
         Args: never
         Returns: {

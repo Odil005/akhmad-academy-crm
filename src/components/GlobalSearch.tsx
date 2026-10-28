@@ -59,49 +59,45 @@ export function GlobalSearch() {
       setLoading(false);
       return;
     }
+    const controller = new AbortController();
+    setStudents([]);
+    setProfiles([]);
+    setGroups([]);
+    setLeads([]);
+    setLoading(true);
     const t = setTimeout(async () => {
-      setLoading(true);
+      try {
       const like = `%${query}%`;
 
       const profilesQ = supabase
         .from("profiles")
         .select("id, full_name, phone")
         .or(`full_name.ilike.${like},phone.ilike.${like}`)
-        .limit(10);
+        .limit(10).abortSignal(controller.signal);
 
       const groupsQ = supabase
         .from("groups")
         .select("id, name, teacher_id, subject:subjects(name)")
         .ilike("name", like)
-        .limit(8);
+        .limit(8).abortSignal(controller.signal);
 
       const leadsQ = supabase
         .from("leads")
         .select("id, name, phone, course, status")
         .or(`name.ilike.${like},phone.ilike.${like},course.ilike.${like}`)
-        .limit(8);
+        .limit(8).abortSignal(controller.signal);
 
       const [{ data: profs }, { data: grps }, { data: lds }] = await Promise.all([
         profilesQ,
         groupsQ,
         leadsQ,
       ]);
+      if (controller.signal.aborted) return;
 
       // groups.teacher_id auth.users ga qaraydi — PostgREST orqali profiles ga
       // to'g'ridan-to'g'ri bog'lab bo'lmaydi, shuning uchun ismlarni alohida olamiz.
       const teacherIds = [...new Set((grps ?? []).map((g: any) => g.teacher_id).filter(Boolean))];
       const teacherNames = new Map<string, string>();
-      if (teacherIds.length) {
-        const { data: tprofs } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", teacherIds);
-        (tprofs ?? []).forEach((p: any) => teacherNames.set(p.id, p.full_name ?? ""));
-      }
-      (grps ?? []).forEach((g: any) => {
-        g.teacher = { full_name: teacherNames.get(g.teacher_id) ?? null };
-      });
-
       const profileIds = (profs ?? []).map((p: any) => p.id);
       const orParts: string[] = [
         `first_name.ilike.${like}`,
@@ -113,7 +109,7 @@ export function GlobalSearch() {
       ];
       if (profileIds.length) orParts.push(`profile_id.in.(${profileIds.join(",")})`);
 
-      const { data: studs } = await supabase
+      const studentsQ = supabase
         .from("students")
         .select(
           `id, status_enum, full_name, first_name, last_name, parent_phone, parent_full_name,
@@ -121,15 +117,28 @@ export function GlobalSearch() {
            group:groups(name, subject:subjects(name))`,
         )
         .or(orParts.join(","))
-        .limit(12);
+        .limit(12).abortSignal(controller.signal);
+
+      const [{ data: studs }, teacherResult] = await Promise.all([
+        studentsQ,
+        teacherIds.length ? supabase.from("profiles").select("id, full_name")
+          .in("id", teacherIds).abortSignal(controller.signal) : Promise.resolve({ data: [] }),
+      ]);
+      if (controller.signal.aborted) return;
+      (teacherResult.data ?? []).forEach((p: any) => teacherNames.set(p.id, p.full_name ?? ""));
+      (grps ?? []).forEach((g: any) => {
+        g.teacher = { full_name: teacherNames.get(g.teacher_id) ?? null };
+      });
 
       setStudents(studs ?? []);
       setProfiles(profs ?? []);
       setGroups(grps ?? []);
       setLeads(lds ?? []);
-      setLoading(false);
-    }, 250);
-    return () => clearTimeout(t);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }, 350);
+    return () => { clearTimeout(t); controller.abort(); };
   }, [q]);
 
   const total = students.length + profiles.length + groups.length + leads.length;
