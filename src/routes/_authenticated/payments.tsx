@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Undo2, Ban, History } from "lucide-react";
-import { PaymentModal } from "@/components/PaymentModal";
+const PaymentModal = lazy(() => import("@/components/PaymentModal").then(module => ({ default: module.PaymentModal })));
 import { refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
 
 type AuditRow = { id: string; action: string; old_data: unknown; new_data: unknown; created_at: string; user_name: string };
@@ -54,28 +54,44 @@ function PaymentsPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [isDirector, setIsDirector] = useState(false);
   const [history, setHistory] = useState<{ paymentId: string; rows: AuditRow[] } | null>(null);
+  const loadVersion = useRef(0);
 
   const [f, setF] = useState({ from: "", to: "", course: "", method: "", cashier: "" });
 
   const load = async () => {
     setLoading(true);
-    const [{ data: p }, { data: n }, { data: c }, { data: pr }] = await Promise.all([
+    const version = ++loadVersion.current;
+    try {
+    const [{ data: p, error }, { data: c }, { data: pr }] = await Promise.all([
       supabase.from("payments")
         .select("id, amount, total_amount, period_month, status, payment_method, paid_at, created_at, cashier_id, course_id, student:students(id, first_name, last_name, profile:profiles(full_name)), course:groups!payments_course_id_fkey(id, name)")
         .order("created_at", { ascending: false }).limit(500),
-      supabase.from("notification_queue").select("payment_id, status, created_at").order("created_at", { ascending: false }),
       supabase.from("groups").select("id, name"),
       supabase.from("profiles").select("id, full_name"),
     ]);
+    if (error) throw error;
+    if (version !== loadVersion.current) return;
     setRows((p as never) ?? []);
-    const nm: Record<string, string> = {};
-    for (const x of (n ?? []) as any[]) if (x.payment_id && !nm[x.payment_id]) nm[x.payment_id] = x.status;
-    setNotifs(nm);
+    setNotifs({});
     setCourses((c ?? []) as { id: string; name: string }[]);
     const cm: Record<string, string> = {};
     for (const x of (pr ?? []) as any[]) cm[x.id] = x.full_name ?? "—";
     setCashiers(cm);
-    setLoading(false);
+    // Notification history must never delay the payment list or read unrelated payments.
+    const ids = (p ?? []).map(x => x.id);
+    if (ids.length) void supabase.from("notification_queue")
+      .select("payment_id, status, created_at").in("payment_id", ids)
+      .order("created_at", { ascending: false }).then(({ data: n }) => {
+        if (version !== loadVersion.current) return;
+        const nm: Record<string, string> = {};
+        for (const x of n ?? []) if (x.payment_id && !nm[x.payment_id]) nm[x.payment_id] = x.status;
+        setNotifs(nm);
+      });
+    } catch (e) {
+      if (version === loadVersion.current) setToast((e as Error)?.message || "To‘lovlarni yuklab bo‘lmadi");
+    } finally {
+      if (version === loadVersion.current) setLoading(false);
+    }
   };
 
   useDataEvent("groups", () => {
@@ -85,6 +101,7 @@ function PaymentsPage() {
   useEffect(() => {
     load();
     getCashierContext().then((x) => setIsDirector(!!x.isDirector)).catch(() => setIsDirector(false));
+    return () => { loadVersion.current++; };
   }, []);
 
   const filtered = useMemo(() => rows.filter((r) => {
@@ -226,7 +243,7 @@ function PaymentsPage() {
         </div>
       </div>
 
-      {open && <PaymentModal onClose={() => setOpen(false)} onDone={load} />}
+      {open && <Suspense fallback={<p className="text-sm text-muted-foreground">Yuklanmoqda…</p>}><PaymentModal onClose={() => setOpen(false)} onDone={load} /></Suspense>}
 
       {history && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setHistory(null)}>

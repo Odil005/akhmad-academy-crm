@@ -176,6 +176,13 @@
       "when": 1792777756444,
       "tag": "0024_ilmnuri_center_setup",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793176290140,
+      "tag": "0025_crm_chart_monthly_totals",
+      "breakpoints": true
     }
   ]
 }
