@@ -34,7 +34,7 @@ function Dashboard() {
       <div className="min-w-0"><h1 className="text-xl font-bold">Boshqaruv paneli</h1><p className="mt-1 text-xs text-muted-foreground">{new Date().toLocaleDateString("uz-UZ", { day: "numeric", month: "long", year: "numeric" })}</p></div>
       <div className="flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/students"><Users className="h-4 w-4" /> O‘quvchilar</Link></Button>{isAdminOnly && <Button size="sm" variant={deskOpen ? "secondary" : "default"} onClick={() => setDeskOpen(v => !v)}>{deskOpen ? "Ko‘rsatkichlar" : "Administrator ish stoli"}</Button>}</div>
     </header>
-    {deskOpen ? <Suspense fallback={<DashboardLoading />}><AdminDesk /></Suspense> : <CrmOverview />}
+    {deskOpen ? <Suspense fallback={<DashboardLoading />}><AdminDesk /></Suspense> : <CrmOverview userId={user.id} />}
   </div>;
 
   return (
