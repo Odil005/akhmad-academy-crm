@@ -1,7 +1,7 @@
 # Roadmap
 
 ## 2026-10-24 CRM tezligi va 50 GB
-- [ ] Bosh sahifadagi takroriy so‘rovlarni birlashtirish, asosiy raqamlar ko‘rinish vaqtini oldin/keyin uch marta o‘lchash; moliyaviy qiymatlar yangi ochilganda qayta olinadi.
+- [x] Bosh sahifadagi parallel takroriy o‘qishlar foydalanuvchi bo‘yicha birlashtirildi; tugagan qiymatlar keshlanmaydi. Uch mahalliy o‘lchov: oldin 3.481/2.452/2.970 s, keyin 2.656/2.318/2.121 s (o‘rtacha 2.968→2.365 s, taxminan 20%). Bosh sahifa Data API o‘qishlari 23→14 (9 takroriy so‘rov olib tashlandi), real 663 faol o‘quvchi va 37 guruh ko‘rindi. Jonli sayt tezligi va tushumli moliyaviy sinov hali tasdiqlanmagan.
 - [x] Qidiruv eskirgan so‘rovlarni bekor qiladi; o‘qituvchi va o‘quvchi o‘qishlari parallel. Bosh sahifa olti oylik tarix o‘rniga 6 ta jami va 5 ta faoliyat oladi. To‘lov xabarlari faqat ko‘rsatilgan to‘lovlar uchun, ro‘yxatni kutdirmasdan olinadi; to‘lov oynasi talabda yuklanadi. 15 test o‘tdi, direktor sessiyasida qidiruv natijasi va to‘lov oynasi ochildi, runtime xatosi yo‘q. To‘lovlarga ichki o‘tish 0.41 s (bitta mahalliy sinov, oldingi bir xil o‘lchov yo‘q); bosh sahifa sovuq ochilishi 6.43 s. RPC 200, jami qiymatlar ko‘rinadigan tarix bilan mos, lekin tarixda 0 tranzaksiya bo‘lgani uchun haqiqiy tushumli sinov tasdiqlanmagan.
 - [ ] 50 GB qo‘shilmagan: disk 17%, kattalashtirish vositasi faqat disk tiqilinchida ishlatiladi; Backend → Advanced settings → Disk yo‘li ko‘rsatildi. Kattalashtirishni foydalanuvchi shu boshqaruvda tasdiqlashi kerak; hajmni keyin kichraytirib bo‘lmaydi, qo‘shimcha foydalanish to‘lovi bo‘lishi mumkin.
 
