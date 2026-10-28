@@ -5,14 +5,17 @@ import { ArrowUpRight, BookOpen, CalendarDays, CreditCard, FileSpreadsheet, More
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { chartMonths } from "@/lib/chart-months";
+import { createInFlightReads } from "@/lib/in-flight-reads";
 
 type Group = { id: string; name: string; teacher_id: string | null; subject: { name: string } | null; students: number };
 type Point = { month: string; income: number; expense: number };
 type Activity = { id: string; amount: number; type: string; description: string | null; occurred_at: string };
 const fmt = (n: number) => n.toLocaleString("uz-UZ");
+type OverviewData = { active: number; groups: Group[]; teachers: Record<string, string>; income: number; debtors: number; attendance: number | null; points: Point[]; activity: Activity[] };
+const readOverview = createInFlightReads<OverviewData>();
 
-export function CrmOverview() {
-  const [data, setData] = useState<{ active: number; groups: Group[]; teachers: Record<string, string>; income: number; debtors: number; attendance: number | null; points: Point[]; activity: Activity[] } | null>(null);
+export function CrmOverview({ userId }: { userId: string }) {
+  const [data, setData] = useState<OverviewData | null>(null);
   const [error, setError] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [period, setPeriod] = useState<"6" | "3">("6");
@@ -20,11 +23,11 @@ export function CrmOverview() {
   useEffect(() => {
     let alive = true;
     setError(false);
-    const load = async () => {
+    const load = () => readOverview(userId, async () => {
       const now = new Date();
       const months = chartMonths(now);
       const start = months[0];
-      if (!start) return;
+      if (!start) throw new Error("Missing calendar range");
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const today = now.toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" });
       const [students, groups, profiles, enrollments, attendance, metrics, totals, activity, income] = await Promise.all([
@@ -45,11 +48,11 @@ export function CrmOverview() {
       });
       const counts: Record<string, number> = {};
       for (const e of enrollments.data ?? []) counts[e.group_id] = (counts[e.group_id] ?? 0) + 1;
-      if (alive) setData({ active: students.count ?? 0, groups: (groups.data ?? []).map(g => ({ ...g, students: counts[g.id] ?? 0 })), teachers: Object.fromEntries((profiles.data ?? []).map(p => [p.id, p.full_name ?? "—"])), income: Number(income.data?.[0]?.income ?? 0), debtors: Number(metrics.data?.[0]?.debtors ?? 0), attendance: attendance.data?.length ? Math.round(attendance.data.filter(a => a.status === "present" || a.status === "late").length / attendance.data.length * 100) : null, points, activity: activity.data ?? [] });
-    };
-    void load().catch(() => { if (alive) setError(true); });
+      return { active: students.count ?? 0, groups: (groups.data ?? []).map(g => ({ ...g, students: counts[g.id] ?? 0 })), teachers: Object.fromEntries((profiles.data ?? []).map(p => [p.id, p.full_name ?? "—"])), income: Number(income.data?.[0]?.income ?? 0), debtors: Number(metrics.data?.[0]?.debtors ?? 0), attendance: attendance.data?.length ? Math.round(attendance.data.filter(a => a.status === "present" || a.status === "late").length / attendance.data.length * 100) : null, points, activity: activity.data ?? [] };
+    });
+    void load().then(value => { if (alive) setData(value); }).catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
-  }, [refresh]);
+  }, [refresh, userId]);
 
   if (error) return <div className="flex items-center gap-3 border border-destructive/30 p-4 text-sm"><AlertCircle className="text-destructive" /> Ma’lumotlarni olishda xato <Button variant="outline" size="sm" onClick={() => setRefresh(v => v + 1)}><RefreshCw /> Qayta urinish</Button></div>;
 
