@@ -20,6 +20,7 @@
 - Teacher phone activation accepts only Telegram-verified own contacts in private chats and an unambiguous staff phone/role match; an atomic service-only RPC preserves existing account links.
 - Accounting AI uses the shared tool authorization and an execution guard to deny financial mutations; aggregate context totals in the database to avoid capped row-transfer calculations.
 - Load the Jarvis panel on explicit launcher activation and keep route warming intent-based rather than preloading unrelated screens on mount, so primary content does not compete with unused modules.
+- Dashboard financial charts use invoker aggregates with explicit browser calendar boundaries and a separate bounded activity read; growing transaction history must not be transferred to calculate totals. Global search aborts obsolete requests, and payment notifications load only for displayed payment IDs without blocking the list.
 - Dispose the root auth subscription on unmount, including delayed subscription initialization, to prevent duplicate invalidations and repeated protected fetches.
 - Primary student group writes create missing enrollments transactionally through an invoker trigger; active group subject/teacher edits synchronize enrollments without changing individual prices or payment history.
 - Import group resolution keys include lesson time and reject ambiguous teacher/group matches, preventing different time slots from sharing the first matching group.

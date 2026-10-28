@@ -4,6 +4,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { ArrowUpRight, BookOpen, CalendarDays, CreditCard, FileSpreadsheet, MoreHorizontal, ScanFace, Users, Wallet, AlertCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { chartMonths } from "@/lib/chart-months";
 
 type Group = { id: string; name: string; teacher_id: string | null; subject: { name: string } | null; students: number };
 type Point = { month: string; income: number; expense: number };
@@ -21,34 +22,30 @@ export function CrmOverview() {
     setError(false);
     const load = async () => {
       const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+      const months = chartMonths(now);
+      const start = months[0];
+      if (!start) return;
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const today = now.toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" });
-      const [students, groups, profiles, enrollments, attendance, metrics] = await Promise.all([
+      const [students, groups, profiles, enrollments, attendance, metrics, totals, activity, income] = await Promise.all([
         supabase.from("students").select("id", { count: "exact", head: true }).eq("status_enum", "active"),
         supabase.from("groups").select("id,name,teacher_id,subject:subjects(name)").order("name").limit(1000),
         supabase.from("profiles").select("id,full_name").limit(1000),
         supabase.from("student_enrollments").select("group_id").eq("status", "active").limit(1000),
         supabase.from("attendance").select("status").eq("date", today).limit(1000),
         supabase.rpc("admin_desk_metrics"),
+        supabase.rpc("crm_chart_monthly_totals", { p_boundaries: months.map(date => date.toISOString()) }),
+        supabase.from("transactions").select("id,amount,type,description,occurred_at").gte("occurred_at", start.toISOString()).order("occurred_at", { ascending: false }).limit(5),
+        supabase.rpc("finance_context_totals", { p_since: monthStart }),
       ]);
-      if ([students, groups, profiles, enrollments, attendance, metrics].some(r => r.error)) throw new Error("read");
-      const tx: Activity[] = [];
-      for (let offset = 0; ; offset += 1000) {
-        const result = await supabase.from("transactions").select("id,amount,type,description,occurred_at").gte("occurred_at", start.toISOString()).order("occurred_at", { ascending: false }).range(offset, offset + 999);
-        if (result.error) throw result.error;
-        tx.push(...result.data);
-        if (result.data.length < 1000) break;
-      }
-      const points = Array.from({ length: 6 }, (_, i) => {
-        const date = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-        const next = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-        const rows = tx.filter(t => new Date(t.occurred_at) >= date && new Date(t.occurred_at) < next);
-        return { month: date.toLocaleDateString("uz-UZ", { month: "short" }), income: rows.filter(t => t.type === "income").reduce((s,t) => s + Number(t.amount),0), expense: rows.filter(t => t.type === "expense").reduce((s,t) => s + Number(t.amount),0) };
+      if ([students, groups, profiles, enrollments, attendance, metrics, totals, activity, income].some(r => r.error)) throw new Error("read");
+      const points = months.slice(0,6).map((date, i) => {
+        const total = totals.data?.find(row => row.bucket === i + 1);
+        return { month: date.toLocaleDateString("uz-UZ", { month: "short" }), income: Number(total?.income ?? 0), expense: Number(total?.expense ?? 0) };
       });
       const counts: Record<string, number> = {};
       for (const e of enrollments.data ?? []) counts[e.group_id] = (counts[e.group_id] ?? 0) + 1;
-      if (alive) setData({ active: students.count ?? 0, groups: (groups.data ?? []).map(g => ({ ...g, students: counts[g.id] ?? 0 })), teachers: Object.fromEntries((profiles.data ?? []).map(p => [p.id, p.full_name ?? "—"])), income: tx.filter(t => t.type === "income" && t.occurred_at >= monthStart).reduce((s,t) => s + Number(t.amount),0), debtors: Number(metrics.data?.[0]?.debtors ?? 0), attendance: attendance.data?.length ? Math.round(attendance.data.filter(a => a.status === "present" || a.status === "late").length / attendance.data.length * 100) : null, points, activity: tx.slice(0,5) });
+      if (alive) setData({ active: students.count ?? 0, groups: (groups.data ?? []).map(g => ({ ...g, students: counts[g.id] ?? 0 })), teachers: Object.fromEntries((profiles.data ?? []).map(p => [p.id, p.full_name ?? "—"])), income: Number(income.data?.[0]?.income ?? 0), debtors: Number(metrics.data?.[0]?.debtors ?? 0), attendance: attendance.data?.length ? Math.round(attendance.data.filter(a => a.status === "present" || a.status === "late").length / attendance.data.length * 100) : null, points, activity: activity.data ?? [] });
     };
     void load().catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
