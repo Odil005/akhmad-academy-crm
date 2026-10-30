@@ -68,7 +68,7 @@ import { Route as AuthenticatedSettingsStatsRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsSubjectsRouteImport } from './routes/_authenticated/settings.subjects'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings.subscription'
 import { Route as AuthenticatedSettingsTeachersRouteImport } from './routes/_authenticated/settings.teachers'
-import { Route as AuthenticatedStudentsIdRouteImport } from './routes/_authenticated/students.$id'
+import { Route as AuthenticatedStudentsIdRouteImport } from './routes/_authenticated/students_.$id'
 import { Route as AuthenticatedTeachersIdRouteImport } from './routes/_authenticated/teachers_.$id'
 import { Route as ApiPublicCronDailyReportRouteImport } from './routes/api/public/cron.daily-report'
 import { Route as ApiPublicCronMonthlyInvoicesRouteImport } from './routes/api/public/cron.monthly-invoices'
@@ -403,9 +403,9 @@ const AuthenticatedSettingsTeachersRoute =
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedStudentsIdRoute = AuthenticatedStudentsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedStudentsRoute,
+  id: '/students_/$id',
+  path: '/students/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTeachersIdRoute = AuthenticatedTeachersIdRouteImport.update({
   id: '/teachers_/$id',
@@ -503,7 +503,7 @@ export interface FileRoutesByFullPath {
   '/salary': typeof AuthenticatedSalaryRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
-  '/students': typeof AuthenticatedStudentsRouteWithChildren
+  '/students': typeof AuthenticatedStudentsRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/teachers': typeof AuthenticatedTeachersRoute
@@ -574,7 +574,7 @@ export interface FileRoutesByTo {
   '/rooms': typeof AuthenticatedRoomsRoute
   '/salary': typeof AuthenticatedSalaryRoute
   '/schedule': typeof AuthenticatedScheduleRoute
-  '/students': typeof AuthenticatedStudentsRouteWithChildren
+  '/students': typeof AuthenticatedStudentsRoute
   '/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/teachers': typeof AuthenticatedTeachersRoute
@@ -648,7 +648,7 @@ export interface FileRoutesById {
   '/_authenticated/salary': typeof AuthenticatedSalaryRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
-  '/_authenticated/students': typeof AuthenticatedStudentsRouteWithChildren
+  '/_authenticated/students': typeof AuthenticatedStudentsRoute
   '/_authenticated/teacher-kpi': typeof AuthenticatedTeacherKpiRoute
   '/_authenticated/teacher-panel': typeof AuthenticatedTeacherPanelRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
@@ -671,7 +671,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/teachers': typeof AuthenticatedSettingsTeachersRoute
-  '/_authenticated/students/$id': typeof AuthenticatedStudentsIdRoute
+  '/_authenticated/students_/$id': typeof AuthenticatedStudentsIdRoute
   '/_authenticated/teachers_/$id': typeof AuthenticatedTeachersIdRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/public/cron/daily-report': typeof ApiPublicCronDailyReportRoute
@@ -889,7 +889,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/subjects'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/teachers'
-    | '/_authenticated/students/$id'
+    | '/_authenticated/students_/$id'
     | '/_authenticated/teachers_/$id'
     | '/_authenticated/settings/'
     | '/api/public/cron/daily-report'
@@ -1343,12 +1343,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsTeachersRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
-    '/_authenticated/students/$id': {
-      id: '/_authenticated/students/$id'
-      path: '/$id'
+    '/_authenticated/students_/$id': {
+      id: '/_authenticated/students_/$id'
+      path: '/students/$id'
       fullPath: '/students/$id'
       preLoaderRoute: typeof AuthenticatedStudentsIdRouteImport
-      parentRoute: typeof AuthenticatedStudentsRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/teachers_/$id': {
       id: '/_authenticated/teachers_/$id'
@@ -1479,19 +1479,6 @@ const AuthenticatedSettingsRouteWithChildren =
     AuthenticatedSettingsRouteChildren,
   )
 
-interface AuthenticatedStudentsRouteChildren {
-  AuthenticatedStudentsIdRoute: typeof AuthenticatedStudentsIdRoute
-}
-
-const AuthenticatedStudentsRouteChildren: AuthenticatedStudentsRouteChildren = {
-  AuthenticatedStudentsIdRoute: AuthenticatedStudentsIdRoute,
-}
-
-const AuthenticatedStudentsRouteWithChildren =
-  AuthenticatedStudentsRoute._addFileChildren(
-    AuthenticatedStudentsRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBehaviorRoute: typeof AuthenticatedBehaviorRoute
@@ -1519,11 +1506,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSalaryRoute: typeof AuthenticatedSalaryRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
-  AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
+  AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRoute
   AuthenticatedTeacherKpiRoute: typeof AuthenticatedTeacherKpiRoute
   AuthenticatedTeacherPanelRoute: typeof AuthenticatedTeacherPanelRoute
   AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
   AuthenticatedVideoLessonsRoute: typeof AuthenticatedVideoLessonsRoute
+  AuthenticatedStudentsIdRoute: typeof AuthenticatedStudentsIdRoute
   AuthenticatedTeachersIdRoute: typeof AuthenticatedTeachersIdRoute
 }
 
@@ -1554,11 +1542,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSalaryRoute: AuthenticatedSalaryRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
-  AuthenticatedStudentsRoute: AuthenticatedStudentsRouteWithChildren,
+  AuthenticatedStudentsRoute: AuthenticatedStudentsRoute,
   AuthenticatedTeacherKpiRoute: AuthenticatedTeacherKpiRoute,
   AuthenticatedTeacherPanelRoute: AuthenticatedTeacherPanelRoute,
   AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
   AuthenticatedVideoLessonsRoute: AuthenticatedVideoLessonsRoute,
+  AuthenticatedStudentsIdRoute: AuthenticatedStudentsIdRoute,
   AuthenticatedTeachersIdRoute: AuthenticatedTeachersIdRoute,
 }
 
