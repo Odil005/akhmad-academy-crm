@@ -368,9 +368,13 @@ function GroupRoster({
             >
               <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                  <span className="truncate font-semibold">
-                    {r.student?.first_name} {r.student?.last_name ?? ""}
-                  </span>
+                  {r.student?.id ? (
+                    <Link to="/students/$id" params={{ id: r.student.id }} className="truncate font-semibold hover:text-primary hover:underline">
+                      {r.student?.first_name} {r.student?.last_name ?? ""}
+                    </Link>
+                  ) : (
+                    <span className="truncate font-semibold">{r.student?.first_name} {r.student?.last_name ?? ""}</span>
+                  )}
                   {r.student?.low_income && (
                     <LowIncomeBadge note={r.student.low_income_note} compact />
                   )}
