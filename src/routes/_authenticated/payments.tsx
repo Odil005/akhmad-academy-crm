@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
