@@ -49,7 +49,7 @@ type Enrollment = {
 type LessonRow = { group_id: string; day_of_week: number; start_time: string; end_time: string };
 type PaymentRow = { id: string; amount: number; period_month: string; status: string; paid_at: string | null; note: string | null };
 
-export const Route = createFileRoute("/_authenticated/students/$id")({
+export const Route = createFileRoute("/_authenticated/students_/$id")({
   head: () => ({ meta: [
     { title: "O‘quvchi va oylik to‘lov | Akhmad Academy" },
     { name: "description", content: "Akhmad Academy o‘quvchisining guruhlari, oylik to‘lovi va davomati." },
