@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -188,7 +188,7 @@ function PaymentsPage() {
                 const name = r.student?.profile?.full_name || [r.student?.last_name, r.student?.first_name].filter(Boolean).join(" ") || "—";
                 return (
                   <tr key={r.id}>
-                    <td className="px-4 py-3 font-medium">{name}</td>
+                    <td className="px-4 py-3 font-medium">{r.student?.id ? <Link to="/students/$id" params={{ id: r.student.id }} className="hover:text-primary hover:underline">{name}</Link> : name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{r.course?.name ?? "—"}</td>
                     <td className="px-4 py-3 text-muted-foreground">{new Date(r.period_month).toLocaleDateString("uz-UZ", { year: "numeric", month: "short" })}</td>
                     <td className="px-4 py-3 font-semibold">{fmt(Number(r.total_amount || r.amount))}</td>

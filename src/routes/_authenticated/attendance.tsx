@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import { Check, X, Clock, FileText, ClipboardCheck } from "lucide-react";
@@ -195,7 +195,7 @@ function AttendancePage() {
                   return (
                     <li key={s.id} className="flex flex-col gap-2 p-3 md:flex-row md:items-center">
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold">{s.first_name} {s.last_name ?? ""}</div>
+                        <Link to="/students/$id" params={{ id: s.id }} className="block text-sm font-semibold hover:text-primary hover:underline">{s.first_name} {s.last_name ?? ""}</Link>
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5">
                         {(["present","absent","late","excused"] as Status[]).map((st) => (
