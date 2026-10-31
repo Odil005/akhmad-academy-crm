@@ -48,6 +48,13 @@ type Enrollment = {
 };
 type LessonRow = { group_id: string; day_of_week: number; start_time: string; end_time: string };
 type PaymentRow = { id: string; amount: number; period_month: string; status: string; paid_at: string | null; note: string | null };
+type AttendanceRow = { id: string; date: string; status: string; note: string | null };
+const ATT_META: Record<string, { label: string; cls: string }> = {
+  present: { label: "Keldi", cls: "bg-emerald-500/15 text-emerald-400" },
+  late: { label: "Kechikdi", cls: "bg-amber-500/15 text-amber-400" },
+  absent: { label: "Kelmadi", cls: "bg-destructive/15 text-destructive" },
+  excused: { label: "Sababli", cls: "bg-sky-500/15 text-sky-400" },
+};
 
 export const Route = createFileRoute("/_authenticated/students_/$id")({
   head: () => ({ meta: [
@@ -68,6 +75,7 @@ function StudentProfile() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignOpen, setAssignOpen] = useState(false);
@@ -79,7 +87,7 @@ function StudentProfile() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: s }, { data: enr }, { data: pays }, { data: gs }] = await Promise.all([
+    const [{ data: s }, { data: enr }, { data: pays }, { data: gs }, { data: att }] = await Promise.all([
       supabase.from("students").select(`
         id, monthly_fee, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes, low_income, low_income_note,
         telegram_chat_id, telegram_username, telegram_verified_at, telegram_last_checked_at, telegram_last_error,
@@ -91,7 +99,9 @@ function StudentProfile() {
       `).eq("student_id", id).order("started_at", { ascending: false }),
       supabase.from("payments").select("id, amount, period_month, status, paid_at, note").eq("student_id", id).order("period_month", { ascending: false }),
       supabase.from("groups").select("id, name, monthly_fee, subject_id, teacher_id").order("name"),
+      supabase.from("attendance").select("id, date, status, note").eq("student_id", id).order("date", { ascending: false }).limit(120),
     ]);
+    setAttendance((att as never) ?? []);
     setStudent((s as never) ?? null);
     const enrolls = ((enr as never) ?? []) as Enrollment[];
     // groups.teacher_id auth.users ga qaraydi — ismlarni profiles dan alohida olamiz
@@ -136,6 +146,17 @@ function StudentProfile() {
   }, [payments]);
 
   const lessonDaysSet = useMemo(() => new Set(lessons.map((l) => l.day_of_week % 7)), [lessons]);
+  const attStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    attendance.forEach((a) => { counts[a.status] = (counts[a.status] ?? 0) + 1; });
+    const total = attendance.length;
+    const attended = (counts.present ?? 0) + (counts.late ?? 0);
+    return { counts, total, percent: total ? Math.round((attended / total) * 100) : null };
+  }, [attendance]);
+  const lastPaid = useMemo(
+    () => payments.filter((p) => p.status === "paid" && p.paid_at).sort((a, b) => (b.paid_at ?? "").localeCompare(a.paid_at ?? ""))[0] ?? null,
+    [payments],
+  );
   const monthCalendar = useMemo(() => buildMonth(new Date()), []);
 
   if (loading) return <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">Yuklanmoqda...</div>;
@@ -214,6 +235,29 @@ function StudentProfile() {
         <button onClick={() => navigate({ to: "/students" })} className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:border-primary/50">
           <ArrowLeft className="h-3.5 w-3.5" /> Ro'yxatga
         </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Balans</div>
+          <div className={`mt-1 text-xl font-extrabold ${balance - totalMonthlyFee < 0 ? "text-destructive" : "text-emerald-400"}`}>{balance.toLocaleString("uz-UZ")} so‘m</div>
+          <div className="text-[11px] text-muted-foreground">Oylik: {totalMonthlyFee.toLocaleString("uz-UZ")} so‘m</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Davomat</div>
+          <div className="mt-1 text-xl font-extrabold text-primary">{attStats.percent === null ? "—" : `${attStats.percent}%`}</div>
+          <div className="text-[11px] text-muted-foreground">{attStats.total} ta dars belgilangan</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Guruhlar</div>
+          <div className="mt-1 text-xl font-extrabold">{enrollments.filter((e) => e.status === "active" || e.status === "trial").length}</div>
+          <div className="text-[11px] text-muted-foreground">faol guruh</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Oxirgi to‘lov</div>
+          <div className="mt-1 text-xl font-extrabold">{lastPaid ? `${Number(lastPaid.amount).toLocaleString("uz-UZ")} so‘m` : "—"}</div>
+          <div className="text-[11px] text-muted-foreground">{lastPaid?.paid_at ? new Date(lastPaid.paid_at).toLocaleDateString("uz-UZ") : "To‘lov yo‘q"}</div>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -468,6 +512,32 @@ function StudentProfile() {
             );
           })}
         </div>
+      </div>
+
+      {/* Attendance history */}
+      <div className="rounded-2xl border border-border bg-card p-6">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="font-bold">Davomat tarixi</h3>
+          <div className="flex flex-wrap gap-1.5 text-[11px]">
+            {Object.entries(ATT_META).map(([k, m]) => (
+              <span key={k} className={`rounded-full px-2 py-0.5 font-semibold ${m.cls}`}>{m.label}: {attStats.counts[k] ?? 0}</span>
+            ))}
+          </div>
+        </div>
+        {attendance.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Davomat hali belgilanmagan</p>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {attendance.slice(0, 60).map((a) => {
+              const m = ATT_META[a.status] ?? { label: a.status, cls: "bg-muted text-muted-foreground" };
+              return (
+                <span key={a.id} title={a.note ?? m.label} className={`rounded-md px-2 py-1 text-[11px] font-semibold ${m.cls}`}>
+                  {a.date.slice(5).split("-").reverse().join(".")} · {m.label}
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Payments history */}

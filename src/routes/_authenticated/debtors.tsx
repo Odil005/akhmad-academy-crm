@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -187,7 +187,7 @@ function DebtorsPage() {
                     />
                   </td>
                   <td className="px-3 py-3">
-                    <div className="font-medium">{row.student_name}</div>
+                    <Link to="/students/$id" params={{ id: row.student_id }} className="font-medium hover:text-primary hover:underline">{row.student_name}</Link>
                     <div className="text-xs text-muted-foreground">
                       {row.parent_phone ?? "telefon yo'q"}
                       {!row.parent_chat_id && (
