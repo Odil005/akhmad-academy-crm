@@ -48,6 +48,13 @@ type Enrollment = {
 };
 type LessonRow = { group_id: string; day_of_week: number; start_time: string; end_time: string };
 type PaymentRow = { id: string; amount: number; period_month: string; status: string; paid_at: string | null; note: string | null };
+type AttendanceRow = { id: string; date: string; status: string; note: string | null };
+const ATT_META: Record<string, { label: string; cls: string }> = {
+  present: { label: "Keldi", cls: "bg-emerald-500/15 text-emerald-400" },
+  late: { label: "Kechikdi", cls: "bg-amber-500/15 text-amber-400" },
+  absent: { label: "Kelmadi", cls: "bg-destructive/15 text-destructive" },
+  excused: { label: "Sababli", cls: "bg-sky-500/15 text-sky-400" },
+};
 
 export const Route = createFileRoute("/_authenticated/students_/$id")({
   head: () => ({ meta: [
@@ -68,6 +75,7 @@ function StudentProfile() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignOpen, setAssignOpen] = useState(false);
@@ -79,7 +87,7 @@ function StudentProfile() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: s }, { data: enr }, { data: pays }, { data: gs }] = await Promise.all([
+    const [{ data: s }, { data: enr }, { data: pays }, { data: gs }, { data: att }] = await Promise.all([
       supabase.from("students").select(`
         id, monthly_fee, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes, low_income, low_income_note,
         telegram_chat_id, telegram_username, telegram_verified_at, telegram_last_checked_at, telegram_last_error,
@@ -91,7 +99,9 @@ function StudentProfile() {
       `).eq("student_id", id).order("started_at", { ascending: false }),
       supabase.from("payments").select("id, amount, period_month, status, paid_at, note").eq("student_id", id).order("period_month", { ascending: false }),
       supabase.from("groups").select("id, name, monthly_fee, subject_id, teacher_id").order("name"),
+      supabase.from("attendance").select("id, date, status, note").eq("student_id", id).order("date", { ascending: false }).limit(120),
     ]);
+    setAttendance((att as never) ?? []);
     setStudent((s as never) ?? null);
     const enrolls = ((enr as never) ?? []) as Enrollment[];
     // groups.teacher_id auth.users ga qaraydi — ismlarni profiles dan alohida olamiz
