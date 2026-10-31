@@ -79,3 +79,7 @@
 - [x] Sozlamalarda "Markaz profili": nom, logo, telefon, manzil tahriri (updateMyCenter, rol + o'z markazi tekshiriladi).
 - [x] O'quvchi profili: bitta "Guruhlarni boshqarish" oynasi — joriy guruhlar, chiqarish, almashtirish, yangi guruhga qo'shish.
 - [ ] ilmnuri.xyz jonli trafikda qayta tekshirish (nashrdan keyin).
+
+## 2026-10-31 O‘quvchi profili
+- [x] Profil tepasida 4 ko‘rsatkich (balans, davomat %, faol guruhlar, oxirgi to‘lov) va “Davomat tarixi” bo‘limi; Qarzdorlar ro‘yxatidagi ismlar profilga olib boradi. Xatosiz tekshirildi.
+- [ ] Profilni haqiqiy hisob bilan ochib sinash — Cloud krediti tugagani uchun ma’lumotlar bazasi to‘xtatilgan; kredit qo‘shilgach tekshiriladi.
