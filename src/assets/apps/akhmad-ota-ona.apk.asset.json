@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "asset_id": "a678f39d-db58-486b-8444-fe6f2763a7fc",
+  "asset_id": "fa716c03-af29-4e4b-99db-fc013411a9e9",
   "project_id": "e49d619a-0076-4db9-9246-fc4d101474c2",
-  "url": "/__l5e/assets-v1/a678f39d-db58-486b-8444-fe6f2763a7fc/akhmad-ota-ona-1.0.apk",
-  "r2_key": "a/v1/e49d619a-0076-4db9-9246-fc4d101474c2/a678f39d-db58-486b-8444-fe6f2763a7fc/akhmad-ota-ona-1.0.apk",
-  "original_filename": "akhmad-ota-ona-1.0.apk",
-  "size": 3521604,
-  "content_type": "application/zip",
-  "created_at": "2026-11-09T10:29:08Z"
+  "url": "/__l5e/assets-v1/fa716c03-af29-4e4b-99db-fc013411a9e9/akhmad-ota-ona-1.0.1.apk",
+  "r2_key": "a/v1/e49d619a-0076-4db9-9246-fc4d101474c2/fa716c03-af29-4e4b-99db-fc013411a9e9/akhmad-ota-ona-1.0.1.apk",
+  "original_filename": "akhmad-ota-ona-1.0.1.apk",
+  "size": 3542084,
+  "content_type": "application/vnd.android.package-archive",
+  "created_at": "2026-11-09T11:05:42Z"
 }

@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "asset_id": "07190bbf-8803-4254-824d-553f8d4c0f03",
+  "asset_id": "d0601b5f-b5ef-4280-8f96-3128f12c49b6",
   "project_id": "e49d619a-0076-4db9-9246-fc4d101474c2",
-  "url": "/__l5e/assets-v1/07190bbf-8803-4254-824d-553f8d4c0f03/akhmad-crm-1.0.apk",
-  "r2_key": "a/v1/e49d619a-0076-4db9-9246-fc4d101474c2/07190bbf-8803-4254-824d-553f8d4c0f03/akhmad-crm-1.0.apk",
-  "original_filename": "akhmad-crm-1.0.apk",
-  "size": 3525698,
-  "content_type": "application/zip",
-  "created_at": "2026-11-09T10:29:04Z"
+  "url": "/__l5e/assets-v1/d0601b5f-b5ef-4280-8f96-3128f12c49b6/akhmad-crm-1.0.1.apk",
+  "r2_key": "a/v1/e49d619a-0076-4db9-9246-fc4d101474c2/d0601b5f-b5ef-4280-8f96-3128f12c49b6/akhmad-crm-1.0.1.apk",
+  "original_filename": "akhmad-crm-1.0.1.apk",
+  "size": 3542082,
+  "content_type": "application/vnd.android.package-archive",
+  "created_at": "2026-11-09T11:05:36Z"
 }
