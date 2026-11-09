@@ -32,3 +32,4 @@
 - Super Admin (/platform) access is the platform_owners row claimed once by a director; each center's website address is stored on the center and connected through Lovable domain settings.
 
 - Markaz profili (nom/logo/telefon/manzil) faqat `updateMyCenter` server function orqali o'zgartiriladi — rol (director/admin) `context.supabase` bilan tekshiriladi va faqat o'z markazi (`user_centers` havolasi) yangilanadi; boshqa markazlarga yozish yo'q.
+- Server AI calls resolve their provider through the shared Jarvis AI resolver (own OpenAI/Gemini keys before the Lovable gateway) and fall back to non-AI text, so the app keeps working when self-hosted.

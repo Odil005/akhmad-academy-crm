@@ -1,13 +1,13 @@
 # Roadmap
 
 ## 2026-11-09 Saytga kirishni tiklash va Lovable'siz ishlash
-- [ ] Baza yoqilganini tekshirish va saytga kirishni tiklash
-- [ ] AI (Jarvis, kunlik hisobot, ota-ona bot) o'z OpenAI/Gemini kaliti bilan ham ishlasin
-- [ ] DEPLOY.md ga Lovable'dan ko'chirish bo'limi
+- [x] Baza yoqildi; sayt va login ishlaydi, Bahodir (admin) sessiyasida o'quvchi profili ochildi, xato yo'q
+- [x] AI (Jarvis, kunlik hisobot, ota-ona bot) OpenAI → Gemini → Lovable kaliti bilan ishlaydi; 6 provayder testi o'tdi
+- [x] DEPLOY.md 7-bo'lim: Lovable'dan ko'chirish
 
 ## 2026-11-01 O'quvchi profili
 - [x] Har bir ro'yxatdagi (O'quvchilar, Guruhlar, Davomat, To'lovlar, Qarzdorlar, qidiruv) ism profilga olib boradi; profilda 4 ko'rsatkich, guruhlarni boshqarish, oylik, to'lovlar va davomat tarixi. Tur tekshiruvi xatosiz.
-- [ ] Haqiqiy o'quvchi bilan profilni ochib sinash — baza to'xtatilgan (Cloud krediti), qayta yoqilishi kerak.
+- [x] Haqiqiy o'quvchi (Ilyos Boynazarov) profili admin sessiyasida ochildi
 
 ## 2026-10-24 CRM tezligi va 50 GB
 - [x] Bosh sahifadagi parallel takroriy o‘qishlar foydalanuvchi bo‘yicha birlashtirildi; tugagan qiymatlar keshlanmaydi. Uch mahalliy o‘lchov: oldin 3.481/2.452/2.970 s, keyin 2.656/2.318/2.121 s (o‘rtacha 2.968→2.365 s, taxminan 20%). Bosh sahifa Data API o‘qishlari 23→14 (9 takroriy so‘rov olib tashlandi), real 663 faol o‘quvchi va 37 guruh ko‘rindi. Jonli sayt tezligi va tushumli moliyaviy sinov hali tasdiqlanmagan.

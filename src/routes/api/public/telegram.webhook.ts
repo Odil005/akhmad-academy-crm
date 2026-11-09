@@ -2295,31 +2295,19 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               paymentSummary(student.id, fullName),
               statsSummary(student.id, fullName),
             ]);
-            const apiKey = process.env.LOVABLE_API_KEY;
+            const { aiQuickText, resolveJarvisAIProvider } = await import(
+              "@/lib/jarvis-ai.server"
+            );
             const aiEnabled = process.env.TELEGRAM_AI_ENABLED === "true";
-            if (!apiKey || !aiEnabled) {
+            if (!resolveJarvisAIProvider() || !aiEnabled) {
               await reply(chat, `${pay}\n\n${stat}`, mainMenu);
               return;
             }
             const systemPrompt = `Siz o'quv markazining ota-onalar uchun yordamchisisiz. Faqat berilgan ma'lumotlarga tayanib, qisqa va aniq javob bering. O'zbek tilida javob bering. Agar ma'lumot yetarli bo'lmasa, "Ma'muriyatga murojaat qiling" deb ayting.\n\nO'quvchi: ${fullName}\n\n${pay}\n\n${stat}`;
             try {
-              const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-                method: "POST",
-                headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-                body: JSON.stringify({
-                  model: "google/gemini-2.5-flash",
-                  messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: question.slice(0, 1000) },
-                  ],
-                }),
-                signal: AbortSignal.timeout(8_000),
+              const answer = await aiQuickText(systemPrompt, question.slice(0, 1000), {
+                timeoutMs: 8_000,
               });
-              if (!r.ok) throw new Error(`AI HTTP ${r.status}`);
-              const j = (await r.json().catch(() => ({}))) as {
-                choices?: Array<{ message?: { content?: string } }>;
-              };
-              const answer = j.choices?.[0]?.message?.content?.trim();
               if (!answer) {
                 await reply(chat, `${pay}\n\n${stat}`, mainMenu);
                 return;

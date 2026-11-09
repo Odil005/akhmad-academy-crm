@@ -37,7 +37,7 @@ export const testJarvisAIConnection = createServerFn({ method: "POST" })
       return {
         ok: false as const,
         configured: false as const,
-        error: "OPENAI_API_KEY yoki LOVABLE_API_KEY sozlanmagan",
+        error: "OPENAI_API_KEY, GEMINI_API_KEY yoki LOVABLE_API_KEY sozlanmagan",
       };
     }
     try {

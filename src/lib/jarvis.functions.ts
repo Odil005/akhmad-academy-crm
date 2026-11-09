@@ -1483,7 +1483,13 @@ export const jarvisTranscribe = createServerFn({ method: "POST" })
     const { resolveJarvisAIProvider } = await import("@/lib/jarvis-ai.server");
     const provider = resolveJarvisAIProvider();
     if (!provider) {
-      throw new Response("OPENAI_API_KEY yoki LOVABLE_API_KEY sozlanmagan", { status: 503 });
+      throw new Response("OPENAI_API_KEY, GEMINI_API_KEY yoki LOVABLE_API_KEY sozlanmagan", { status: 503 });
+    }
+
+    if (!provider.transcriptionModel) {
+      throw new Response(`Ovozli buyruq ${provider.label} bilan ishlamaydi — OpenAI kalitini qo'shing`, {
+        status: 501,
+      });
     }
 
     const bin = Uint8Array.from(atob(data.audio_base64), (c) => c.charCodeAt(0));
@@ -1516,7 +1522,13 @@ export const jarvisSpeak = createServerFn({ method: "POST" })
     const { resolveJarvisAIProvider } = await import("@/lib/jarvis-ai.server");
     const provider = resolveJarvisAIProvider();
     if (!provider) {
-      throw new Response("OPENAI_API_KEY yoki LOVABLE_API_KEY sozlanmagan", { status: 503 });
+      throw new Response("OPENAI_API_KEY, GEMINI_API_KEY yoki LOVABLE_API_KEY sozlanmagan", { status: 503 });
+    }
+
+    if (!provider.speechModel) {
+      throw new Response(`Ovozli javob ${provider.label} bilan ishlamaydi — OpenAI kalitini qo'shing`, {
+        status: 501,
+      });
     }
 
     const text = normalizeJarvisSpeech(data.text);

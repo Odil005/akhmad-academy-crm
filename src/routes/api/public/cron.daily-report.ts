@@ -30,39 +30,12 @@ async function sendTelegram(botToken: string, chatId: string, text: string) {
 }
 
 async function jarvisSummarize(payload: Record<string, unknown>): Promise<string> {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) return "";
-  try {
-    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": key,
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Sen Akhmad Academy o'quv markazining biznes-sherigisan. O'zbek tilida qisqacha, aniq va professional yakuniy hisobot yozasan. 3-5 gap, muhim raqamlar va tavsiyalar bilan.",
-          },
-          {
-            role: "user",
-            content: `Bugungi hisobot ma'lumotlari:\n${JSON.stringify(payload, null, 2)}\n\nQisqa xulosa va tavsiya yoz.`,
-          },
-        ],
-        temperature: 0.6,
-      }),
-    });
-    const j = (await r.json().catch(() => ({}))) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    return j.choices?.[0]?.message?.content ?? "";
-  } catch {
-    return "";
-  }
+  const { aiQuickText } = await import("@/lib/jarvis-ai.server");
+  return aiQuickText(
+    "Sen Akhmad Academy o'quv markazining biznes-sherigisan. O'zbek tilida qisqacha, aniq va professional yakuniy hisobot yozasan. 3-5 gap, muhim raqamlar va tavsiyalar bilan.",
+    `Bugungi hisobot ma'lumotlari:\n${JSON.stringify(payload, null, 2)}\n\nQisqa xulosa va tavsiya yoz.`,
+    { timeoutMs: 20_000 },
+  );
 }
 
 async function buildAndSend() {

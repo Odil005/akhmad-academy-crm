@@ -103,3 +103,61 @@ GET /api/public/health/config  -> 200 {"status":"ok","can_create_users":true}
 qo'shing. `can_create_users: false` bo'lsa o'quvchi/o'qituvchi qo'shish ishlamaydi.
 Bu endpoint hech qanday kalit qiymatini ko'rsatmaydi, faqat true/false.
 
+
+## 7. Lovable'dan to'liq ajralib ishlatish (o'z Supabase + Cloudflare)
+
+Kod Lovable'siz ishlaydi. Lovable'ga bog'liq faqat ikki narsa bor: baza
+(Lovable Cloud) va ixtiyoriy AI kaliti.
+
+### 7.1 Ma'lumotlarni ko'chirish
+1. Lovable Cloud yoqilgan bo'lishi shart (to'xtatilgan bazadan dump olinmaydi).
+2. Lovable: More → Database → Manage → Settings → Export data → `.backup` fayl.
+3. O'z Supabase loyihangizni oching, `public` + `auth` sxemalarini tiklang
+   (`pg_restore` — loginlar `auth.users` bilan birga ko'chadi, parollar saqlanadi).
+   Faqat sxema kerak bo'lsa: `supabase/migrations` va `drizzle/migrations`.
+4. Fayl ombori (Face ID rasmlari, logolar) — bucket'larni alohida ko'chiring.
+5. `private.*` funksiyalar, triggerlar va RLS dump ichida keladi — alohida qo'lda
+   yozish shart emas. Tiklagandan keyin `GET /api/public/health/ready` ni tekshiring.
+
+### 7.2 Cloudflare sozlamasi
+Build vaqtida: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`,
+`VITE_SUPABASE_PROJECT_ID` — yangi loyihaniki. `wrangler.toml` dagi eski
+`SUPABASE_URL` ni ham almashtiring.
+
+```bash
+bunx wrangler secret put SUPABASE_URL
+bunx wrangler secret put SUPABASE_PUBLISHABLE_KEY
+bunx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+bunx wrangler secret put TELEGRAM_BOT_TOKEN
+bunx wrangler secret put TELEGRAM_WEBHOOK_SECRET
+bunx wrangler secret put CRON_SECRET
+bunx wrangler secret put APP_BASE_URL
+# AI — bittasi yetarli (ustuvorlik: OpenAI → Gemini → Lovable)
+bunx wrangler secret put OPENAI_API_KEY      # Jarvis + ovoz
+bunx wrangler secret put GEMINI_API_KEY      # Jarvis matn (ovozsiz)
+```
+
+Ixtiyoriy: `JARVIS_AI_MODEL` (asosiy model), `JARVIS_FAST_MODEL` (kunlik hisobot
+va ota-ona bot qisqa javoblari), `TELEGRAM_AI_ENABLED=true`.
+Hech bir AI kaliti bo'lmasa ham tizim ishlaydi: hisobot va bot AI xulosasiz,
+oddiy raqamlar bilan yuboriladi.
+
+### 7.3 Telegram va avtomatik ishlar
+- Webhook: `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domen>/api/public/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>`
+- Cron (`wrangler.toml` → `[triggers] crons`) yoki yangi bazadagi `pg_cron`:
+  - `0 16 * * *` → `/api/public/cron/daily-report` (21:00 Toshkent)
+  - oylik hisoblar va eslatmalar → `/api/public/cron.*` yo'llari
+  - Har biri `Authorization: Bearer $CRON_SECRET` bilan.
+- Eski bazadagi `pg_cron` ishlarini (Lovable Cloud) o'chiring, aks holda ikki marta yuboriladi.
+
+### 7.4 Lovable'ga xos ixtiyoriy qismlar
+- `src/routes/mcp.ts`, `src/routes/[.mcp]/*`, `src/lib/mcp/*` — Lovable MCP ulanishi.
+  Oddiy npm paket, Cloudflare'da ham ishlaydi; kerak bo'lmasa o'chirib tashlash mumkin.
+- `@lovable.dev/vite-tanstack-config` — oddiy build paketi, qoldiring.
+
+### 7.5 Domenlar va o'tish tartibi
+1. Avval `*.workers.dev` manzilida yangi baza bilan to'liq sinang.
+2. Dam olish kunida yakuniy dump → tiklash → Telegram webhook'ni almashtiring.
+3. Cloudflare Workers → Custom Domains: `akhmadacademy.life`, `ilmnuri.xyz`.
+   Markaz `host` sarlavhasi bo'yicha aniqlanadi — ILM NURI o'z brendi bilan ochiladi.
+4. Lovable'dagi domenlarni uzing.
