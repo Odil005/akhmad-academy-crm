@@ -118,3 +118,4 @@
 - [x] Xodimlar va ota-onalar uchun alohida imzolangan Android APK + AAB (/ilova sahifasidan yuklanadi)
 - [ ] Play Market'ga chiqarish — Google Play ishlab chiquvchi hisobi (25$) foydalanuvchida bo'lishi kerak; haqiqiy telefonda APK sinovi
 - [x] iPhone: ekranga qo'shiladigan ilova (xodim — Akhmad CRM, ota-ona — Akhmad Ota-ona)
+- [x] Telefon ko'rinishi namunadagi ilovadek: pastki menyu, ilova sarlavhasi, bosh sahifa kartalari va bugungi darslar, o'quvchilar kartalari, davomatda yumaloq belgilar va pastki "Saqlash", ota-ona ilovasida pastki bo'limlar
