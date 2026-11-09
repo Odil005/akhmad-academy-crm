@@ -105,3 +105,9 @@
 ## 2026-10-31 O‘quvchi profili
 - [x] Profil tepasida 4 ko‘rsatkich (balans, davomat %, faol guruhlar, oxirgi to‘lov) va “Davomat tarixi” bo‘limi; Qarzdorlar ro‘yxatidagi ismlar profilga olib boradi. Xatosiz tekshirildi.
 - [ ] Profilni haqiqiy hisob bilan ochib sinash — Cloud krediti tugagani uchun ma’lumotlar bazasi to‘xtatilgan; kredit qo‘shilgach tekshiriladi.
+
+## 2026-11-09 Ixcham CRM va profil
+- [x] Yon menyu guruhlandi (Asosiy / Moliya / O'qish / Boshqa / Sozlamalar); xodim uchun keraksiz bo'limlar (Bilim o'yini, Maqsad xaritasi, Metodika, Marketplace, Face ID lokatsiya, Oylik KPI) yashirildi — sahifalar o'chirilmadi.
+- [x] O'quvchi profili: "To'lov qabul qilish" umumiy to'lov oynasini ochadi (chek avtomatik), to'lovlar ro'yxatida har bir to'lov uchun chek chiqarish; noto'g'ri hisob-kitoblar (taxminiy sana, kalendar, eski qo'lda to'lov) olib tashlandi.
+- [x] O'qituvchi profili: tezkor tugmalar, oylik tushum, oxirgi oylik to'lovlari.
+- [x] To'lov oynasidagi kassa ro'yxati faqat o'z markazi kassalarini ko'rsatadi.

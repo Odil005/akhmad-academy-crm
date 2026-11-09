@@ -84,11 +84,20 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
       .select("id, first_name, last_name, group_id, parent_phone, parent_telegram_chat_id, profile:profiles(full_name, phone)")
       .order("enrolled_at", { ascending: false })
       .limit(500)
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         const list = ((data as never) ?? []) as StudentRow[];
         setStudents(list);
         if (initialStudentId) {
-          const pre = list.find((x) => x.id === initialStudentId);
+          let pre = list.find((x) => x.id === initialStudentId);
+          // Opened from a profile: the student may be older than the newest 500 rows.
+          if (!pre) {
+            const { data: one } = await supabase
+              .from("students")
+              .select("id, first_name, last_name, group_id, parent_phone, parent_telegram_chat_id, profile:profiles(full_name, phone)")
+              .eq("id", initialStudentId)
+              .maybeSingle();
+            pre = (one as never) ?? undefined;
+          }
           if (pre) setStudent(pre);
         }
       });
@@ -272,6 +281,8 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
                       <option key={a.id} value={a.id}>{a.name}</option>
                     ))}
                   </select>
+                ) : !ctx ? (
+                  <div className="rounded-lg border border-border px-3 py-2.5 text-xs text-muted-foreground">Yuklanmoqda…</div>
                 ) : (
                   <a href="/finance" className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-xs font-semibold text-amber-700">
                     <AlertTriangle className="h-4 w-4 shrink-0" /> Kassa hisobi yo'q — Moliya bo'limida yarating

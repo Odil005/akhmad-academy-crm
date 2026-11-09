@@ -34,3 +34,5 @@
 - Markaz profili (nom/logo/telefon/manzil) faqat `updateMyCenter` server function orqali o'zgartiriladi — rol (director/admin) `context.supabase` bilan tekshiriladi va faqat o'z markazi (`user_centers` havolasi) yangilanadi; boshqa markazlarga yozish yo'q.
 - Server AI calls resolve their provider through the shared Jarvis AI resolver (own OpenAI/Gemini keys before the Lovable gateway) and fall back to non-AI text, so the app keeps working when self-hosted.
 - Paper receipts print through the browser print dialog from a hidden frame with self-contained thermal-width HTML (src/lib/receipt-58.ts), so USB receipt printers work through their OS driver without a local agent or WebUSB driver swap.
+- The CRM sidebar is a grouped, role-filtered section list in the authenticated layout; hide rarely used screens there instead of deleting their routes, so old links keep working.
+- Student-profile payments use the shared PaymentModal and printPaymentReceipt (src/lib/payment-receipt.ts); never insert payments directly from a page, so allocation, cashier and receipt rules stay in one place.

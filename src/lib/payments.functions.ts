@@ -87,7 +87,8 @@ export const getCashierContext = createServerFn({ method: "GET" })
 
     const token = getBotToken();
 
-    const { data: cashAccounts } = await supabaseAdmin
+    // Read as the signed-in cashier so center isolation returns only their own center's registers.
+    const { data: cashAccounts } = await context.supabase
       .from("cash_accounts")
       .select("id, name, type")
       .eq("is_active", true)
