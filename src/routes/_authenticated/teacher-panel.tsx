@@ -198,14 +198,6 @@ function TeacherPanelPage() {
       bg: "bg-amber-500/10",
     },
     {
-      label: "Face ID",
-      desc: "Yuz orqali kirish",
-      icon: ScanFace,
-      href: "/face-id",
-      color: "text-sky-500",
-      bg: "bg-sky-500/10",
-    },
-    {
       label: "Video darslar",
       desc: "Guruh uchun video joylash",
       icon: FileVideo,

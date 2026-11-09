@@ -166,7 +166,7 @@ function AuthenticatedLayout() {
     { to: "/messages", label: "Xabarlar", icon: MessageSquare, show: isStaff || isTeacher },
     { to: "/rooms", label: "Xonalar", icon: DoorOpen, show: isStaff },
     { to: "/behavior", label: "Dars faolligi", icon: Smile, show: isTeacher },
-    { to: "/face-id", label: "Face ID", icon: ScanFace, show: isTeacher },
+    { to: "/face-id", label: "Face ID", icon: ScanFace, show: false },
     { to: "/face-checkin", label: "Face ID kirish", icon: ScanFace, show: isStaff },
     {
       to: "/teacher-kpi",

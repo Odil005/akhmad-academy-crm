@@ -1,5 +1,11 @@
 # Roadmap
 
+## 2026-11-09 Davomat va kambag'al oila reyestri
+- [x] O'qituvchi har bir guruhda o'quvchilarni ptichka bilan belgilaydi ("Hammasi keldi", "Tozalash"); o'qituvchi menyusidan Face ID olindi; oylik hisob endi Face ID kirishiga bog'liq emas. Admin sessiyasida 10 o'quvchili darsda ptichkalar ishladi (saqlanmadi).
+- [x] O'quvchilar ro'yxati bitta; "Kambag'al oila reyestri" belgisi o'quvchi profilida (hozir 0 ta belgilangan)
+- [x] O'qituvchi profilida har bir guruh: pullik va reyestr ro'yxati alohida; Maftuna Abduqaxxorova profilida 6 guruh ko'rindi
+- [ ] Reyestrdagi o'quvchilardan oylik olinadimi — foydalanuvchi javobi kutilmoqda
+
 ## 2026-11-09 Saytga kirishni tiklash va Lovable'siz ishlash
 - [x] Baza yoqildi; sayt va login ishlaydi, Bahodir (admin) sessiyasida o'quvchi profili ochildi, xato yo'q
 - [x] AI (Jarvis, kunlik hisobot, ota-ona bot) OpenAI → Gemini → Lovable kaliti bilan ishlaydi; 6 provayder testi o'tdi

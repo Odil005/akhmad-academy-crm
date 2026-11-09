@@ -66,6 +66,7 @@ function AttendancePage() {
   const [marks, setMarks] = useState<Record<string, AttRow>>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savedCount, setSavedCount] = useState(0);
 
   const dow = useMemo(() => dowFromDate(date), [date]);
 
@@ -78,7 +79,14 @@ function AttendancePage() {
         .eq("day_of_week", dow)
         .eq("is_active", true)
         .order("start_time");
-      if (!isStaff && isTeacher) q = q.eq("teacher_user_id", user.id);
+      if (!isStaff && isTeacher) {
+        // O'qituvchi o'zi biriktirilgan dars yoki o'zi olib boradigan guruh darslarini ko'radi.
+        const { data: own } = await supabase.from("groups").select("id").eq("teacher_id", user.id);
+        const ids = (own ?? []).map((g) => g.id);
+        q = ids.length
+          ? q.or(`teacher_user_id.eq.${user.id},group_id.in.(${ids.join(",")})`)
+          : q.eq("teacher_user_id", user.id);
+      }
       const { data } = await q;
       const list = (data as never as Lesson[]) ?? [];
       setLessons(list);
@@ -100,9 +108,10 @@ function AttendancePage() {
       const list = (enrollments ?? []).flatMap(row => row.students ? [{ id: row.students.id, first_name: row.students.first_name ?? '', last_name: row.students.last_name }] : []).sort((a, b) => a.first_name.localeCompare(b.first_name));
       setStudents(list);
       const m: Record<string, AttRow> = {};
-      for (const s of list) m[s.id] = { student_id: s.id, status: "present", note: null };
+      for (const s of list) m[s.id] = { student_id: s.id, status: "absent", note: null };
       for (const row of (att ?? []) as AttRow[]) m[row.student_id] = row;
       setMarks(m);
+      setSavedCount((att ?? []).length);
       setLoading(false);
     })();
   }, [lessonId, date, lessons]);
@@ -128,13 +137,25 @@ function AttendancePage() {
     const { error } = await supabase.from("attendance").upsert(rows, { onConflict: "lesson_id,student_id,date" });
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success("Davomat saqlandi");
+    else { setSavedCount(rows.length); toast.success("Davomat saqlandi"); }
+  };
+
+  const togglePresent = (sid: string) => {
+    const cur = marks[sid]?.status ?? "absent";
+    setStatus(sid, cur === "present" || cur === "late" ? "absent" : "present");
+  };
+  const markAll = (status: Status) => {
+    setMarks((m) => {
+      const next = { ...m };
+      for (const s of students) next[s.id] = { ...(next[s.id] ?? { note: null }), student_id: s.id, status };
+      return next;
+    });
   };
 
   const currentLesson = lessons.find((l) => l.id === lessonId);
   const counts = useMemo(() => {
     const c = { present: 0, absent: 0, late: 0, excused: 0 };
-    for (const s of students) c[marks[s.id]?.status ?? "present"]++;
+    for (const s of students) c[marks[s.id]?.status ?? "absent"]++;
     return c;
   }, [marks, students]);
 
@@ -142,7 +163,7 @@ function AttendancePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">Davomat</h1>
-        <p className="text-sm text-muted-foreground">Kunlik davomatni belgilash</p>
+        <p className="text-sm text-muted-foreground">Darsni tanlang, kelgan o'quvchilarni ptichka bilan belgilang va saqlang</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-4 md:grid-cols-3">
@@ -179,9 +200,14 @@ function AttendancePage() {
                 <ClipboardCheck className="h-4 w-4 text-primary" /> O'quvchilar ({students.length})
               </div>
               {canMark && students.length > 0 && (
-                <button onClick={saveAll} disabled={saving} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">
-                  {saving ? "..." : "Saqlash"}
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="hidden text-xs text-muted-foreground sm:inline">{savedCount > 0 ? "Saqlangan" : "Hali saqlanmagan"}</span>
+                  <button onClick={() => markAll("present")} className="rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary">Hammasi keldi</button>
+                  <button onClick={() => markAll("absent")} className="rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary">Tozalash</button>
+                  <button onClick={saveAll} disabled={saving} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">
+                    {saving ? "..." : "Saqlash"}
+                  </button>
+                </div>
               )}
             </div>
             {loading ? (
@@ -190,19 +216,34 @@ function AttendancePage() {
               <p className="p-4 text-sm text-muted-foreground">Bu guruhda o'quvchi yo'q</p>
             ) : (
               <ul className="divide-y divide-border">
-                {students.map((s) => {
-                  const cur = marks[s.id]?.status ?? "present";
+                {students.map((s, i) => {
+                  const cur = marks[s.id]?.status ?? "absent";
+                  const ticked = cur === "present" || cur === "late";
                   return (
                     <li key={s.id} className="flex flex-col gap-2 p-3 md:flex-row md:items-center">
-                      <div className="min-w-0 flex-1">
-                        <Link to="/students/$id" params={{ id: s.id }} className="block text-sm font-semibold hover:text-primary hover:underline">{s.first_name} {s.last_name ?? ""}</Link>
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <button
+                          type="button"
+                          role="checkbox"
+                          aria-checked={ticked}
+                          aria-label={`${s.first_name} ${s.last_name ?? ""} keldi`}
+                          disabled={!canMark}
+                          onClick={() => togglePresent(s.id)}
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 transition-colors ${
+                            ticked ? "border-emerald-500 bg-emerald-500 text-primary-foreground" : "border-border hover:border-primary"
+                          } disabled:cursor-not-allowed disabled:opacity-60`}
+                        >
+                          {ticked && <Check className="h-5 w-5" strokeWidth={3} />}
+                        </button>
+                        <span className="w-6 text-xs text-muted-foreground">{i + 1}.</span>
+                        <Link to="/students/$id" params={{ id: s.id }} className="block truncate text-sm font-semibold hover:text-primary hover:underline">{s.first_name} {s.last_name ?? ""}</Link>
                       </div>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {(["present","absent","late","excused"] as Status[]).map((st) => (
+                      <div className="flex flex-wrap items-center gap-1.5 pl-11 md:pl-0">
+                        {(["late","excused"] as Status[]).map((st) => (
                           <button
                             key={st}
                             disabled={!canMark}
-                            onClick={() => setStatus(s.id, st)}
+                            onClick={() => setStatus(s.id, cur === st ? (st === "late" ? "present" : "absent") : st)}
                             className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                               cur === st ? statusStyle(st) : "border-border text-muted-foreground hover:border-primary"
                             } disabled:cursor-not-allowed disabled:opacity-60`}

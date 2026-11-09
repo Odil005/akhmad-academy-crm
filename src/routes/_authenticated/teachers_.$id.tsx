@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Clock, Phone, Users } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { ArrowLeft, HeartHandshake, Phone, Users, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/teachers_/$id")({
@@ -21,39 +21,41 @@ const DAYS = ["", "Du", "Se", "Chor", "Pay", "Ju", "Sha", "Yak"];
 
 type Profile = { full_name: string | null; phone: string | null; teacher_level: string | null; avatar_url: string | null };
 type Group = { id: string; name: string; schedule_days: number[]; schedule_start: string | null; schedule_end: string | null; monthly_fee: number };
-type Student = { id: string; full_name: string; group_id: string };
+type Student = { id: string; full_name: string; group_id: string; low_income: boolean };
 
 function TeacherProfile() {
   const { id } = Route.useParams();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
-  const [checkins, setCheckins] = useState<{ created_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [p, g, c] = await Promise.all([
+      const [p, g] = await Promise.all([
         supabase.from("profiles").select("full_name, phone, teacher_level, avatar_url").eq("id", id).maybeSingle(),
         supabase.from("groups").select("id, name, schedule_days, schedule_start, schedule_end, monthly_fee").eq("teacher_id", id).order("name"),
-        supabase.from("teacher_checkins").select("created_at:checked_in_at").eq("user_id", id).order("checked_in_at", { ascending: false }).limit(10),
       ]);
       const gs = (g.data ?? []) as Group[];
       let st: Student[] = [];
       if (gs.length) {
         const { data } = await supabase
           .from("student_enrollments")
-          .select("group_id, students(id, full_name)")
+          .select("group_id, students(id, full_name, first_name, last_name, low_income)")
           .in("group_id", gs.map((x) => x.id))
           .eq("status", "active");
-        st = (data ?? []).flatMap((r: any) => (r.students ? [{ id: r.students.id, full_name: r.students.full_name, group_id: r.group_id }] : []));
+        st = (data ?? []).flatMap((r: any) => (r.students ? [{
+          id: r.students.id,
+          full_name: r.students.full_name || [r.students.first_name, r.students.last_name].filter(Boolean).join(" ") || "—",
+          group_id: r.group_id,
+          low_income: !!r.students.low_income,
+        }] : [])).sort((a, b) => a.full_name.localeCompare(b.full_name));
       }
       if (!alive) return;
       setProfile((p.data as Profile) ?? null);
       setGroups(gs);
       setStudents(st);
-      setCheckins((c.data as any) ?? []);
       setLoading(false);
     })();
     return () => { alive = false; };
@@ -77,9 +79,11 @@ function TeacherProfile() {
             <Phone className="h-3.5 w-3.5" /> {profile.phone ?? "Telefon yo'q"} · {profile.teacher_level ?? "daraja belgilanmagan"}
           </p>
         </div>
-        <div className="ml-auto grid grid-cols-2 gap-3 text-center">
+        <div className="ml-auto grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
           <Stat label="Guruh" value={groups.length} />
           <Stat label="O'quvchi" value={students.length} />
+          <Stat label="Pullik" value={students.filter((s) => !s.low_income).length} />
+          <Stat label="Reyestr" value={students.filter((s) => s.low_income).length} />
         </div>
       </div>
 
@@ -98,31 +102,26 @@ function TeacherProfile() {
                     {g.schedule_end ? `–${g.schedule_end.slice(0, 5)}` : ""} · {list.length} o'quvchi
                   </span>
                 </div>
-                {list.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {list.map((s) => (
-                      <Link key={s.id} to="/students/$id" params={{ id: s.id }} className="rounded-full bg-muted px-2.5 py-1 text-xs hover:bg-primary/15">
-                        {s.full_name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <StudentList
+                    title="Pullik o'quvchilar"
+                    icon={<Wallet className="h-3.5 w-3.5" />}
+                    items={list.filter((s) => !s.low_income)}
+                    empty="Pullik o'quvchi yo'q"
+                  />
+                  <StudentList
+                    title="Kambag'al oila reyestri"
+                    icon={<HeartHandshake className="h-3.5 w-3.5" />}
+                    items={list.filter((s) => s.low_income)}
+                    empty="Reyestrdagi o'quvchi yo'q"
+                  />
+                </div>
               </div>
             );
           })}
         </div>
       </section>
 
-      <section className="rounded-xl border border-border bg-card p-4">
-        <h2 className="mb-3 flex items-center gap-2 font-semibold"><Clock className="h-4 w-4" /> Oxirgi kelishlar</h2>
-        {checkins.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Hali qayd yo'q.</p>
-        ) : (
-          <ul className="space-y-1 text-sm">
-            {checkins.map((c, i) => <li key={i}>{new Date(c.created_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" })}</li>)}
-          </ul>
-        )}
-      </section>
     </div>
   );
 }
@@ -132,6 +131,31 @@ function Stat({ label, value }: { label: string; value: number }) {
     <div className="rounded-lg bg-muted px-3 py-2">
       <div className="text-lg font-bold">{value}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
+    </div>
+  );
+}
+
+function StudentList({ title, icon, items, empty }: { title: string; icon: ReactNode; items: Student[]; empty: string }) {
+  return (
+    <div className="rounded-lg bg-muted/40 p-2">
+      <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-muted-foreground">
+        <span className="flex items-center gap-1.5">{icon} {title}</span>
+        <span>{items.length}</span>
+      </div>
+      {items.length === 0 ? (
+        <p className="px-1 py-1 text-xs text-muted-foreground">{empty}</p>
+      ) : (
+        <ol className="space-y-0.5 text-sm">
+          {items.map((s, i) => (
+            <li key={s.id}>
+              <Link to="/students/$id" params={{ id: s.id }} className="flex gap-2 rounded px-1 py-0.5 hover:bg-primary/10 hover:text-primary">
+                <span className="w-5 text-xs text-muted-foreground">{i + 1}.</span>
+                <span className="truncate">{s.full_name}</span>
+              </Link>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }
