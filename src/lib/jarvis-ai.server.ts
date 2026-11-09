@@ -1,10 +1,13 @@
 export type JarvisAIProvider = {
-  kind: "openai" | "lovable";
+  kind: "openai" | "gemini" | "lovable";
   label: string;
   apiBaseUrl: string;
   apiKey: string;
   chatModel: string;
+  /** Model for short one-shot texts (daily report summary, parent bot answers). */
+  quickModel: string;
   chatApi: "responses" | "chat_completions";
+  /** Empty string = the provider has no voice endpoints. */
   transcriptionModel: string;
   speechModel: string;
 };
@@ -12,23 +15,47 @@ export type JarvisAIProvider = {
 type JarvisEnvironment = Record<string, string | undefined>;
 
 const OPENAI_API_BASE_URL = "https://api.openai.com/v1";
+const GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const LOVABLE_API_BASE_URL = "https://ai.gateway.lovable.dev/v1";
 
-/** Resolve secrets on the server only. OpenAI is preferred when both providers exist. */
+export const AI_KEYS_HINT = "OPENAI_API_KEY, GEMINI_API_KEY yoki LOVABLE_API_KEY sozlanmagan";
+
+/**
+ * Resolve secrets on the server only. Own keys win over the Lovable gateway so the
+ * app keeps working when hosted outside Lovable: OpenAI, then Gemini, then Lovable.
+ */
 export function resolveJarvisAIProvider(
   env: JarvisEnvironment = process.env,
 ): JarvisAIProvider | null {
   const openAIKey = env.OPENAI_API_KEY?.trim();
   if (openAIKey) {
+    const chatModel = env.JARVIS_AI_MODEL?.trim() || "gpt-5.6-terra";
     return {
       kind: "openai",
       label: "OpenAI",
       apiBaseUrl: OPENAI_API_BASE_URL,
       apiKey: openAIKey,
-      chatModel: env.JARVIS_AI_MODEL?.trim() || "gpt-5.6-terra",
+      chatModel,
+      quickModel: env.JARVIS_FAST_MODEL?.trim() || chatModel,
       chatApi: "responses",
       transcriptionModel: "gpt-4o-mini-transcribe",
       speechModel: "gpt-4o-mini-tts",
+    };
+  }
+
+  const geminiKey = env.GEMINI_API_KEY?.trim();
+  if (geminiKey) {
+    const chatModel = env.JARVIS_AI_MODEL?.trim() || "gemini-2.5-flash";
+    return {
+      kind: "gemini",
+      label: "Google Gemini",
+      apiBaseUrl: GEMINI_API_BASE_URL,
+      apiKey: geminiKey,
+      chatModel,
+      quickModel: env.JARVIS_FAST_MODEL?.trim() || chatModel,
+      chatApi: "chat_completions",
+      transcriptionModel: "",
+      speechModel: "",
     };
   }
 
@@ -40,6 +67,7 @@ export function resolveJarvisAIProvider(
       apiBaseUrl: LOVABLE_API_BASE_URL,
       apiKey: lovableKey,
       chatModel: env.JARVIS_AI_MODEL?.trim() || "google/gemini-3.6-flash",
+      quickModel: env.JARVIS_FAST_MODEL?.trim() || "google/gemini-3.8-flash",
       chatApi: "chat_completions",
       transcriptionModel: "openai/gpt-4o-mini-transcribe",
       speechModel: "openai/gpt-4o-mini-tts",
@@ -62,6 +90,44 @@ export function publicJarvisAIStatus(env: JarvisEnvironment = process.env) {
         provider: null,
         model: null,
       };
+}
+
+/**
+ * One-shot text completion through whichever provider is configured.
+ * Returns "" when no provider exists or the call fails, so callers can fall back
+ * to plain (non-AI) text instead of breaking reports or bot replies.
+ */
+export async function aiQuickText(
+  system: string,
+  user: string,
+  options: { timeoutMs?: number; env?: JarvisEnvironment } = {},
+): Promise<string> {
+  const provider = resolveJarvisAIProvider(options.env ?? process.env);
+  if (!provider) return "";
+  try {
+    const response = await fetch(`${provider.apiBaseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${provider.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: provider.quickModel,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
+      signal: AbortSignal.timeout(options.timeoutMs ?? 15_000),
+    });
+    if (!response.ok) return "";
+    const json = (await response.json().catch(() => ({}))) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    return json.choices?.[0]?.message?.content?.trim() ?? "";
+  } catch {
+    return "";
+  }
 }
 
 export async function jarvisSafetyIdentifier(userId: string): Promise<string> {

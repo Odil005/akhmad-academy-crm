@@ -1,5 +1,10 @@
 # Roadmap
 
+## 2026-11-09 Saytga kirishni tiklash va Lovable'siz ishlash
+- [ ] Baza yoqilganini tekshirish va saytga kirishni tiklash
+- [ ] AI (Jarvis, kunlik hisobot, ota-ona bot) o'z OpenAI/Gemini kaliti bilan ham ishlasin
+- [ ] DEPLOY.md ga Lovable'dan ko'chirish bo'limi
+
 ## 2026-11-01 O'quvchi profili
 - [x] Har bir ro'yxatdagi (O'quvchilar, Guruhlar, Davomat, To'lovlar, Qarzdorlar, qidiruv) ism profilga olib boradi; profilda 4 ko'rsatkich, guruhlarni boshqarish, oylik, to'lovlar va davomat tarixi. Tur tekshiruvi xatosiz.
 - [ ] Haqiqiy o'quvchi bilan profilni ochib sinash — baza to'xtatilgan (Cloud krediti), qayta yoqilishi kerak.
