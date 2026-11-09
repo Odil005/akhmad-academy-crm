@@ -2534,6 +2534,7 @@ export type Database = {
           status: string
           student_id: string
           subtotal: number
+          teacher_user_id: string | null
           total_amount: number
         }
         Insert: {
@@ -2560,6 +2561,7 @@ export type Database = {
           status?: string
           student_id: string
           subtotal?: number
+          teacher_user_id?: string | null
           total_amount?: number
         }
         Update: {
@@ -2586,6 +2588,7 @@ export type Database = {
           status?: string
           student_id?: string
           subtotal?: number
+          teacher_user_id?: string | null
           total_amount?: number
         }
         Relationships: [

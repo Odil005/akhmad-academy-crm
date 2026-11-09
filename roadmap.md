@@ -111,3 +111,9 @@
 - [x] O'quvchi profili: "To'lov qabul qilish" umumiy to'lov oynasini ochadi (chek avtomatik), to'lovlar ro'yxatida har bir to'lov uchun chek chiqarish; noto'g'ri hisob-kitoblar (taxminiy sana, kalendar, eski qo'lda to'lov) olib tashlandi.
 - [x] O'qituvchi profili: tezkor tugmalar, oylik tushum, oxirgi oylik to'lovlari.
 - [x] To'lov oynasidagi kassa ro'yxati faqat o'z markazi kassalarini ko'rsatadi.
+
+## 2026-11-09 Mobil ilovalar va chek
+- [x] Printerdan chek chiqmadi — to‘lov saqlanmayotgan edi (bazada o‘qituvchi ustuni yo‘q edi); ustun qo‘shildi, sinov to‘lovi saqlanib bekor qilindi
+- [ ] Ota-ona portali: telefon + Telegram kod bilan kirish, farzand davomati/to'lovi/baholari
+- [ ] Xodimlar uchun Android APK (CRM) va ota-onalar uchun alohida Android APK; keyin Play Market
+- [ ] iPhone: ekranga qo'shiladigan ilova (xodim va ota-ona uchun alohida ikonka/nom)
