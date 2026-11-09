@@ -150,7 +150,7 @@ export function GlobalSearch() {
   };
 
   return (
-    <div ref={boxRef} className="relative min-w-0 w-full max-w-md" data-tour="topbar-search">
+    <div ref={boxRef} className="relative min-w-0 w-full lg:max-w-md" data-tour="topbar-search">
       <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <input
         value={q}
@@ -174,8 +174,8 @@ export function GlobalSearch() {
             }
           }
         }}
-        placeholder="Tizim bo‘ylab qidirish…"
-        className="w-full rounded-lg border border-border bg-secondary/60 py-2 pl-9 pr-8 text-xs outline-none transition focus:border-accent"
+        placeholder="Qidirish…"
+        className="w-full rounded-xl border border-border bg-card py-3 pl-10 pr-8 text-base outline-none transition focus:border-accent lg:rounded-lg lg:bg-secondary/60 lg:py-2 lg:pl-9 lg:text-xs"
       />
       {loading && (
         <Loader2 className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />

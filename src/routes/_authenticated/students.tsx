@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useState } from "react";
 import { useDataEvent } from "@/lib/data-events";
-import { Plus, Trash2, X, RefreshCw, Copy } from "lucide-react";
+import { Plus, Trash2, X, RefreshCw, Copy, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { createManagedUser } from "@/lib/user-admin.functions";
 import { generateUsername, generateAccessCode } from "@/lib/credentials";
@@ -224,7 +224,36 @@ function StudentsPage() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      {/* Telefon: ilova uslubidagi kartalar ro'yxati */}
+      <ul className="space-y-2 md:hidden">
+        {loading && <li className="rounded-2xl border border-border bg-card p-4 text-center text-sm text-muted-foreground">Yuklanmoqda...</li>}
+        {!loading && filtered.length === 0 && <li className="rounded-2xl border border-border bg-card p-4 text-center text-sm text-muted-foreground">Yozuv yo'q</li>}
+        {filtered.map((s) => {
+          const status = (s.status_enum ?? "active") as StudentStatus;
+          const meta = STATUS_META[status];
+          const name = displayName(s);
+          const initials = name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+          return (
+            <li key={s.id}>
+              <Link to="/students/$id" params={{ id: s.id }} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 active:scale-[0.99]">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/15 text-sm font-extrabold text-primary">{initials || "?"}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-bold">{name}</span>
+                    {s.low_income && <LowIncomeBadge note={s.low_income_note} compact />}
+                  </div>
+                  <div className="truncate text-xs text-muted-foreground">{s.group?.name || "Guruhsiz"}</div>
+                  <div className="truncate text-xs text-muted-foreground">{s.profile?.phone || s.parent_phone || "—"}</div>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${meta.tint}`}>{meta.label}</span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-border bg-card md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-secondary/30 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">

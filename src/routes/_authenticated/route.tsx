@@ -42,6 +42,8 @@ import {
   Building2,
   PanelLeftClose,
   PanelLeftOpen,
+  Home,
+  CalendarCheck,
 } from "lucide-react";
 import { JarvisLauncher } from '@/components/JarvisLauncher';
 import {
@@ -62,6 +64,7 @@ import { getMyCenterBrand } from "@/lib/tenant.functions";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
 import { isParentOnly } from "@/lib/parent-portal";
+import { readProfileName } from "@/lib/profile-name";
 
 import { TourProvider, useTour } from "@/components/tour/TourProvider";
 import { HelpCircle } from "lucide-react";
@@ -87,11 +90,19 @@ type NavItem = {
 };
 type NavSection = { title: string; items: NavItem[]; collapsible?: boolean };
 
+const ROLE_LABELS: Record<string, string> = {
+  director: "Direktor",
+  admin: "Administrator",
+  teacher: "O'qituvchi",
+  student: "O'quvchi",
+};
+
+
 function AuthenticatedLayout() {
   const { user, roles } = Route.useRouteContext();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
+  const { data: profile } = useQuery({ queryKey: ["profile-name", user.id], queryFn: () => readProfileName(user.id), staleTime: 300_000 });
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -102,15 +113,6 @@ function AuthenticatedLayout() {
   }, []);
   const { lang, setLang, t } = useLanguage();
 
-
-  useEffect(() => {
-    supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", user.id)
-      .maybeSingle()
-      .then(({ data }) => setProfile(data));
-  }, [user.id]);
 
   useEffect(() => {
     setOpen(false);
@@ -201,15 +203,38 @@ function AuthenticatedLayout() {
   };
 
   const primaryRole = roles[0] ?? "student";
+  const roleLabel = ROLE_LABELS[primaryRole] ?? primaryRole;
   const brandName = brand && !brand.is_flagship ? brand.name : "Akhmad Academy";
+  const brandLogo = brand && !brand.is_flagship ? (brand.logo_url ?? "/favicon.png") : logoAsset.url;
   const fullName = profile?.full_name ?? user.email ?? "";
-  const initials = fullName.trim().slice(0, 2).toUpperCase();
+  const initials = fullName.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+
+  // Telefondagi pastki menyu: rolga qarab eng ko'p ishlatiladigan 4 bo'lim + "Menyu".
+  const tabs: Array<{ to: string; label: string; icon: React.ComponentType<{ className?: string }> }> = isStaff
+    ? [
+        { to: "/dashboard", label: "Bosh sahifa", icon: Home },
+        { to: "/students", label: "O'quvchilar", icon: Users },
+        { to: "/payments", label: "To'lov", icon: Wallet },
+        { to: "/attendance", label: "Davomat", icon: CalendarCheck },
+      ]
+    : isTeacher
+      ? [
+          { to: "/teacher-panel", label: "Panel", icon: Home },
+          { to: "/groups", label: "Guruhlar", icon: BookOpen },
+          { to: "/attendance", label: "Davomat", icon: CalendarCheck },
+          { to: "/schedule", label: "Jadval", icon: CalendarDays },
+        ]
+      : [
+          { to: "/dashboard", label: "Bosh sahifa", icon: Home },
+          { to: "/schedule", label: "Jadval", icon: CalendarDays },
+          { to: "/video-lessons", label: "Darslar", icon: GraduationCap },
+        ];
 
   const SidebarInner = (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-3 border-b border-sidebar-border px-3 py-4">
         <img
-          src={brand && !brand.is_flagship ? (brand.logo_url ?? "/favicon.png") : logoAsset.url}
+          src={brandLogo}
           alt={brandName}
           className="h-9 w-9 rounded-full object-cover"
           width={44}
@@ -276,6 +301,18 @@ function AuthenticatedLayout() {
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
+        <div className="mb-2 flex items-center gap-1 rounded-lg border border-sidebar-border p-1 lg:hidden" aria-label={t("Til")}>
+          {(["uz", "ru"] as const).map((code) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => setLang(code)}
+              className={`flex-1 rounded-md py-1.5 text-xs font-bold uppercase ${lang === code ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/60"}`}
+            >
+              {code === "uz" ? "O'zbekcha" : "Русский"}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center gap-3 rounded-xl px-2 py-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">
             {initials}
@@ -283,7 +320,7 @@ function AuthenticatedLayout() {
           <div className={`min-w-0 flex-1 ${collapsed ? "lg:hidden" : ""}`}>
             <div className="truncate text-sm font-semibold">{fullName}</div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-primary">
-              {primaryRole}
+              {roleLabel}
             </div>
           </div>
           <Button variant="ghost"
@@ -318,22 +355,25 @@ function AuthenticatedLayout() {
 
       <div className={`min-w-0 transition-[padding] ${collapsed ? "lg:pl-[68px]" : "lg:pl-[220px]"}`}>
         {/* Topbar */}
-        <header className="sticky top-0 z-30 border-b border-border bg-background">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-3 py-3 sm:flex md:px-5">
+        <header className="sticky top-0 z-30 border-b border-border bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur lg:pt-0">
+          <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 lg:flex-nowrap lg:px-5 lg:py-3">
             <Button variant="ghost" size="icon" className="hidden shrink-0 lg:inline-flex" onClick={() => setCollapsed(v => !v)} title={collapsed ? "Menyuni ochish" : "Menyuni yig‘ish"} aria-label={collapsed ? "Menyuni ochish" : "Menyuni yig‘ish"}>
               {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
             </Button>
-            <Button variant="ghost"
-              onClick={() => setOpen(true)}
-              className="rounded-lg border border-border p-2 text-foreground/70 transition hover:bg-secondary lg:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
 
-            {isStaff && <GlobalSearch />}
+            {/* Telefon: ilova sarlavhasi — logo, markaz nomi, qo'ng'iroqcha va profil */}
+            <Link to={tabs[0]?.to ?? "/dashboard"} className="flex min-w-0 flex-1 items-center gap-3 lg:hidden">
+              <img src={brandLogo} alt={brandName} width={44} height={44} className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-accent/40" />
+              <div className="min-w-0 leading-tight">
+                <div className="truncate text-base font-extrabold">{brandName}</div>
+                <div className="truncate text-xs text-muted-foreground">{roleLabel} · CRM</div>
+              </div>
+            </Link>
+
+            {isStaff && <div className="order-last w-full pb-1 lg:order-none lg:w-auto lg:flex-1 lg:pb-0"><GlobalSearch /></div>}
 
             <div
-              className="col-span-2 ml-auto flex shrink-0 items-center gap-0.5 rounded-lg border border-border p-0.5 sm:ml-auto"
+              className="ml-auto hidden shrink-0 items-center gap-0.5 rounded-lg border border-border p-0.5 lg:flex"
               title={t("Til")}
             >
               {(["uz", "ru"] as const).map((code) => (
@@ -352,31 +392,70 @@ function AuthenticatedLayout() {
               ))}
             </div>
 
-            <div className="hidden shrink-0 sm:block"><TourHelpButton /></div>
+            <div className="hidden shrink-0 lg:block"><TourHelpButton /></div>
 
-            {isStaff && <div className="hidden shrink-0 sm:block"><SystemAlertIndicator /></div>}
-            {isStaff && <Button asChild variant="outline" size="sm" className="hidden shrink-0 md:inline-flex"><Link to="/messages"><MessageSquare /> Xabarlar</Link></Button>}
+            {isStaff && <div className="shrink-0"><SystemAlertIndicator /></div>}
+            {isStaff && <Button asChild variant="outline" size="sm" className="hidden shrink-0 lg:inline-flex"><Link to="/messages"><MessageSquare /> Xabarlar</Link></Button>}
             {canSeeGroups && <Button asChild size="sm" className="hidden shrink-0 xl:inline-flex"><Link to="/groups"><BookOpen /> Guruhlar</Link></Button>}
 
             <Button variant="ghost"
               onClick={signOut}
-              className="hidden shrink-0 rounded-lg border border-border p-2 text-muted-foreground transition hover:text-destructive sm:block"
+              className="hidden shrink-0 rounded-lg border border-border p-2 text-muted-foreground transition hover:text-destructive lg:block"
               title={t("Chiqish")}
             >
               <LogOut className="h-4 w-4" />
             </Button>
 
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label="Profil va menyu"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-extrabold text-primary-foreground lg:hidden"
+            >
+              {initials || "?"}
+            </button>
           </div>
         </header>
 
         <main>
-          <div className="mx-auto max-w-[1600px] px-3 py-4 md:px-5 md:py-5">
+          <div className="mx-auto max-w-[1600px] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 lg:px-5 lg:py-5">
             <Outlet />
           </div>
         </main>
       </div>
 
-      {(isStaff || isTeacher) && <JarvisLauncher />}
+      {/* Telefon: pastki menyu (ilova uslubi) */}
+      <nav
+        aria-label="Asosiy bo'limlar"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      >
+        <div className="mx-auto flex max-w-lg items-stretch">
+          {tabs.map((tab) => {
+            const active = isActive(tab.to);
+            return (
+              <Link
+                key={tab.to}
+                to={tab.to}
+                className={`relative flex flex-1 flex-col items-center gap-1 pb-2 pt-2.5 text-[11px] font-semibold transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
+              >
+                <tab.icon className="h-6 w-6" />
+                <span className="truncate">{t(tab.label)}</span>
+                {active && <span className="absolute bottom-0.5 h-1 w-8 rounded-full bg-primary" />}
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className={`relative flex flex-1 flex-col items-center gap-1 pb-2 pt-2.5 text-[11px] font-semibold ${open ? "text-primary" : "text-muted-foreground"}`}
+          >
+            <Menu className="h-6 w-6" />
+            <span>{t("Menyu")}</span>
+          </button>
+        </div>
+      </nav>
+
+      {(isStaff || isTeacher) && <JarvisLauncher phoneHidden={pathname === "/attendance"} />}
     </div>
     </TourProvider>
   );

@@ -249,10 +249,10 @@ function StudentProfile() {
       {/* Header: identity + the actions an admin uses every day */}
       <section className="rounded-xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-xl font-extrabold text-primary">{initials}</div>
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary text-2xl font-extrabold text-primary-foreground lg:h-14 lg:w-14 lg:rounded-xl lg:bg-primary/15 lg:text-xl lg:text-primary">{initials}</div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-xl font-extrabold tracking-tight">{studentName}</h1>
+              <h1 className="break-words text-xl font-extrabold tracking-tight lg:truncate">{studentName}</h1>
               {student.low_income && <LowIncomeBadge note={student.low_income_note} />}
             </div>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -260,19 +260,27 @@ function StudentProfile() {
               <span>Ota-ona: <b className="text-foreground">{student.parent_full_name || "—"}</b> {student.parent_phone ? `· ${student.parent_phone}` : ""}</span>
               <span>Bot: {student.parent_telegram_chat_id ? "ulangan" : "ulanmagan"}</span>
             </div>
+            <select
+              value={status}
+              onChange={(e) => void changeStatus(e.target.value as StudentStatus)}
+              aria-label="O'quvchi holati"
+              className={`mt-2 rounded-full border-transparent px-3 py-1.5 text-sm font-semibold lg:hidden ${meta.tint}`}
+            >
+              {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
+            </select>
           </div>
           <select
             value={status}
             onChange={(e) => void changeStatus(e.target.value as StudentStatus)}
             aria-label="O'quvchi holati"
-            className={`rounded-lg border-transparent px-3 py-1.5 text-xs font-semibold ${meta.tint}`}
+            className={`hidden rounded-lg border-transparent px-3 py-1.5 text-xs font-semibold lg:block ${meta.tint}`}
           >
             {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
           </select>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <button onClick={() => setPayOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+          <button onClick={() => setPayOpen(true)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 text-base font-bold text-primary-foreground hover:bg-primary/90 sm:w-auto sm:rounded-lg sm:py-2 sm:text-sm">
             <Wallet className="h-4 w-4" /> To'lov qabul qilish
           </button>
           <button onClick={() => setAssignOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50">
@@ -322,7 +330,7 @@ function StudentProfile() {
                 const time = grpLessons[0] ? `${grpLessons[0].start_time.slice(0, 5)}–${grpLessons[0].end_time.slice(0, 5)}` : "";
                 return (
                   <div key={e.id} className="flex flex-wrap items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 basis-full sm:basis-auto">
                       <Link to="/groups" search={{ group: e.group_id } as never} className="block truncate text-sm font-semibold hover:text-primary">
                         {e.group?.name ?? "Guruh"}
                       </Link>

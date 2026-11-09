@@ -151,7 +151,8 @@
 .crm-shell { min-height: 100dvh; letter-spacing: 0; }
 .crm-shell :is(h1,h2,h3,h4) { font-family: var(--font-display); letter-spacing: 0; }
 .crm-shell [class*="tracking-"] { letter-spacing: 0; }
-.crm-shell :is(.rounded-2xl,.rounded-3xl,.rounded-xl) { border-radius: 8px; }
+/* Telefonda ilova uslubidagi yumaloqroq kartalar, kompyuterda ixcham 8px. */
+@media (min-width: 1024px) { .crm-shell :is(.rounded-2xl,.rounded-3xl,.rounded-xl) { border-radius: 8px; } }
 .crm-shell :is(.glass,.glass-strong,.card-premium) { background: var(--card); backdrop-filter: none; box-shadow: none; }
 .crm-shell :is(.ambient-bg,.ambient-orb,.ambient-grid) { display: none; }
 .crm-shell .gold-text { color: var(--primary); background: none; animation: none; }

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { Check, X, Clock, FileText, ClipboardCheck } from "lucide-react";
+import { Check, X, Clock, FileText, ClipboardCheck, Eraser, Save } from "lucide-react";
 import { toast } from "sonner";
 import { tashkentDate } from '@/features/face/attendance';
 
@@ -159,22 +159,50 @@ function AttendancePage() {
     return c;
   }, [marks, students]);
 
+  const extras = (s: Student, cur: Status) => (
+    <>
+      {(["late","excused"] as Status[]).map((st) => (
+        <button
+          key={st}
+          disabled={!canMark}
+          onClick={() => setStatus(s.id, cur === st ? (st === "late" ? "present" : "absent") : st)}
+          className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+            cur === st ? statusStyle(st) : "border-border text-muted-foreground hover:border-primary"
+          } disabled:cursor-not-allowed disabled:opacity-60`}
+        >
+          {icon(st)} {STATUS_LABEL[st]}
+        </button>
+      ))}
+      <input
+        disabled={!canMark}
+        value={marks[s.id]?.note ?? ""}
+        onChange={(e) => setNote(s.id, e.target.value)}
+        placeholder="Izoh"
+        className="w-32 min-w-0 flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-base md:w-40 md:flex-none md:text-xs"
+      />
+    </>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className={`space-y-5 ${currentLesson && canMark && students.length > 0 ? "pb-20 lg:pb-0" : ""}`}>
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">Davomat</h1>
-        <p className="text-sm text-muted-foreground">Darsni tanlang, kelgan o'quvchilarni ptichka bilan belgilang va saqlang</p>
+        <h1 className="text-3xl font-extrabold tracking-tight">Davomat</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {currentLesson
+            ? `${currentLesson.group?.name ?? "Guruh"} · ${date === todayISO() ? "Bugun" : DAYS_FULL[dow - 1]} ${currentLesson.start_time.slice(0,5)}–${currentLesson.end_time.slice(0,5)}`
+            : "Darsni tanlang, kelgan o'quvchilarni ptichka bilan belgilang va saqlang"}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-4 md:grid-cols-3">
         <div>
           <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sana</div>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm" />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-base md:text-sm" />
           <div className="mt-1 text-[10px] text-muted-foreground">{DAYS_FULL[dow - 1]}</div>
         </div>
         <div className="md:col-span-2">
           <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dars</div>
-          <select value={lessonId} onChange={(e) => setLessonId(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm">
+          <select value={lessonId} onChange={(e) => setLessonId(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-base md:text-sm">
             {lessons.length === 0 && <option value="">Bu kunda dars yo'q</option>}
             {lessons.map((l) => (
               <option key={l.id} value={l.id}>
@@ -188,20 +216,28 @@ function AttendancePage() {
       {currentLesson && (
         <>
           <div className="grid grid-cols-4 gap-2">
-            <Stat label="Keldi" value={counts.present} color="text-emerald-500" />
+            <Stat label="Keldi" value={counts.present} color="text-success" />
+            <Stat label="Kechikdi" value={counts.late} color="text-warning" />
             <Stat label="Kelmadi" value={counts.absent} color="text-destructive" />
-            <Stat label="Kechikdi" value={counts.late} color="text-amber-500" />
-            <Stat label="Uzrli" value={counts.excused} color="text-sky-500" />
+            <Stat label="Uzrli" value={counts.excused} color="text-info" />
           </div>
+
+          {canMark && students.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 md:hidden">
+              <button onClick={() => markAll("present")} className="flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground"><Check className="h-5 w-5" strokeWidth={3} /> Hammasi keldi</button>
+              <button onClick={() => markAll("absent")} className="flex items-center justify-center gap-2 rounded-xl border border-border py-3.5 text-sm font-bold"><Eraser className="h-5 w-5" /> Tozalash</button>
+            </div>
+          )}
 
           <div className="rounded-2xl border border-border bg-card">
             <div className="flex items-center justify-between border-b border-border p-4">
               <div className="flex items-center gap-2 text-sm font-bold">
                 <ClipboardCheck className="h-4 w-4 text-primary" /> O'quvchilar ({students.length})
               </div>
+              <span className="text-xs text-muted-foreground md:hidden">{savedCount > 0 ? "Saqlangan" : "Hali saqlanmagan"}</span>
               {canMark && students.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="hidden text-xs text-muted-foreground sm:inline">{savedCount > 0 ? "Saqlangan" : "Hali saqlanmagan"}</span>
+                <div className="hidden flex-wrap items-center gap-2 md:flex">
+                  <span className="text-xs text-muted-foreground">{savedCount > 0 ? "Saqlangan" : "Hali saqlanmagan"}</span>
                   <button onClick={() => markAll("present")} className="rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary">Hammasi keldi</button>
                   <button onClick={() => markAll("absent")} className="rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary">Tozalash</button>
                   <button onClick={saveAll} disabled={saving} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">
@@ -216,12 +252,19 @@ function AttendancePage() {
               <p className="p-4 text-sm text-muted-foreground">Bu guruhda o'quvchi yo'q</p>
             ) : (
               <ul className="divide-y divide-border">
-                {students.map((s, i) => {
+                {students.map((s) => {
                   const cur = marks[s.id]?.status ?? "absent";
                   const ticked = cur === "present" || cur === "late";
+                  const initials = `${s.first_name[0] ?? ""}${s.last_name?.[0] ?? ""}`.toUpperCase();
                   return (
-                    <li key={s.id} className="flex flex-col gap-2 p-3 md:flex-row md:items-center">
-                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <li key={s.id} className="p-3">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary text-sm font-bold">{initials || "?"}</span>
+                        <div className="min-w-0 flex-1">
+                          <Link to="/students/$id" params={{ id: s.id }} className="block truncate text-sm font-semibold hover:text-primary hover:underline">{s.first_name} {s.last_name ?? ""}</Link>
+                          <div className={`text-xs ${statusText(cur)}`}>{STATUS_LABEL[cur]}</div>
+                        </div>
+                        <div className="hidden items-center gap-1.5 md:flex">{extras(s, cur)}</div>
                         <button
                           type="button"
                           role="checkbox"
@@ -229,42 +272,32 @@ function AttendancePage() {
                           aria-label={`${s.first_name} ${s.last_name ?? ""} keldi`}
                           disabled={!canMark}
                           onClick={() => togglePresent(s.id)}
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 transition-colors ${
-                            ticked ? "border-emerald-500 bg-emerald-500 text-primary-foreground" : "border-border hover:border-primary"
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                            cur === "late"
+                              ? "border-warning bg-warning text-primary-foreground"
+                              : ticked
+                                ? "border-success bg-success text-primary-foreground"
+                                : "border-border text-muted-foreground hover:border-primary"
                           } disabled:cursor-not-allowed disabled:opacity-60`}
                         >
-                          {ticked && <Check className="h-5 w-5" strokeWidth={3} />}
+                          {cur === "late" ? <Clock className="h-5 w-5" strokeWidth={3} /> : ticked ? <Check className="h-6 w-6" strokeWidth={3} /> : null}
                         </button>
-                        <span className="w-6 text-xs text-muted-foreground">{i + 1}.</span>
-                        <Link to="/students/$id" params={{ id: s.id }} className="block truncate text-sm font-semibold hover:text-primary hover:underline">{s.first_name} {s.last_name ?? ""}</Link>
                       </div>
-                      <div className="flex flex-wrap items-center gap-1.5 pl-11 md:pl-0">
-                        {(["late","excused"] as Status[]).map((st) => (
-                          <button
-                            key={st}
-                            disabled={!canMark}
-                            onClick={() => setStatus(s.id, cur === st ? (st === "late" ? "present" : "absent") : st)}
-                            className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
-                              cur === st ? statusStyle(st) : "border-border text-muted-foreground hover:border-primary"
-                            } disabled:cursor-not-allowed disabled:opacity-60`}
-                          >
-                            {icon(st)} {STATUS_LABEL[st]}
-                          </button>
-                        ))}
-                        <input
-                          disabled={!canMark}
-                          value={marks[s.id]?.note ?? ""}
-                          onChange={(e) => setNote(s.id, e.target.value)}
-                          placeholder="Izoh"
-                          className="w-32 rounded-lg border border-border bg-background px-2 py-1.5 text-xs md:w-40"
-                        />
-                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-14 md:hidden">{extras(s, cur)}</div>
                     </li>
                   );
                 })}
               </ul>
             )}
           </div>
+
+          {canMark && students.length > 0 && (
+            <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 px-4 pb-2 md:hidden">
+              <button onClick={saveAll} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-extrabold text-primary-foreground shadow-lg disabled:opacity-60">
+                <Save className="h-5 w-5" /> {saving ? "Saqlanmoqda…" : "Saqlash"}
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -281,10 +314,19 @@ function icon(s: Status) {
 
 function statusStyle(s: Status): string {
   switch (s) {
-    case "present": return "border-emerald-500 bg-emerald-500/10 text-emerald-500";
+    case "present": return "border-success bg-success/10 text-success";
     case "absent": return "border-destructive bg-destructive/10 text-destructive";
-    case "late": return "border-amber-500 bg-amber-500/10 text-amber-500";
-    case "excused": return "border-sky-500 bg-sky-500/10 text-sky-500";
+    case "late": return "border-warning bg-warning/10 text-warning";
+    case "excused": return "border-info bg-info/10 text-info";
+  }
+}
+
+function statusText(s: Status): string {
+  switch (s) {
+    case "present": return "text-success";
+    case "absent": return "text-destructive";
+    case "late": return "text-warning";
+    case "excused": return "text-info";
   }
 }
 

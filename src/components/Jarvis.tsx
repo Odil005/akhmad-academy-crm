@@ -360,7 +360,7 @@ export function Jarvis({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
         <button
           onClick={() => setOpen(true)}
           data-tour="jarvis-button"
-          className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-2xl shadow-primary/40 transition hover:scale-105"
+          className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-50 flex h-12 w-12 items-center lg:bottom-5 lg:right-5 lg:h-14 lg:w-14 justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-2xl shadow-primary/40 transition hover:scale-105"
           title="Jarvis"
         >
           <Bot className="h-6 w-6" />

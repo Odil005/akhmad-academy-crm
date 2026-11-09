@@ -4,6 +4,8 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Users, BookOpen, CreditCard, GraduationCap, TrendingUp } from "lucide-react";
 import { CrmOverview } from "@/components/CrmOverview";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { readProfileName, tashkentGreeting } from "@/lib/profile-name";
 
 // The administrator desk loads a large search index. Loading it only for admins
 // keeps the director dashboard responsive on slower phones and computers.
@@ -28,11 +30,17 @@ function Dashboard() {
   const isStaff = roles.includes("director") || roles.includes("admin");
   const isAdminOnly = roles.includes("admin") && !roles.includes("director");
   const [deskOpen, setDeskOpen] = useState(false);
+  const { data: profile } = useQuery({ queryKey: ["profile-name", user.id], queryFn: () => readProfileName(user.id), staleTime: 300_000 });
+  const firstName = (profile?.full_name ?? "").trim().split(/\s+/)[0] || "";
 
   if (isStaff) return <div className="space-y-4">
     <header className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-      <div className="min-w-0"><h1 className="text-xl font-bold">Boshqaruv paneli</h1><p className="mt-1 text-xs text-muted-foreground">{new Date().toLocaleDateString("uz-UZ", { day: "numeric", month: "long", year: "numeric" })}</p></div>
-      <div className="flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/students"><Users className="h-4 w-4" /> O‘quvchilar</Link></Button>{isAdminOnly && <Button size="sm" variant={deskOpen ? "secondary" : "default"} onClick={() => setDeskOpen(v => !v)}>{deskOpen ? "Ko‘rsatkichlar" : "Administrator ish stoli"}</Button>}</div>
+      <div className="min-w-0 lg:hidden">
+        <h1 className="text-2xl font-extrabold">{tashkentGreeting()}{firstName && <>, <span className="text-primary">{firstName}</span></>}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Bugun ham katta natijalarga bir qadam yaqinmiz!</p>
+      </div>
+      <div className="hidden min-w-0 lg:block"><h1 className="text-xl font-bold">Boshqaruv paneli</h1><p className="mt-1 text-xs text-muted-foreground">{new Date().toLocaleDateString("uz-UZ", { day: "numeric", month: "long", year: "numeric" })}</p></div>
+      <div className="flex gap-2"><Button asChild variant="outline" size="sm" className="hidden lg:inline-flex"><Link to="/students"><Users className="h-4 w-4" /> O‘quvchilar</Link></Button>{isAdminOnly && <Button size="sm" variant={deskOpen ? "secondary" : "default"} onClick={() => setDeskOpen(v => !v)}>{deskOpen ? "Ko‘rsatkichlar" : "Administrator ish stoli"}</Button>}</div>
     </header>
     {deskOpen ? <Suspense fallback={<DashboardLoading />}><AdminDesk /></Suspense> : <CrmOverview userId={user.id} />}
   </div>;
