@@ -197,6 +197,13 @@
       "when": 1794219425137,
       "tag": "0027_payments_teacher_snapshot",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794219530709,
+      "tag": "0028_parent_portal_accounts",
+      "breakpoints": true
     }
   ]
 }

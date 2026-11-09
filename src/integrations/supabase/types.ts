@@ -2102,6 +2102,27 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_accounts: {
+        Row: {
+          created_at: string
+          last_login_at: string | null
+          phone: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_login_at?: string | null
+          phone: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          last_login_at?: string | null
+          phone?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       parent_link_tokens: {
         Row: {
           created_at: string
@@ -2139,6 +2160,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      parent_login_codes: {
+        Row: {
+          attempts: number
+          code_hash: string
+          created_at: string
+          expires_at: string
+          id: string
+          phone: string
+          used_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          phone: string
+          used_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string
+          used_at?: string | null
+        }
+        Relationships: []
       }
       parent_notifications: {
         Row: {
@@ -4418,7 +4469,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "director" | "admin" | "teacher" | "student"
+      app_role: "director" | "admin" | "teacher" | "student" | "parent"
       behavior_rating: "qoniqarsiz" | "qoniqarli" | "yaxshi" | "alo"
       cash_account_type: "cash" | "card" | "bank" | "online" | "other"
       student_status: "trial" | "active" | "frozen" | "archived" | "left"
@@ -4558,7 +4609,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["director", "admin", "teacher", "student"],
+      app_role: ["director", "admin", "teacher", "student", "parent"],
       behavior_rating: ["qoniqarsiz", "qoniqarli", "yaxshi", "alo"],
       cash_account_type: ["cash", "card", "bank", "online", "other"],
       student_status: ["trial", "active", "frozen", "archived", "left"],

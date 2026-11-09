@@ -61,6 +61,7 @@ import { getPlatformAccess } from "@/lib/platform.functions";
 import { getMyCenterBrand } from "@/lib/tenant.functions";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
+import { isParentOnly } from "@/lib/parent-portal";
 
 import { TourProvider, useTour } from "@/components/tour/TourProvider";
 import { HelpCircle } from "lucide-react";
@@ -71,6 +72,8 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
     const context = await getAuthenticatedRouteContext();
     if (!context) throw redirect({ to: "/auth" });
+    // Parent accounts use their own app and never enter the staff CRM.
+    if (isParentOnly(context.roles)) throw redirect({ to: "/ota-ona" });
     return context;
   },
   component: AuthenticatedLayout,
