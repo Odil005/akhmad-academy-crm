@@ -1,17 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, MessageSquare, Pencil, RefreshCcw, Send, Trash2, UserPlus, Users, Wallet } from "lucide-react";
+import { ArrowLeft, MessageSquare, Pencil, Phone, Printer, Send, StickyNote, UserPlus, Users, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { TelegramIdField } from "@/components/TelegramIdField";
-import { MethodologyLibrary } from "@/components/MethodologyLibrary";
 import { LowIncomeBadge } from "@/components/LowIncomeBadge";
 import { StudentFeeEditor } from "@/components/StudentFeeEditor";
+import { canPrintReceipt, printPaymentReceipt } from "@/lib/payment-receipt";
 
-
-const DAYS_UZ = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
-const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const PaymentModal = lazy(() => import("@/components/PaymentModal").then((m) => ({ default: m.PaymentModal })));
+const DAYS_SHORT = ["Yak", "Du", "Se", "Chor", "Pay", "Ju", "Sha"];
 
 type StudentRow = {
   id: string;
@@ -42,12 +41,18 @@ type Enrollment = {
   subject_id: string | null;
   teacher_user_id: string | null;
   started_at: string;
+  ended_at: string | null;
   monthly_fee: number | null;
   status: string;
-  group: { id: string; name: string; monthly_fee: number; subject: { name: string } | null; teacher: { full_name: string | null } | null } | null;
+  group: { id: string; name: string; monthly_fee: number; teacher_id?: string | null; subject: { name: string } | null; teacher: { full_name: string | null } | null } | null;
 };
 type LessonRow = { group_id: string; day_of_week: number; start_time: string; end_time: string };
-type PaymentRow = { id: string; amount: number; period_month: string; status: string; paid_at: string | null; note: string | null };
+type PaymentRow = {
+  id: string; student_id: string; amount: number; subtotal: number | null; total_amount: number | null; paid_amount: number | null;
+  discount_amount: number | null; period_month: string; status: string; paid_at: string | null; created_at: string;
+  note: string | null; payment_method: string | null; cashier_id: string | null; course_id: string | null;
+  course: { name: string } | null;
+};
 type AttendanceRow = { id: string; date: string; status: string; note: string | null };
 const ATT_META: Record<string, { label: string; cls: string }> = {
   present: { label: "Keldi", cls: "bg-emerald-500/15 text-emerald-400" },
@@ -55,13 +60,24 @@ const ATT_META: Record<string, { label: string; cls: string }> = {
   absent: { label: "Kelmadi", cls: "bg-destructive/15 text-destructive" },
   excused: { label: "Sababli", cls: "bg-sky-500/15 text-sky-400" },
 };
+const PAY_META: Record<string, { label: string; cls: string }> = {
+  paid: { label: "To'langan", cls: "bg-emerald-500/15 text-emerald-400" },
+  partial: { label: "Qisman", cls: "bg-amber-500/15 text-amber-400" },
+  pending: { label: "Kutilmoqda", cls: "bg-secondary text-muted-foreground" },
+  overdue: { label: "Muddati o'tgan", cls: "bg-destructive/15 text-destructive" },
+  refunded: { label: "Qaytarilgan", cls: "bg-sky-500/15 text-sky-400" },
+  voided: { label: "Bekor qilingan", cls: "bg-muted text-muted-foreground" },
+};
+const METHOD_LABEL: Record<string, string> = { cash: "Naqd", card: "Karta", qr: "QR", transfer: "O'tkazma" };
+const money = (n: number) => `${Number(n || 0).toLocaleString("uz-UZ")} so'm`;
+const DEBT_STATUSES = ["pending", "partial", "overdue"];
 
 export const Route = createFileRoute("/_authenticated/students_/$id")({
   head: () => ({ meta: [
-    { title: "O‘quvchi va oylik to‘lov | Akhmad Academy" },
-    { name: "description", content: "Akhmad Academy o‘quvchisining guruhlari, oylik to‘lovi va davomati." },
-    { property: "og:title", content: "O‘quvchi | Akhmad Academy" },
-    { property: "og:description", content: "O‘quvchi ma’lumotlari va individual oylik to‘lovlar." },
+    { title: "O‘quvchi profili | Akhmad Academy" },
+    { name: "description", content: "O‘quvchining guruhlari, to‘lovlari, cheklari va davomati bir sahifada." },
+    { property: "og:title", content: "O‘quvchi profili | Akhmad Academy" },
+    { property: "og:description", content: "Guruh, to‘lov, chek va davomat — bitta profilda." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
@@ -79,14 +95,14 @@ function StudentProfile() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [payOpen, setPayOpen] = useState<"pay" | "refund" | null>(null);
+  const [payOpen, setPayOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [parentOpen, setParentOpen] = useState(false);
+  const [printing, setPrinting] = useState<string | null>(null);
   const [tgLink, setTgLink] = useState<{ link: string | null; token: string; expires_at: string } | null>(null);
   const [tgLoading, setTgLoading] = useState(false);
 
   const load = async () => {
-    setLoading(true);
     const [{ data: s }, { data: enr }, { data: pays }, { data: gs }, { data: att }] = await Promise.all([
       supabase.from("students").select(`
         id, monthly_fee, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes, low_income, low_income_note,
@@ -94,58 +110,50 @@ function StudentProfile() {
         profile:profiles(id, full_name, phone)
       `).eq("id", id).maybeSingle(),
       supabase.from("student_enrollments").select(`
-        id, group_id, subject_id, teacher_user_id, started_at, monthly_fee, status,
+        id, group_id, subject_id, teacher_user_id, started_at, ended_at, monthly_fee, status,
         group:groups(id, name, monthly_fee, teacher_id, subject:subjects(name))
       `).eq("student_id", id).order("started_at", { ascending: false }),
-      supabase.from("payments").select("id, amount, period_month, status, paid_at, note").eq("student_id", id).order("period_month", { ascending: false }),
+      supabase.from("payments")
+        .select("id, student_id, amount, subtotal, total_amount, paid_amount, discount_amount, period_month, status, paid_at, created_at, note, payment_method, cashier_id, course_id, course:groups!payments_course_id_fkey(name)")
+        .eq("student_id", id).order("created_at", { ascending: false }).limit(200),
       supabase.from("groups").select("id, name, monthly_fee, subject_id, teacher_id").order("name"),
       supabase.from("attendance").select("id, date, status, note").eq("student_id", id).order("date", { ascending: false }).limit(120),
     ]);
-    setAttendance((att as never) ?? []);
-    setStudent((s as never) ?? null);
     const enrolls = ((enr as never) ?? []) as Enrollment[];
-    // groups.teacher_id auth.users ga qaraydi — ismlarni profiles dan alohida olamiz
-    const tIds = [...new Set(enrolls.map((e: any) => e.group?.teacher_id).filter(Boolean))];
-    if (tIds.length) {
-      const { data: tprofs } = await supabase.from("profiles").select("id, full_name").in("id", tIds);
-      const names = new Map((tprofs ?? []).map((p: any) => [p.id, p.full_name ?? ""]));
-      enrolls.forEach((e: any) => {
-        if (e.group) e.group.teacher = { full_name: names.get(e.group.teacher_id) ?? null };
-      });
-    }
+    const tIds = [...new Set(enrolls.map((e) => e.group?.teacher_id).filter(Boolean))] as string[];
+    const groupIds = enrolls.filter((e) => e.status === "active" || e.status === "trial").map((e) => e.group_id);
+    const [tprofs, l] = await Promise.all([
+      tIds.length ? supabase.from("profiles").select("id, full_name").in("id", tIds) : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
+      groupIds.length
+        ? supabase.from("lessons").select("group_id, day_of_week, start_time, end_time").in("group_id", groupIds).eq("is_active", true)
+        : Promise.resolve({ data: [] as LessonRow[] }),
+    ]);
+    const names = new Map((tprofs.data ?? []).map((p) => [p.id, p.full_name ?? ""]));
+    enrolls.forEach((e) => { if (e.group) e.group.teacher = { full_name: names.get(e.group.teacher_id ?? "") ?? null }; });
+    setStudent((s as never) ?? null);
     setEnrollments(enrolls);
     setPayments((pays as never) ?? []);
     setGroups((gs as never) ?? []);
-
-    const groupIds = enrolls.map((e) => e.group_id);
-    if (groupIds.length) {
-      const { data: l } = await supabase.from("lessons").select("group_id, day_of_week, start_time, end_time").in("group_id", groupIds).eq("is_active", true);
-      setLessons((l as never) ?? []);
-    } else {
-      setLessons([]);
-    }
+    setAttendance((att as never) ?? []);
+    setLessons((l.data as never) ?? []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { setLoading(true); void load(); }, [id]);
 
+  const activeEnrollments = useMemo(() => enrollments.filter((e) => e.status === "active" || e.status === "trial"), [enrollments]);
+  const pastEnrollments = useMemo(() => enrollments.filter((e) => e.status !== "active" && e.status !== "trial"), [enrollments]);
   const totalMonthlyFee = useMemo(
     () => enrollments.some((e) => e.status === "active")
       ? enrollments.filter((e) => e.status === "active").reduce((sum, e) => sum + Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0), 0)
       : Number(student?.monthly_fee ?? 0),
     [enrollments, student],
   );
-
-  const balance = useMemo(() => {
-    let paid = 0, refunded = 0;
-    payments.forEach((p) => {
-      if (p.status === "paid") paid += Number(p.amount);
-      if (p.status === "refunded") refunded += Number(p.amount);
-    });
-    return paid - refunded;
-  }, [payments]);
-
-  const lessonDaysSet = useMemo(() => new Set(lessons.map((l) => l.day_of_week % 7)), [lessons]);
+  const debt = useMemo(
+    () => payments.filter((p) => DEBT_STATUSES.includes(p.status))
+      .reduce((sum, p) => sum + Math.max(0, Number(p.total_amount ?? p.amount ?? 0) - Number(p.paid_amount ?? 0)), 0),
+    [payments],
+  );
   const attStats = useMemo(() => {
     const counts: Record<string, number> = {};
     attendance.forEach((a) => { counts[a.status] = (counts[a.status] ?? 0) + 1; });
@@ -157,10 +165,9 @@ function StudentProfile() {
     () => payments.filter((p) => p.status === "paid" && p.paid_at).sort((a, b) => (b.paid_at ?? "").localeCompare(a.paid_at ?? ""))[0] ?? null,
     [payments],
   );
-  const monthCalendar = useMemo(() => buildMonth(new Date()), []);
 
-  if (loading) return <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">Yuklanmoqda...</div>;
-  if (!student) return <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">O'quvchi topilmadi</div>;
+  if (loading) return <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Yuklanmoqda...</div>;
+  if (!student) return <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">O'quvchi topilmadi</div>;
 
   const status = (student.status_enum ?? "active") as StudentStatus;
   const meta = STATUS_META[status];
@@ -172,9 +179,11 @@ function StudentProfile() {
   const initials = (studentName || "??").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   const changeStatus = async (v: StudentStatus) => {
-    await supabase.from("students").update({ status_enum: v }).eq("id", id);
+    const { error } = await supabase.from("students").update({ status_enum: v }).eq("id", id);
+    if (error) return toast.error(error.message);
     await supabase.from("student_status_history").insert({ student_id: id, from_status: student.status_enum ?? undefined, to_status: v });
-    load();
+    toast.success("Holat o'zgardi");
+    void load();
   };
 
   const sendTelegram = async () => {
@@ -185,14 +194,6 @@ function StudentProfile() {
       const res = await sendParentTelegram({ data: { student_id: id, text, kind: "manual" } });
       if ((res as { ok?: boolean })?.ok) toast.success("Yuborildi"); else toast.error("Yuborilmadi");
     } catch (e) { toast.error((e as Error)?.message ?? "Xato"); }
-  };
-
-  const removeEnrollment = async (enrollmentId: string) => {
-    if (!confirm("Bu guruhdan chiqarilsinmi?")) return;
-    const { error } = await supabase.from("student_enrollments").delete().eq("id", enrollmentId);
-    if (error) return toast.error(error.message);
-    toast.success("O'chirildi");
-    load();
   };
 
   const generateTgLink = async () => {
@@ -214,375 +215,264 @@ function StudentProfile() {
       .update({ low_income: value, low_income_note: value ? student?.low_income_note ?? null : null })
       .eq("id", id);
     if (error) return toast.error(error.message);
-    toast.success(value ? "Kam ta'minlangan deb belgilandi" : "Belgi olib tashlandi");
-    load();
+    toast.success(value ? "Reyestrga qo'shildi" : "Reyestrdan olindi");
+    void load();
   };
 
   const editLowIncomeNote = async () => {
     const note = prompt("Qisqa izoh (masalan: mahalla ma'lumotnomasi bor)", student?.low_income_note ?? "");
     if (note === null) return;
-    const { error } = await supabase
-      .from("students")
-      .update({ low_income_note: note.trim() || null })
-      .eq("id", id);
+    const { error } = await supabase.from("students").update({ low_income_note: note.trim() || null }).eq("id", id);
     if (error) return toast.error(error.message);
-    load();
+    void load();
   };
 
+  const printReceipt = async (p: PaymentRow) => {
+    setPrinting(p.id);
+    try {
+      await printPaymentReceipt({ ...p, course_name: p.course?.name ?? null }, studentName);
+    } catch (e) {
+      toast.error((e as Error)?.message || "Chek chiqmadi");
+    } finally {
+      setPrinting(null);
+    }
+  };
+
+  const phone = student.profile?.phone;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <button onClick={() => navigate({ to: "/students" })} className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:border-primary/50">
-          <ArrowLeft className="h-3.5 w-3.5" /> Ro'yxatga
-        </button>
-      </div>
+    <div className="space-y-4">
+      <button onClick={() => navigate({ to: "/students" })} className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:border-primary/50">
+        <ArrowLeft className="h-3.5 w-3.5" /> O'quvchilar
+      </button>
+
+      {/* Header: identity + the actions an admin uses every day */}
+      <section className="rounded-xl border border-border bg-card p-4">
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-xl font-extrabold text-primary">{initials}</div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="truncate text-xl font-extrabold tracking-tight">{studentName}</h1>
+              {student.low_income && <LowIncomeBadge note={student.low_income_note} />}
+            </div>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {phone || "Telefon yo'q"}</span>
+              <span>Ota-ona: <b className="text-foreground">{student.parent_full_name || "—"}</b> {student.parent_phone ? `· ${student.parent_phone}` : ""}</span>
+              <span>Bot: {student.parent_telegram_chat_id ? "ulangan" : "ulanmagan"}</span>
+            </div>
+          </div>
+          <select
+            value={status}
+            onChange={(e) => void changeStatus(e.target.value as StudentStatus)}
+            aria-label="O'quvchi holati"
+            className={`rounded-lg border-transparent px-3 py-1.5 text-xs font-semibold ${meta.tint}`}
+          >
+            {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
+          </select>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button onClick={() => setPayOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+            <Wallet className="h-4 w-4" /> To'lov qabul qilish
+          </button>
+          <button onClick={() => setAssignOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50">
+            <Users className="h-3.5 w-3.5" /> Guruhlar
+          </button>
+          <button onClick={() => setParentOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50">
+            <Pencil className="h-3.5 w-3.5" /> Ota-ona
+          </button>
+          <button onClick={() => void sendTelegram()} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50">
+            <MessageSquare className="h-3.5 w-3.5" /> Xabar
+          </button>
+          <button onClick={() => setNoteOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50">
+            <StickyNote className="h-3.5 w-3.5" /> Izoh
+          </button>
+        </div>
+        {student.notes && <p className="mt-3 rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground">{student.notes}</p>}
+      </section>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Balans</div>
-          <div className={`mt-1 text-xl font-extrabold ${balance - totalMonthlyFee < 0 ? "text-destructive" : "text-emerald-400"}`}>{balance.toLocaleString("uz-UZ")} so‘m</div>
-          <div className="text-[11px] text-muted-foreground">Oylik: {totalMonthlyFee.toLocaleString("uz-UZ")} so‘m</div>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Davomat</div>
-          <div className="mt-1 text-xl font-extrabold text-primary">{attStats.percent === null ? "—" : `${attStats.percent}%`}</div>
-          <div className="text-[11px] text-muted-foreground">{attStats.total} ta dars belgilangan</div>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Guruhlar</div>
-          <div className="mt-1 text-xl font-extrabold">{enrollments.filter((e) => e.status === "active" || e.status === "trial").length}</div>
-          <div className="text-[11px] text-muted-foreground">faol guruh</div>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Oxirgi to‘lov</div>
-          <div className="mt-1 text-xl font-extrabold">{lastPaid ? `${Number(lastPaid.amount).toLocaleString("uz-UZ")} so‘m` : "—"}</div>
-          <div className="text-[11px] text-muted-foreground">{lastPaid?.paid_at ? new Date(lastPaid.paid_at).toLocaleDateString("uz-UZ") : "To‘lov yo‘q"}</div>
-        </div>
+        <Kpi label="Qarz" value={debt > 0 ? money(debt) : "Qarz yo'q"} tone={debt > 0 ? "text-destructive" : "text-emerald-400"} hint={debt > 0 ? "to'lanmagan hisoblar" : "hammasi to'langan"} />
+        <Kpi label="Oylik to'lov" value={money(totalMonthlyFee)} hint={`${activeEnrollments.length} ta faol guruh`} />
+        <Kpi label="Davomat" value={attStats.percent === null ? "—" : `${attStats.percent}%`} tone="text-primary" hint={`${attStats.total} ta dars belgilangan`} />
+        <Kpi label="Oxirgi to'lov" value={lastPaid ? money(Number(lastPaid.total_amount || lastPaid.amount)) : "—"} hint={lastPaid?.paid_at ? new Date(lastPaid.paid_at).toLocaleDateString("uz-UZ") : "To'lov yo'q"} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* LEFT: identity + actions */}
-        <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-2xl font-extrabold text-primary">{initials}</div>
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-2xl font-extrabold tracking-tight">{studentName}</h1>
-              <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                <span className="text-xs text-muted-foreground">ID: {student.id.slice(0, 8)}</span>
-                {student.low_income && <LowIncomeBadge note={student.low_income_note} />}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-4">
+          {/* Groups */}
+          <section className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-bold">Guruhlari</h2>
+              <button onClick={() => setAssignOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold hover:border-primary/50">
+                <UserPlus className="h-3.5 w-3.5" /> Qo'shish / almashtirish
+              </button>
+            </div>
+            {activeEnrollments.length === 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted/40 p-3 text-sm">
+                <span className="text-muted-foreground">Hech qaysi guruhda emas. Oylik: <b className="text-foreground">{money(Number(student.monthly_fee ?? 0))}</b></span>
+                <StudentFeeEditor studentId={id} amount={Number(student.monthly_fee ?? 0)} label={studentName} onSaved={load} />
+              </div>
+            )}
+            <div className="divide-y divide-border">
+              {activeEnrollments.map((e) => {
+                const grpLessons = lessons.filter((l) => l.group_id === e.group_id);
+                const fee = Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0);
+                const days = [...new Set(grpLessons.map((l) => DAYS_SHORT[l.day_of_week % 7]))].join(", ");
+                const time = grpLessons[0] ? `${grpLessons[0].start_time.slice(0, 5)}–${grpLessons[0].end_time.slice(0, 5)}` : "";
+                return (
+                  <div key={e.id} className="flex flex-wrap items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                    <div className="min-w-0 flex-1">
+                      <Link to="/groups" search={{ group: e.group_id } as never} className="block truncate text-sm font-semibold hover:text-primary">
+                        {e.group?.name ?? "Guruh"}
+                      </Link>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {[e.group?.subject?.name, e.group?.teacher?.full_name, days && `${days} ${time}`].filter(Boolean).join(" · ") || "Jadval belgilanmagan"}
+                        {e.status === "trial" ? " · Sinov" : ""}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold">{money(fee)}</span>
+                      {e.status === "active" && <StudentFeeEditor studentId={id} enrollmentId={e.id} amount={fee} label={`${studentName} · ${e.group?.name ?? "Guruh"}`} onSaved={load} />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {pastEnrollments.length > 0 && (
+              <p className="mt-3 border-t border-border pt-2 text-[11px] text-muted-foreground">
+                Avvalgi guruhlar: {pastEnrollments.map((e) => `${e.group?.name ?? "Guruh"}${e.ended_at ? ` (${e.ended_at.slice(0, 10)} gacha)` : ""}`).join(", ")}
+              </p>
+            )}
+          </section>
+
+          {/* Payments + receipts */}
+          <section className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-bold">To'lovlar va cheklar</h2>
+              <button onClick={() => setPayOpen(true)} className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground">
+                <Wallet className="h-3.5 w-3.5" /> To'lov
+              </button>
+            </div>
+            {payments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Hali to'lov yoki hisob yo'q</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-[11px] uppercase text-muted-foreground">
+                    <tr><th className="py-2 pr-2">Oy</th><th className="pr-2">Guruh</th><th className="pr-2">Summa</th><th className="pr-2">Holat</th><th className="pr-2">Sana</th><th className="text-right">Chek</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {payments.map((p) => {
+                      const pm = PAY_META[p.status] ?? { label: p.status, cls: "bg-muted text-muted-foreground" };
+                      const total = Number(p.total_amount || p.amount);
+                      return (
+                        <tr key={p.id}>
+                          <td className="whitespace-nowrap py-2 pr-2">{p.period_month.slice(0, 7)}</td>
+                          <td className="max-w-[160px] truncate pr-2 text-xs text-muted-foreground">{p.course?.name ?? "—"}</td>
+                          <td className="whitespace-nowrap pr-2 font-semibold">
+                            {p.status === "partial" ? `${Number(p.paid_amount ?? 0).toLocaleString("uz-UZ")} / ${total.toLocaleString("uz-UZ")}` : total.toLocaleString("uz-UZ")}
+                            {p.payment_method && canPrintReceipt(p.status) && <span className="ml-1 text-[10px] font-normal text-muted-foreground">{METHOD_LABEL[p.payment_method] ?? ""}</span>}
+                          </td>
+                          <td className="pr-2"><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${pm.cls}`}>{pm.label}</span></td>
+                          <td className="whitespace-nowrap pr-2 text-xs text-muted-foreground">{p.paid_at ? new Date(p.paid_at).toLocaleDateString("uz-UZ") : "—"}</td>
+                          <td className="text-right">
+                            {canPrintReceipt(p.status) ? (
+                              <button
+                                onClick={() => void printReceipt(p)}
+                                disabled={printing === p.id}
+                                title="Chekni chop etish"
+                                aria-label="Chekni chop etish"
+                                className="inline-grid h-7 w-7 place-items-center rounded-md border border-border hover:border-primary/50 hover:text-primary disabled:opacity-50"
+                              >
+                                <Printer className="h-3.5 w-3.5" />
+                              </button>
+                            ) : null}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          {/* Attendance */}
+          <section className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-bold">Davomat</h2>
+              <div className="flex flex-wrap gap-1.5 text-[11px]">
+                {Object.entries(ATT_META).map(([k, m]) => (
+                  <span key={k} className={`rounded-full px-2 py-0.5 font-semibold ${m.cls}`}>{m.label}: {attStats.counts[k] ?? 0}</span>
+                ))}
               </div>
             </div>
-          </div>
+            {attendance.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Davomat hali belgilanmagan</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {attendance.slice(0, 60).map((a) => {
+                  const m = ATT_META[a.status] ?? { label: a.status, cls: "bg-muted text-muted-foreground" };
+                  return (
+                    <span key={a.id} title={a.note ?? m.label} className={`rounded-md px-2 py-1 text-[11px] font-semibold ${m.cls}`}>
+                      {a.date.slice(5).split("-").reverse().join(".")} · {m.label}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
 
-          <div className="space-y-3 text-sm">
-            <div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Telefon raqam</div>
-              <div className="font-bold">{student.profile?.phone || "—"}</div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Ilova holati</div>
-              <div className="font-semibold">{student.parent_telegram_chat_id ? "Faol" : "Ilova ishlatmaydi"}</div>
-            </div>
-          </div>
-
-          <TelegramIdField
-            kind="student"
-            subjectId={student.id}
-            title="O'quvchining Telegram ID"
-            initial={{
-              chat_id: student.telegram_chat_id,
-              username: student.telegram_username,
-              verified_at: student.telegram_verified_at,
-              last_checked_at: student.telegram_last_checked_at,
-              last_error: student.telegram_last_error,
-            }}
-          />
-
-          <div className="rounded-xl border border-amber-400/50 bg-amber-400/10 p-3">
+        {/* Side: rarely changed details */}
+        <aside className="space-y-4">
+          <section className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3">
             <label className="flex cursor-pointer items-start gap-2.5">
-              <input
-                type="checkbox"
-                checked={!!student.low_income}
-                onChange={(e) => void setLowIncome(e.target.checked)}
-                className="mt-0.5 h-4 w-4"
-              />
+              <input type="checkbox" checked={!!student.low_income} onChange={(e) => void setLowIncome(e.target.checked)} className="mt-0.5 h-4 w-4" />
               <span className="min-w-0">
-                <span className="block text-xs font-bold">Kam ta'minlangan oila reyestrida</span>
-                <span className="block text-[11px] text-muted-foreground">
-                  Belgilansa, o'quvchi guruh va umumiy ro'yxatlarda alohida rangli belgi bilan
-                  ko'rinadi.
-                </span>
+                <span className="block text-xs font-bold">Kambag'al oila reyestrida</span>
+                <span className="block text-[11px] text-muted-foreground">Ro'yxatlarda alohida belgi bilan ko'rinadi.</span>
               </span>
             </label>
             {student.low_income && (
-              <button
-                onClick={() => void editLowIncomeNote()}
-                className="mt-2 text-[11px] font-bold text-amber-700 underline"
-              >
+              <button onClick={() => void editLowIncomeNote()} className="mt-2 text-[11px] font-bold underline">
                 {student.low_income_note ? `Izoh: ${student.low_income_note}` : "Izoh qo'shish"}
               </button>
             )}
-          </div>
+          </section>
 
-          <div className="space-y-2 pt-2">
-            <button onClick={() => setNoteOpen(true)} className="w-full rounded-lg border border-primary/40 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-primary hover:bg-primary/5">
-              O'quvchiga qo'shimcha ma'lumot qo'shish
+          <section className="space-y-3 rounded-xl border border-border bg-card p-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Telegram</h2>
+            <TelegramIdField
+              kind="student"
+              subjectId={student.id}
+              title="O'quvchining Telegram ID"
+              initial={{
+                chat_id: student.telegram_chat_id,
+                username: student.telegram_username,
+                verified_at: student.telegram_verified_at,
+                last_checked_at: student.telegram_last_checked_at,
+                last_error: student.telegram_last_error,
+              }}
+            />
+            <button onClick={() => void generateTgLink()} className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:border-primary/50">
+              <Send className="h-3 w-3" /> {tgLoading ? "..." : "Ota-ona uchun bot havolasi"}
             </button>
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setAssignOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-xs font-semibold uppercase text-primary-foreground">
-                <Users className="h-3.5 w-3.5" /> Guruhlarni boshqarish
-              </button>
-              <button onClick={() => setPayOpen("pay")} className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 px-3 py-2.5 text-xs font-semibold uppercase text-primary hover:bg-primary/5">
-                <Wallet className="h-3.5 w-3.5" /> To'lov qilish
-              </button>
-            </div>
-            <button onClick={() => setPayOpen("refund")} className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/40 px-3 py-2.5 text-xs font-semibold uppercase text-destructive hover:bg-destructive/5">
-              <RefreshCcw className="h-3.5 w-3.5" /> Pul qaytarish
-            </button>
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={sendTelegram} className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold hover:border-primary/50" title="Ota-onaga xabar">
-                <MessageSquare className="h-3.5 w-3.5" />
-              </button>
-              <button onClick={() => setParentOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold hover:border-primary/50" title="Ota-ona tahrirlash">
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <button onClick={generateTgLink} className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:border-primary/50">
-              <Send className="h-3 w-3" /> {tgLoading ? "..." : "Telegram havola yaratish"}
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between gap-2 rounded-xl bg-muted/40 px-3 py-2">
-            <span className="text-xs uppercase text-muted-foreground">Holati</span>
-            <select
-              value={status}
-              onChange={(e) => changeStatus(e.target.value as StudentStatus)}
-              className={`rounded-lg border-transparent px-3 py-1.5 text-xs font-semibold ${meta.tint}`}
-            >
-              {STATUS_ORDER.map((k) => <option key={k} value={k}>{STATUS_META[k].label}</option>)}
-            </select>
-          </div>
-
-          {tgLink && (
-            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
-              <div className="mb-1 font-bold text-primary">Ota-ona uchun havola (7 kun amal qiladi)</div>
-              {tgLink.link ? (
-                <a href={tgLink.link} target="_blank" rel="noreferrer" className="break-all font-mono text-primary underline">{tgLink.link}</a>
-              ) : (
-                <div className="break-all font-mono">Token: {tgLink.token}</div>
-              )}
-              <button
-                onClick={() => { if (tgLink.link) { navigator.clipboard.writeText(tgLink.link).then(() => toast.success("Nusxalandi")); } }}
-                className="mt-2 rounded-md border border-border bg-background px-2 py-1 text-[11px]"
-              >Nusxalash</button>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT: per-enrollment cards */}
-        <div className="space-y-5">
-          {!enrollments.some((e) => e.status === "active") && <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-semibold">Oylik: {Number(student.monthly_fee ?? 0).toLocaleString("uz-UZ")} so‘m</span>
-            <StudentFeeEditor studentId={id} amount={Number(student.monthly_fee ?? 0)} label={studentName} onSaved={load} />
-          </div>}
-          {enrollments.length === 0 && (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center">
-              <p className="text-sm text-muted-foreground">Hech qaysi guruhga yozilmagan</p>
-              <button onClick={() => setAssignOpen(true)} className="mt-3 inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
-                <UserPlus className="h-3.5 w-3.5" /> Guruhlarni boshqarish
-              </button>
-            </div>
-          )}
-          {enrollments.map((e) => {
-            const grpLessons = lessons.filter((l) => l.group_id === e.group_id);
-            const fee = Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0);
-            const paidForGroup = payments
-              .filter((p) => p.status === "paid" && (p.note ?? "").includes(e.group?.name ?? "___"))
-              .reduce((s, p) => s + Number(p.amount), 0);
-            const groupBalance = paidForGroup - fee;
-            const start = new Date(e.started_at);
-            const endGuess = new Date(start); endGuess.setMonth(endGuess.getMonth() + 6);
-            const nextPay = new Date(); nextPay.setMonth(nextPay.getMonth() + 1); nextPay.setDate(1);
-            const grpDays = new Set(grpLessons.map((l) => l.day_of_week % 7));
-            return (
-              <div key={e.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-                {/* header */}
-                <div className="flex items-center justify-between gap-2 bg-primary/90 px-4 py-3 text-primary-foreground">
-                  <div className="inline-flex items-center gap-2 rounded-md bg-emerald-500/20 px-2.5 py-1 text-sm font-extrabold">
-                    <Wallet className="h-4 w-4" />
-                    {groupBalance >= 0 ? "+" : ""}{groupBalance.toLocaleString()} so'm
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`rounded-md px-3 py-1 text-xs font-bold ${STATUS_META[status].tint}`}>{STATUS_META[status].label}</span>
-                    <button
-                      onClick={() => removeEnrollment(e.id)}
-                      className="grid h-8 w-8 place-items-center rounded-md hover:bg-white/10"
-                      title="Guruhdan chiqarish"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-3 p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-extrabold uppercase leading-tight tracking-wide">{e.group?.subject?.name || e.group?.name || "—"}</h3>
-                  </div>
-                  {e.status === "active" && <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-sm font-semibold">Oylik: {fee.toLocaleString("uz-UZ")} so‘m</span>
-                    <StudentFeeEditor studentId={id} enrollmentId={e.id} amount={fee} label={`${studentName} · ${e.group?.name ?? "Guruh"}`} onSaved={load} />
-                  </div>}
-
-                  <div className="text-xs">
-                    <span className="text-muted-foreground">Guruh intervali : </span>
-                    <span className="font-semibold">{fmtDate(start)}/{fmtDate(endGuess)}</span>
-                  </div>
-
-                  <div className="inline-flex items-center gap-2 text-sm">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <span className="font-semibold">{e.group?.teacher?.full_name || "—"}</span>
-                  </div>
-
-                  {grpLessons.length > 0 && (
-                    <div className="text-xs">
-                      <span className="text-muted-foreground">Dars vaqti : </span>
-                      <span className="font-semibold">{grpLessons[0].start_time.slice(0, 5)}–{grpLessons[0].end_time.slice(0, 5)}</span>
-                    </div>
-                  )}
-
-                  <div>
-                    <div className="mb-1.5 text-xs text-muted-foreground">Dars kunlari :</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {grpLessons.map((l, i) => (
-                        <span key={i} className="rounded-md bg-secondary/60 px-2.5 py-0.5 text-xs font-semibold">{DAYS_UZ[l.day_of_week % 7]}</span>
-                      ))}
-                      {grpLessons.length === 0 && <span className="text-xs text-muted-foreground">—</span>}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Boshlangan sana</div>
-                      <div className="font-semibold">📅 {fmtDate(start)}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">O'chiriladigan sana</div>
-                      <div className="font-semibold">📅 {fmtDate(endGuess)}</div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Keyingi to'lov</div>
-                      <div className="font-semibold">⏰ {fmtDate(nextPay)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-muted-foreground">To'lov narxi</div>
-                      <div className="font-bold text-primary">{fee.toLocaleString()} so'm</div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-border pt-3">
-                    <div className="mb-2 text-center text-sm font-bold">Darslar taqvimi ({monthCalendar.label})</div>
-                    <div className="grid grid-cols-7 gap-1.5">
-                      {monthCalendar.days.map((d, i) => {
-                        if (!d) return <div key={i} />;
-                        const isLessonDay = grpDays.has(d.dow);
-                        const isToday = d.isToday;
-                        return (
-                          <div
-                            key={i}
-                            className={`flex aspect-square items-center justify-center rounded-md text-xs font-bold ${
-                              isLessonDay ? "bg-destructive text-destructive-foreground" : "bg-secondary/40 text-foreground/60"
-                            } ${isToday ? "ring-2 ring-primary" : ""}`}
-                          >
-                            {String(d.n).padStart(2, "0")}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="mt-2 flex flex-wrap justify-center gap-3 text-[10px] text-muted-foreground">
-                      <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> To'langan</span>
-                      <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-destructive" /> Qarzdor</span>
-                      <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-secondary" /> Kutilayotgan</span>
-                    </div>
-                  </div>
-                </div>
+            {tgLink && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-2 text-xs">
+                <div className="mb-1 font-bold text-primary">7 kun amal qiladi</div>
+                {tgLink.link ? (
+                  <a href={tgLink.link} target="_blank" rel="noreferrer" className="break-all font-mono text-primary underline">{tgLink.link}</a>
+                ) : (
+                  <div className="break-all font-mono">Token: {tgLink.token}</div>
+                )}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </section>
+          <p className="px-1 text-[11px] text-muted-foreground">ID: {student.id.slice(0, 8)} · Qo'shilgan: {student.enrolled_at?.slice(0, 10) ?? "—"}</p>
+        </aside>
       </div>
-
-      {/* Attendance history */}
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="font-bold">Davomat tarixi</h3>
-          <div className="flex flex-wrap gap-1.5 text-[11px]">
-            {Object.entries(ATT_META).map(([k, m]) => (
-              <span key={k} className={`rounded-full px-2 py-0.5 font-semibold ${m.cls}`}>{m.label}: {attStats.counts[k] ?? 0}</span>
-            ))}
-          </div>
-        </div>
-        {attendance.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Davomat hali belgilanmagan</p>
-        ) : (
-          <div className="flex flex-wrap gap-1.5">
-            {attendance.slice(0, 60).map((a) => {
-              const m = ATT_META[a.status] ?? { label: a.status, cls: "bg-muted text-muted-foreground" };
-              return (
-                <span key={a.id} title={a.note ?? m.label} className={`rounded-md px-2 py-1 text-[11px] font-semibold ${m.cls}`}>
-                  {a.date.slice(5).split("-").reverse().join(".")} · {m.label}
-                </span>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Payments history */}
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <h3 className="mb-3 font-bold">To'lovlar tarixi</h3>
-        {payments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Yozuv yo'q</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-muted-foreground">
-                <tr><th className="py-2">Oy</th><th>Summa</th><th>Status</th><th>Sana</th><th>Izoh</th></tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {payments.map((p) => (
-                  <tr key={p.id}>
-                    <td className="py-2">{p.period_month.slice(0, 7)}</td>
-                    <td>{Number(p.amount).toLocaleString()} so'm</td>
-                    <td>
-                      <span className={`rounded-full px-2 py-0.5 text-xs ${
-                        p.status === "paid" ? "bg-emerald-500/15 text-emerald-600" :
-                        p.status === "refunded" ? "bg-blue-500/15 text-blue-600" :
-                        "bg-destructive/15 text-destructive"
-                      }`}>{p.status}</span>
-                    </td>
-                    <td className="text-xs text-muted-foreground">{p.paid_at ? new Date(p.paid_at).toLocaleDateString() : "—"}</td>
-                    <td className="text-xs text-muted-foreground">{p.note || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Metodika: o'quvchining fanlari bo'yicha */}
-      <MethodologyLibrary
-        compact
-        subjects={enrollments
-          .map((e) => e.group?.subject?.name || e.group?.name || "")
-          .filter(Boolean)}
-        title="Metodika (o'quvchi fanlari bo'yicha)"
-      />
-
-
 
       {assignOpen && (
         <GroupManageModal
@@ -590,23 +480,19 @@ function StudentProfile() {
           enrollments={enrollments}
           groups={groups}
           onClose={() => setAssignOpen(false)}
-          onSaved={() => { setAssignOpen(false); load(); }}
+          onSaved={() => { setAssignOpen(false); void load(); }}
         />
       )}
       {payOpen && (
-        <PaymentModal
-          mode={payOpen}
-          defaultAmount={totalMonthlyFee}
-          onClose={() => setPayOpen(null)}
-          onSaved={() => { setPayOpen(null); load(); }}
-          studentId={id}
-        />
+        <Suspense fallback={null}>
+          <PaymentModal initialStudentId={id} onClose={() => setPayOpen(false)} onDone={() => void load()} />
+        </Suspense>
       )}
       {noteOpen && (
         <NotesModal
           initial={student.notes ?? ""}
           onClose={() => setNoteOpen(false)}
-          onSaved={() => { setNoteOpen(false); load(); }}
+          onSaved={() => { setNoteOpen(false); void load(); }}
           studentId={id}
         />
       )}
@@ -619,48 +505,21 @@ function StudentProfile() {
             parent_telegram_chat_id: student.parent_telegram_chat_id ?? "",
           }}
           onClose={() => setParentOpen(false)}
-          onSaved={() => { setParentOpen(false); load(); }}
+          onSaved={() => { setParentOpen(false); void load(); }}
         />
       )}
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Kpi({ label, value, hint, tone }: { label: string; value: string; hint: string; tone?: string }) {
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/50 py-1.5 last:border-0">
-      <span className="text-xs uppercase text-muted-foreground">{label}</span>
-      <span className="text-right font-semibold">{value}</span>
+    <div className="rounded-xl border border-border bg-card p-3">
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={`mt-0.5 truncate text-lg font-extrabold ${tone ?? ""}`}>{value}</div>
+      <div className="truncate text-[11px] text-muted-foreground">{hint}</div>
     </div>
   );
-}
-
-function ActionBtn({ children, onClick, icon: Icon, primary }: { children: React.ReactNode; onClick: () => void; icon: React.ComponentType<{ className?: string }>; primary?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold ${
-        primary ? "bg-primary text-primary-foreground" : "border border-border bg-background hover:border-primary/50"
-      }`}
-    >
-      <Icon className="h-3.5 w-3.5" /> {children}
-    </button>
-  );
-}
-
-function buildMonth(now: Date) {
-  const y = now.getFullYear(), m = now.getMonth();
-  const first = new Date(y, m, 1);
-  const startDow = (first.getDay() + 6) % 7;
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const today = now.getDate();
-  const days: (null | { n: number; dow: number; isToday: boolean })[] = [];
-  for (let i = 0; i < startDow; i++) days.push(null);
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dow = new Date(y, m, d).getDay();
-    days.push({ n: d, dow, isToday: d === today });
-  }
-  return { days, label: now.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" }) };
 }
 
 function GroupManageModal({ studentId, enrollments, groups, onClose, onSaved }: { studentId: string; enrollments: Enrollment[]; groups: Group[]; onClose: () => void; onSaved: () => void }) {
@@ -801,44 +660,6 @@ function GroupManageModal({ studentId, enrollments, groups, onClose, onSaved }: 
   );
 }
 
-function PaymentModal({ studentId, mode, defaultAmount, onClose, onSaved }: { studentId: string; mode: "pay" | "refund"; defaultAmount: number; onClose: () => void; onSaved: () => void }) {
-  const [amount, setAmount] = useState(String(defaultAmount || ""));
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-  const isRefund = mode === "refund";
-  return (
-    <Modal title={isRefund ? "Pul qaytarish" : "To'lov qilish"} onClose={onClose}>
-      <label className="block text-sm">
-        <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Summa (so'm)</div>
-        <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" />
-      </label>
-      <label className="block text-sm">
-        <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Izoh</div>
-        <input value={note} onChange={(e) => setNote(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5" />
-      </label>
-      <button
-        disabled={saving || !amount}
-        onClick={async () => {
-          setSaving(true);
-          const now = new Date();
-          const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-          const { error } = await supabase.from("payments").insert({
-            student_id: studentId,
-            amount: Number(amount),
-            period_month: period,
-            status: isRefund ? "refunded" : "paid",
-            paid_at: new Date().toISOString(),
-            note: note || (isRefund ? "Qaytarildi" : "Qo'lda to'landi"),
-          });
-          if (error) toast.error(error.message); else { toast.success("Saqlandi"); onSaved(); }
-          setSaving(false);
-        }}
-        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-      >Saqlash</button>
-    </Modal>
-  );
-}
-
 function NotesModal({ studentId, initial, onClose, onSaved }: { studentId: string; initial: string; onClose: () => void; onSaved: () => void }) {
   const [txt, setTxt] = useState(initial);
   return (
@@ -913,4 +734,3 @@ function Modal({ title, children, onClose }: { title: string; children: React.Re
   );
 }
 
-export { Link };

@@ -25,10 +25,8 @@ import {
   ClipboardCheck,
   DoorOpen,
   BarChart3,
-  Phone,
   ScanFace,
   GraduationCap,
-  MapPin,
   Inbox,
   Upload,
   MessageSquare,
@@ -36,7 +34,6 @@ import {
   Brain,
   Target,
   AlertTriangle,
-  ReceiptText,
   Calculator,
 
   Lock,
@@ -85,6 +82,7 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
   show: boolean;
 };
+type NavSection = { title: string; items: NavItem[]; collapsible?: boolean };
 
 function AuthenticatedLayout() {
   const { user, roles } = Route.useRouteContext();
@@ -129,68 +127,69 @@ function AuthenticatedLayout() {
   const platformAccess = useQuery({ queryKey: ["platform", "access"], queryFn: () => fetchPlatformAccess(), staleTime: 300_000 });
   const isPlatformOwner = Boolean(platformAccess.data?.isOwner);
 
-  const nav: NavItem[] = [
-    { to: "/teacher-panel", label: "O'qituvchi paneli", icon: Users, show: isTeacher },
+  // Ixcham menyu: kundalik ish bo'limlari guruhlangan, kam ishlatiladiganlari
+  // "Boshqa" ichida yig'ilgan. Yashirilgan sahifalar manzil orqali ochilaveradi.
+  const isStudent = roles.includes("student") && !isStaff && !isTeacher;
+  const sections: NavSection[] = [
     {
-      to: "/video-lessons",
-      label: "Video darslar",
-      icon: GraduationCap,
-      show: isTeacher || roles.includes("student"),
+      title: "Asosiy",
+      items: [
+        { to: "/dashboard", label: "Boshqaruv", icon: LayoutDashboard, show: true },
+        { to: "/teacher-panel", label: "O'qituvchi paneli", icon: Users, show: isTeacher },
+        { to: "/students", label: "O'quvchilar", icon: Users, show: isStaff },
+        { to: "/groups", label: "Guruhlar", icon: BookOpen, show: canSeeGroups },
+        { to: "/teachers", label: "O'qituvchilar", icon: GraduationCap, show: isStaff },
+        { to: "/schedule", label: "Dars jadvali", icon: CalendarDays, show: true },
+        { to: "/attendance", label: "Davomat", icon: ClipboardCheck, show: isStaff || isTeacher },
+      ],
     },
-    { to: "/knowledge-game", label: "Bilim o'yini", icon: Brain, show: true },
-    { to: "/roadmap", label: "Maqsad xaritasi", icon: Target, show: true },
-    { to: "/methodology", label: "Metodika", icon: BookOpen, show: true },
-    { to: "/guide", label: "Video qo'llanma", icon: GraduationCap, show: true },
-
-
-    { to: "/dashboard", label: "Boshqaruv", icon: LayoutDashboard, show: true },
-    { to: "/students", label: "O'quvchilar", icon: Users, show: isStaff },
-    { to: "/groups", label: "Guruhlar", icon: BookOpen, show: canSeeGroups },
     {
-      to: "/teachers",
-      label: "O'qituvchilar ro'yxati",
-      icon: GraduationCap,
-      show: isStaff,
+      title: "Moliya",
+      items: [
+        { to: "/payments", label: "To'lovlar", icon: CreditCard, show: isStaff },
+        { to: "/debtors", label: "Qarzdorlar", icon: AlertTriangle, show: isStaff },
+        { to: "/cash-shifts", label: "Kassa yopilishi", icon: Lock, show: isStaff },
+        { to: "/finance", label: "Kirim-chiqim", icon: DollarSign, show: isStaff },
+        { to: "/salary", label: "Xodimlar oyligi", icon: Wallet, show: isStaff },
+      ],
     },
-    { to: "/schedule", label: "Dars jadvali", icon: CalendarDays, show: true },
-    { to: "/checkin-locations", label: "Face ID lokatsiya", icon: MapPin, show: isStaff },
-    { to: "/attendance", label: "Davomat", icon: ClipboardCheck, show: isStaff || isTeacher },
-    { to: "/payments", label: "To'lovlar", icon: CreditCard, show: isStaff },
-    { to: "/finance", label: "Moliya", icon: DollarSign, show: isStaff },
-    { to: "/debtors", label: "Qarzdorlar", icon: AlertTriangle, show: isStaff },
-    { to: "/cash-shifts", label: "Kassa yopilishi", icon: Lock, show: isStaff },
-    { to: "/payroll", label: "Oylik hisobi", icon: Calculator, show: isStaff },
-    { to: "/salary", label: "Oylik katalogi", icon: Wallet, show: isStaff },
-
-    { to: "/leads", label: "Lidlar", icon: Inbox, show: isAdmin },
-    { to: "/messages", label: "Xabarlar", icon: MessageSquare, show: isStaff || isTeacher },
-    { to: "/rooms", label: "Xonalar", icon: DoorOpen, show: isStaff },
-    { to: "/behavior", label: "Dars faolligi", icon: Smile, show: isTeacher },
-    { to: "/face-id", label: "Face ID", icon: ScanFace, show: false },
-    { to: "/face-checkin", label: "Face ID kirish", icon: ScanFace, show: isStaff },
     {
-      to: "/teacher-kpi",
-      label: "Oylik KPI",
-      icon: GraduationCap,
-      show: isStaff || isTeacher,
+      title: "O'qish",
+      items: [
+        { to: "/behavior", label: "Dars faolligi", icon: Smile, show: isTeacher },
+        { to: "/video-lessons", label: "Video darslar", icon: GraduationCap, show: isTeacher || isStudent },
+        { to: "/methodology", label: "Metodika", icon: BookOpen, show: isTeacher },
+        { to: "/knowledge-game", label: "Bilim o'yini", icon: Brain, show: isStudent },
+        { to: "/roadmap", label: "Maqsad xaritasi", icon: Target, show: isStudent },
+        { to: "/marketplace", label: "Marketplace", icon: ShoppingBag, show: isStudent },
+      ],
     },
-    { to: "/marketplace", label: "Marketplace", icon: ShoppingBag, show: true },
-    { to: "/reports", label: "Hisobotlar", icon: BarChart3, show: isDirector },
-    { to: "/import", label: "Excel import", icon: Upload, show: isStaff },
-    { to: "/platform", label: "UNI CRM Super Admin", icon: Building2, show: isDirector || isPlatformOwner },
-    { to: "/settings", label: "Sozlamalar", icon: Settings, show: isStaff },
-  ];
+    {
+      title: "Boshqa",
+      collapsible: true,
+      items: [
+        { to: "/leads", label: "Lidlar", icon: Inbox, show: isAdmin },
+        { to: "/messages", label: "Xabarlar", icon: MessageSquare, show: isStaff || isTeacher },
+        { to: "/reports", label: "Hisobotlar", icon: BarChart3, show: isDirector },
+        { to: "/payroll", label: "O'qituvchi ulushi", icon: Calculator, show: isStaff },
+        { to: "/import", label: "Excel import", icon: Upload, show: isStaff },
+        { to: "/face-checkin", label: "Face ID kirish", icon: ScanFace, show: isStaff },
+        { to: "/rooms", label: "Xonalar", icon: DoorOpen, show: isStaff },
+        { to: "/guide", label: "Video qo'llanma", icon: HelpCircle, show: isStaff || isTeacher },
+        { to: "/platform", label: "UNI CRM Super Admin", icon: Building2, show: isDirector || isPlatformOwner },
+      ],
+    },
+    {
+      title: "",
+      items: [{ to: "/settings", label: "Sozlamalar", icon: Settings, show: isStaff }],
+    },
+  ]
+    .map((sec) => ({ ...sec, items: sec.items.filter((n) => n.show) }))
+    .filter((sec) => sec.items.length > 0);
 
-  const visibleNav = nav.filter((n) => n.show);
-
-  // Administrator menyusi soddalashtiriladi: faqat 4 ta asosiy bo'lim,
-  // qolganlari "Boshqa bo'limlar" ichida. Director menyusi to'liq qoladi.
-  const adminSimplified = isAdmin && !isDirector;
-  const ADMIN_PRIMARY = ["/dashboard", "/students", "/payments", "/groups"];
-  const primaryNav = adminSimplified
-    ? visibleNav.filter((n) => ADMIN_PRIMARY.includes(n.to))
-    : [...visibleNav].sort((a, b) => (a.to === "/dashboard" ? -1 : b.to === "/dashboard" ? 1 : 0));
-  const moreNav = adminSimplified ? visibleNav.filter((n) => !ADMIN_PRIMARY.includes(n.to)) : [];
+  const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
+  const moreActive = sections.some((sec) => sec.collapsible && sec.items.some((n) => isActive(n.to)));
+  const showMore = moreOpen || moreActive;
 
   const signOut = async () => {
     clearAuthenticatedRouteCache();
@@ -231,60 +230,46 @@ function AuthenticatedLayout() {
         </Button>
       </div>
 
-      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
-        {primaryNav.map((n) => {
-          const active = pathname === n.to || pathname.startsWith(n.to + "/");
+      <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto p-2">
+        {sections.map((sec) => {
+          const hidden = sec.collapsible && !showMore;
           return (
-            <Link
-              key={n.to}
-              to={n.to}
-              title={t(n.label)}
-              data-tour={`nav-${n.to}`}
-              className={`flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-xs font-medium transition ${
-                active
-                  ? "crm-nav-active text-sidebar-foreground"
-                  : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              }`}
-            >
-              <n.icon className="h-[18px] w-[18px]" />
-              <span className={`truncate ${collapsed ? "lg:hidden" : ""}`}>{t(n.label)}</span>
-
-            </Link>
-          );
-        })}
-
-        {moreNav.length > 0 && (
-          <div className="pt-2">
-            <Button variant="ghost"
-              onClick={() => setMoreOpen((v) => !v)}
-              className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-sidebar-foreground/75 transition hover:bg-sidebar-accent"
-            >
-              <Menu className="h-[18px] w-[18px]" />
-              <span className="flex-1 text-left">{t("Boshqa bo'limlar")}</span>
-              <ChevronDown className={`h-4 w-4 transition ${moreOpen ? "rotate-180" : ""}`} />
-            </Button>
-            {moreOpen &&
-              moreNav.map((n) => {
-                const active = pathname === n.to || pathname.startsWith(n.to + "/");
+            <div key={sec.title || "end"} className="space-y-0.5">
+              {sec.title && (sec.collapsible ? (
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((v) => !v)}
+                  className={`flex w-full items-center justify-between px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-sidebar-foreground/45 hover:text-sidebar-foreground/80 ${collapsed ? "lg:justify-center" : ""}`}
+                  aria-expanded={showMore}
+                >
+                  <span className={collapsed ? "lg:hidden" : ""}>{t(sec.title)}</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition ${showMore ? "rotate-180" : ""}`} />
+                </button>
+              ) : (
+                <div className={`px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-sidebar-foreground/45 ${collapsed ? "lg:hidden" : ""}`}>{t(sec.title)}</div>
+              ))}
+              {!hidden && sec.items.map((n) => {
+                const active = isActive(n.to);
                 return (
                   <Link
                     key={n.to}
                     to={n.to}
                     title={t(n.label)}
-              data-tour={`nav-${n.to}`}
-                    className={`ml-3 flex items-center gap-3 rounded-xl px-3.5 py-2 text-sm transition ${
+                    data-tour={`nav-${n.to}`}
+                    className={`flex items-center gap-3 rounded-lg border border-transparent px-3 py-1.5 text-xs font-medium transition ${
                       active
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        ? "crm-nav-active text-sidebar-foreground"
+                        : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     }`}
                   >
-                    <n.icon className="h-4 w-4" />
+                    <n.icon className="h-4 w-4 shrink-0" />
                     <span className={`truncate ${collapsed ? "lg:hidden" : ""}`}>{t(n.label)}</span>
                   </Link>
                 );
               })}
-          </div>
-        )}
+            </div>
+          );
+        })}
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
