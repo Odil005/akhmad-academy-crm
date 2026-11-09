@@ -3,8 +3,9 @@ import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Undo2, Ban, History, Printer } from "lucide-react";
-import { getMyCenterBrand } from "@/lib/tenant.functions";
-import { printReceipt58 } from "@/lib/receipt-58";
+import { getMyCenterProfile } from "@/lib/tenant.functions";
+import { printReceipt58, receiptNextDue } from "@/lib/receipt-58";
+import { centerSiteFromLocation, loadReceiptExtras } from "@/lib/receipt-extras";
 const PaymentModal = lazy(() => import("@/components/PaymentModal").then(module => ({ default: module.PaymentModal })));
 import { refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
 
@@ -59,7 +60,7 @@ function PaymentsPage() {
   const [isDirector, setIsDirector] = useState(false);
   const [history, setHistory] = useState<{ paymentId: string; rows: AuditRow[] } | null>(null);
   const loadVersion = useRef(0);
-  const [brand, setBrand] = useState<{ name: string; phone: string | null; address: string | null } | null>(null);
+  const [brand, setBrand] = useState<{ name: string; phone: string | null; site: string | null; logo: string | null } | null>(null);
 
   const [f, setF] = useState({ from: "", to: "", course: "", method: "", cashier: "" });
 
@@ -106,7 +107,7 @@ function PaymentsPage() {
   useEffect(() => {
     load();
     getCashierContext().then((x) => setIsDirector(!!x.isDirector)).catch(() => setIsDirector(false));
-    getMyCenterBrand().then((b) => b && setBrand({ name: b.name, phone: b.phone, address: b.address })).catch(() => undefined);
+    getMyCenterProfile().then((b) => b && setBrand({ name: b.name, phone: b.phone, site: b.custom_domain, logo: b.is_flagship ? null : b.logo_url })).catch(() => undefined);
     return () => { loadVersion.current++; };
   }, []);
 
@@ -210,10 +211,17 @@ function PaymentsPage() {
                       <div className="flex justify-end gap-1">
                         {r.status !== "voided" && r.status !== "pending" && (
                           <IconBtn title="Chekni chop etish" disabled={false}
-                            onClick={() => printReceipt58({
+                            onClick={async () => {
+                              const extras = r.student?.id ? await loadReceiptExtras(r.student.id, r.course_id).catch(() => null) : null;
+                              await printReceipt58({
                               centerName: brand?.name || "Akhmad Academy",
                               centerPhone: brand?.phone,
-                              centerAddress: brand?.address,
+                              centerSite: centerSiteFromLocation(brand?.site),
+                              logoUrl: brand?.logo ?? `${window.location.origin}/receipt-logo.png`,
+                              parentPhone: extras?.parentPhone ?? null,
+                              teacherName: extras?.teacherName ?? null,
+                              debtLeft: extras?.debtLeft ?? null,
+                              nextDue: receiptNextDue(r.period_month),
                               receiptNo: r.id.slice(0, 8).toUpperCase(),
                               date: new Date(r.paid_at ?? r.created_at),
                               studentName: name,
@@ -223,7 +231,8 @@ function PaymentsPage() {
                               discount: Number(r.discount_amount || 0),
                               method: r.payment_method,
                               cashierName: r.cashier_id ? cashiers[r.cashier_id] ?? null : null,
-                            })}>
+                              });
+                            }}>
                             <Printer className="h-3.5 w-3.5" />
                           </IconBtn>
                         )}

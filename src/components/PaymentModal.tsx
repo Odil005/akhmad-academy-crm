@@ -5,8 +5,9 @@ import {
   getCashierContext,
 } from "@/lib/payments.functions";
 import { X, Search, CheckCircle2, XCircle, Loader2, AlertTriangle, Printer } from "lucide-react";
-import { getMyCenterBrand } from "@/lib/tenant.functions";
-import { getReceiptAutoPrint, printReceipt58, setReceiptAutoPrint, type Receipt58 } from "@/lib/receipt-58";
+import { getMyCenterProfile } from "@/lib/tenant.functions";
+import { centerSiteFromLocation, loadReceiptExtras } from "@/lib/receipt-extras";
+import { getReceiptAutoPrint, printReceipt58, receiptNextDue, setReceiptAutoPrint, type Receipt58 } from "@/lib/receipt-58";
 
 type StudentRow = {
   id: string;
@@ -53,15 +54,15 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ paymentId: string; notifStatus: string | null; receipt: Receipt58 } | null>(null);
-  const [center, setCenter] = useState<{ name: string; phone: string | null; address: string | null }>({ name: "Akhmad Academy", phone: null, address: null });
+  const [center, setCenter] = useState<{ name: string; phone: string | null; site: string | null; logo: string | null }>({ name: "Akhmad Academy", phone: null, site: null, logo: null });
   const [cashierName, setCashierName] = useState<string | null>(null);
   const [autoPrint, setAutoPrint] = useState(true);
   const [idemKey] = useState(() => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`));
 
   useEffect(() => {
     setAutoPrint(getReceiptAutoPrint());
-    getMyCenterBrand()
-      .then((b) => { if (b) setCenter({ name: b.name || "Akhmad Academy", phone: b.phone, address: b.address }); })
+    getMyCenterProfile()
+      .then((b) => { if (b) setCenter({ name: b.name || "Akhmad Academy", phone: b.phone, site: b.custom_domain, logo: b.is_flagship ? null : b.logo_url }); })
       .catch(() => undefined);
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
@@ -146,10 +147,16 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
       });
       const r = res as any;
       if (!r?.payment?.id) throw new Error(r?.message || "To'lov saqlanmadi. Qayta urinib ko'ring.");
+      const extras = await loadReceiptExtras(student.id, courseId || null).catch(() => null);
       const receipt: Receipt58 = {
         centerName: center.name,
         centerPhone: center.phone,
-        centerAddress: center.address,
+        centerSite: centerSiteFromLocation(center.site),
+        logoUrl: center.logo ?? `${window.location.origin}/receipt-logo.png`,
+        parentPhone: extras?.parentPhone ?? student.parent_phone,
+        teacherName: extras?.teacherName ?? null,
+        debtLeft: extras?.debtLeft ?? null,
+        nextDue: receiptNextDue(`${period}-01`),
         receiptNo: String(r.payment.id).slice(0, 8).toUpperCase(),
         date: new Date(),
         studentName: nameOf(student),
@@ -165,7 +172,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
         notifStatus: r.notification?.status ?? null,
         receipt,
       });
-      if (autoPrint) printReceipt58(receipt);
+      if (autoPrint) void printReceipt58(receipt);
       onDone();
     } catch (e) {
       setError(errText(e));
@@ -186,7 +193,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
           <SuccessPanel
             notifStatus={result.notifStatus}
             onClose={onClose}
-            onPrint={() => printReceipt58(result.receipt)}
+            onPrint={() => void printReceipt58(result.receipt)}
           />
         ) : (
           <div className="space-y-5 px-5 py-5">

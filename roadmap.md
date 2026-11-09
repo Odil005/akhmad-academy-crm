@@ -2,7 +2,10 @@
 
 ## 2026-11-09 Chek printeri (Xprinter XP-58IIH, USB, 58 mm)
 - [x] To'lovdan keyin 58 mm chek avtomatik chiqadi (o'chirish mumkin), "Chekni chop etish" tugmasi va To'lovlar ro'yxatidan qayta chiqarish; 3 test o'tdi, chek ko'rinishi tekshirildi
+- [x] Foydalanuvchi 3-namunani (to'liq: logo, sayt, ota-ona, o'qituvchi, qolgan qarz, keyingi to'lov, imzo, QR) tanladi — tizimga qo'yildi, 4 test o'tdi
+- [x] Bahodir (admin) logini o'chirildi; mavjud Feruza admin logini (feruza.admin9977) paroli yangilandi va kirish tekshirildi
 - [ ] Haqiqiy printerda sinov — foydalanuvchi kompyuterida Xprinter drayveri o'rnatilishi kerak
+- [ ] Markaz telefoni chekda chiqishi uchun Sozlamalar → Markaz profilida telefon kiritilishi kerak
 
 ## 2026-11-09 Davomat va kambag'al oila reyestri
 - [x] O'qituvchi har bir guruhda o'quvchilarni ptichka bilan belgilaydi ("Hammasi keldi", "Tozalash"); o'qituvchi menyusidan Face ID olindi; oylik hisob endi Face ID kirishiga bog'liq emas. Admin sessiyasida 10 o'quvchili darsda ptichkalar ishladi (saqlanmadi).
