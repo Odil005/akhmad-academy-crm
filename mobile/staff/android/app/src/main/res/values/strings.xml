@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Akhmad CRM</string>
+    <string name="title_activity_main">Akhmad CRM</string>
+    <string name="package_name">life.akhmadacademy.crm</string>
+    <string name="custom_url_scheme">life.akhmadacademy.crm</string>
+</resources>

@@ -114,6 +114,7 @@
 
 ## 2026-11-09 Mobil ilovalar va chek
 - [x] Printerdan chek chiqmadi — to‘lov saqlanmayotgan edi (bazada o‘qituvchi ustuni yo‘q edi); ustun qo‘shildi, sinov to‘lovi saqlanib bekor qilindi
-- [ ] Ota-ona portali: telefon + Telegram kod bilan kirish, farzand davomati/to'lovi/baholari
-- [ ] Xodimlar uchun Android APK (CRM) va ota-onalar uchun alohida Android APK; keyin Play Market
-- [ ] iPhone: ekranga qo'shiladigan ilova (xodim va ota-ona uchun alohida ikonka/nom)
+- [x] Ota-ona portali (/ota-ona): telefon + Telegram kod bilan kirish, farzand davomati/to'lovi/baholari — sinov kodi bilan kirish va ma'lumot ko'rinishi tekshirildi
+- [x] Xodimlar va ota-onalar uchun alohida imzolangan Android APK + AAB (/ilova sahifasidan yuklanadi)
+- [ ] Play Market'ga chiqarish — Google Play ishlab chiquvchi hisobi (25$) foydalanuvchida bo'lishi kerak; haqiqiy telefonda APK sinovi
+- [x] iPhone: ekranga qo'shiladigan ilova (xodim — Akhmad CRM, ota-ona — Akhmad Ota-ona)

@@ -14,7 +14,9 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BootstrapRouteImport } from './routes/bootstrap'
 import { Route as DonateRouteImport } from './routes/donate'
+import { Route as IlovaRouteImport } from './routes/ilova'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as OtaOnaRouteImport } from './routes/ota-ona'
 import { Route as UniRouteImport } from './routes/uni'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -105,9 +107,19 @@ const DonateRoute = DonateRouteImport.update({
   path: '/donate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IlovaRoute = IlovaRouteImport.update({
+  id: '/ilova',
+  path: '/ilova',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OtaOnaRoute = OtaOnaRouteImport.update({
+  id: '/ota-ona',
+  path: '/ota-ona',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UniRoute = UniRouteImport.update({
@@ -473,7 +485,9 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
   '/donate': typeof DonateRoute
+  '/ilova': typeof IlovaRoute
   '/mcp': typeof McpRoute
+  '/ota-ona': typeof OtaOnaRoute
   '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -545,7 +559,9 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
   '/donate': typeof DonateRoute
+  '/ilova': typeof IlovaRoute
   '/mcp': typeof McpRoute
+  '/ota-ona': typeof OtaOnaRoute
   '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -618,7 +634,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/bootstrap': typeof BootstrapRoute
   '/donate': typeof DonateRoute
+  '/ilova': typeof IlovaRoute
   '/mcp': typeof McpRoute
+  '/ota-ona': typeof OtaOnaRoute
   '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -692,7 +710,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bootstrap'
     | '/donate'
+    | '/ilova'
     | '/mcp'
+    | '/ota-ona'
     | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -764,7 +784,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bootstrap'
     | '/donate'
+    | '/ilova'
     | '/mcp'
+    | '/ota-ona'
     | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -836,7 +858,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bootstrap'
     | '/donate'
+    | '/ilova'
     | '/mcp'
+    | '/ota-ona'
     | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -910,7 +934,9 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BootstrapRoute: typeof BootstrapRoute
   DonateRoute: typeof DonateRoute
+  IlovaRoute: typeof IlovaRoute
   McpRoute: typeof McpRoute
+  OtaOnaRoute: typeof OtaOnaRoute
   UniRoute: typeof UniRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -965,11 +991,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DonateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ilova': {
+      id: '/ilova'
+      path: '/ilova'
+      fullPath: '/ilova'
+      preLoaderRoute: typeof IlovaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ota-ona': {
+      id: '/ota-ona'
+      path: '/ota-ona'
+      fullPath: '/ota-ona'
+      preLoaderRoute: typeof OtaOnaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/uni': {
@@ -1560,7 +1600,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BootstrapRoute: BootstrapRoute,
   DonateRoute: DonateRoute,
+  IlovaRoute: IlovaRoute,
   McpRoute: McpRoute,
+  OtaOnaRoute: OtaOnaRoute,
   UniRoute: UniRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:

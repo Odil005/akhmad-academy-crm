@@ -187,7 +187,7 @@ export const getParentOverview = createServerFn({ method: "GET" })
       : { data: null };
 
     const children: ParentChild[] = (st.data ?? []).map((s: any) => {
-      const payments = (pay.data ?? [])
+      const payments: ParentChild["payments"] = (pay.data ?? [])
         .filter((p: any) => p.student_id === s.id)
         .map((p: any) => ({
           id: p.id,
@@ -226,8 +226,8 @@ export const getParentOverview = createServerFn({ method: "GET" })
             comment: g.comment,
           })),
         debt: payments
-          .filter((p) => ["pending", "partial", "overdue"].includes(p.status))
-          .reduce((sum, p) => sum + Math.max(0, p.total - p.paid), 0),
+          .filter((p: ParentChild["payments"][number]) => ["pending", "partial", "overdue"].includes(p.status))
+          .reduce((sum: number, p: ParentChild["payments"][number]) => sum + Math.max(0, p.total - p.paid), 0),
       };
     });
     return { phone: acc.phone, center: center?.name ?? "Akhmad Academy", children };

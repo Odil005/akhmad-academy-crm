@@ -1,0 +1,7 @@
+{
+  "appId": "life.akhmadacademy.parent",
+  "appName": "Akhmad Ota-ona",
+  "webDir": "www",
+  "server": { "url": "https://akhmadacademy.life/ota-ona", "androidScheme": "https", "allowNavigation": ["akhmadacademy.life", "www.akhmadacademy.life"] },
+  "android": { "backgroundColor": "#0B1220", "allowMixedContent": false }
+}
