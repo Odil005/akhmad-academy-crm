@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDataEvent } from "@/lib/data-events";
 import { supabase } from "@/integrations/supabase/client";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Undo2, Ban, History } from "lucide-react";
+import { Plus, Undo2, Ban, History, Printer } from "lucide-react";
+import { getMyCenterBrand } from "@/lib/tenant.functions";
+import { printReceipt58 } from "@/lib/receipt-58";
 const PaymentModal = lazy(() => import("@/components/PaymentModal").then(module => ({ default: module.PaymentModal })));
 import { refundPayment, voidPayment, getPaymentAuditHistory, getCashierContext } from "@/lib/payments.functions";
 
@@ -28,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/payments")({
 type Row = {
   id: string;
   amount: number;
+  subtotal: number | null;
+  discount_amount: number | null;
   total_amount: number | null;
   period_month: string;
   status: string;
@@ -55,6 +59,7 @@ function PaymentsPage() {
   const [isDirector, setIsDirector] = useState(false);
   const [history, setHistory] = useState<{ paymentId: string; rows: AuditRow[] } | null>(null);
   const loadVersion = useRef(0);
+  const [brand, setBrand] = useState<{ name: string; phone: string | null; address: string | null } | null>(null);
 
   const [f, setF] = useState({ from: "", to: "", course: "", method: "", cashier: "" });
 
@@ -64,7 +69,7 @@ function PaymentsPage() {
     try {
     const [{ data: p, error }, { data: c }, { data: pr }] = await Promise.all([
       supabase.from("payments")
-        .select("id, amount, total_amount, period_month, status, payment_method, paid_at, created_at, cashier_id, course_id, student:students(id, first_name, last_name, profile:profiles(full_name)), course:groups!payments_course_id_fkey(id, name)")
+        .select("id, amount, subtotal, discount_amount, total_amount, period_month, status, payment_method, paid_at, created_at, cashier_id, course_id, student:students(id, first_name, last_name, profile:profiles(full_name)), course:groups!payments_course_id_fkey(id, name)")
         .order("created_at", { ascending: false }).limit(500),
       supabase.from("groups").select("id, name"),
       supabase.from("profiles").select("id, full_name"),
@@ -101,6 +106,7 @@ function PaymentsPage() {
   useEffect(() => {
     load();
     getCashierContext().then((x) => setIsDirector(!!x.isDirector)).catch(() => setIsDirector(false));
+    getMyCenterBrand().then((b) => b && setBrand({ name: b.name, phone: b.phone, address: b.address })).catch(() => undefined);
     return () => { loadVersion.current++; };
   }, []);
 
@@ -202,6 +208,25 @@ function PaymentsPage() {
                     <td className="px-4 py-3 text-muted-foreground">{new Date(r.paid_at ?? r.created_at).toLocaleDateString("uz-UZ")}</td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
+                        {r.status !== "voided" && r.status !== "pending" && (
+                          <IconBtn title="Chekni chop etish" disabled={false}
+                            onClick={() => printReceipt58({
+                              centerName: brand?.name || "Akhmad Academy",
+                              centerPhone: brand?.phone,
+                              centerAddress: brand?.address,
+                              receiptNo: r.id.slice(0, 8).toUpperCase(),
+                              date: new Date(r.paid_at ?? r.created_at),
+                              studentName: name,
+                              courseName: r.course?.name ?? null,
+                              periodMonth: r.period_month,
+                              subtotal: Number(r.subtotal || r.total_amount || r.amount),
+                              discount: Number(r.discount_amount || 0),
+                              method: r.payment_method,
+                              cashierName: r.cashier_id ? cashiers[r.cashier_id] ?? null : null,
+                            })}>
+                            <Printer className="h-3.5 w-3.5" />
+                          </IconBtn>
+                        )}
                         {isDirector && r.status !== "refunded" && r.status !== "voided" && (
                           <IconBtn title="Qaytarish (director)" disabled={busy === r.id}
                             onClick={() => {

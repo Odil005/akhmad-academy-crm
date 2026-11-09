@@ -1,5 +1,9 @@
 # Roadmap
 
+## 2026-11-09 Chek printeri (Xprinter XP-58IIH, USB, 58 mm)
+- [x] To'lovdan keyin 58 mm chek avtomatik chiqadi (o'chirish mumkin), "Chekni chop etish" tugmasi va To'lovlar ro'yxatidan qayta chiqarish; 3 test o'tdi, chek ko'rinishi tekshirildi
+- [ ] Haqiqiy printerda sinov — foydalanuvchi kompyuterida Xprinter drayveri o'rnatilishi kerak
+
 ## 2026-11-09 Davomat va kambag'al oila reyestri
 - [x] O'qituvchi har bir guruhda o'quvchilarni ptichka bilan belgilaydi ("Hammasi keldi", "Tozalash"); o'qituvchi menyusidan Face ID olindi; oylik hisob endi Face ID kirishiga bog'liq emas. Admin sessiyasida 10 o'quvchili darsda ptichkalar ishladi (saqlanmadi).
 - [x] O'quvchilar ro'yxati bitta; "Kambag'al oila reyestri" belgisi o'quvchi profilida (hozir 0 ta belgilangan)

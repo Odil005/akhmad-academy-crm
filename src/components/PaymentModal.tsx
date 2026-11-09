@@ -4,7 +4,9 @@ import {
   createPaymentWithReceipt,
   getCashierContext,
 } from "@/lib/payments.functions";
-import { X, Search, CheckCircle2, XCircle, Loader2, AlertTriangle } from "lucide-react";
+import { X, Search, CheckCircle2, XCircle, Loader2, AlertTriangle, Printer } from "lucide-react";
+import { getMyCenterBrand } from "@/lib/tenant.functions";
+import { getReceiptAutoPrint, printReceipt58, setReceiptAutoPrint, type Receipt58 } from "@/lib/receipt-58";
 
 type StudentRow = {
   id: string;
@@ -50,8 +52,23 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ paymentId: string; notifStatus: string | null } | null>(null);
+  const [result, setResult] = useState<{ paymentId: string; notifStatus: string | null; receipt: Receipt58 } | null>(null);
+  const [center, setCenter] = useState<{ name: string; phone: string | null; address: string | null }>({ name: "Akhmad Academy", phone: null, address: null });
+  const [cashierName, setCashierName] = useState<string | null>(null);
+  const [autoPrint, setAutoPrint] = useState(true);
   const [idemKey] = useState(() => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`));
+
+  useEffect(() => {
+    setAutoPrint(getReceiptAutoPrint());
+    getMyCenterBrand()
+      .then((b) => { if (b) setCenter({ name: b.name || "Akhmad Academy", phone: b.phone, address: b.address }); })
+      .catch(() => undefined);
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const { data: pr } = await supabase.from("profiles").select("full_name").eq("id", data.user.id).maybeSingle();
+      setCashierName(pr?.full_name ?? null);
+    });
+  }, []);
 
   useEffect(() => {
     getCashierContext()
@@ -129,10 +146,26 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
       });
       const r = res as any;
       if (!r?.payment?.id) throw new Error(r?.message || "To'lov saqlanmadi. Qayta urinib ko'ring.");
+      const receipt: Receipt58 = {
+        centerName: center.name,
+        centerPhone: center.phone,
+        centerAddress: center.address,
+        receiptNo: String(r.payment.id).slice(0, 8).toUpperCase(),
+        date: new Date(),
+        studentName: nameOf(student),
+        courseName: courses.find((c) => c.id === courseId)?.name ?? null,
+        periodMonth: `${period}-01`,
+        subtotal,
+        discount,
+        method,
+        cashierName,
+      };
       setResult({
         paymentId: r.payment.id,
         notifStatus: r.notification?.status ?? null,
+        receipt,
       });
+      if (autoPrint) printReceipt58(receipt);
       onDone();
     } catch (e) {
       setError(errText(e));
@@ -153,6 +186,7 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
           <SuccessPanel
             notifStatus={result.notifStatus}
             onClose={onClose}
+            onPrint={() => printReceipt58(result.receipt)}
           />
         ) : (
           <div className="space-y-5 px-5 py-5">
@@ -260,9 +294,16 @@ export function PaymentModal({ onClose, onDone, initialStudentId }: { onClose: (
               <span className="text-xl font-extrabold text-primary">{fmt(total)} so'm</span>
             </div>
 
-            <div className="space-y-2">
-
-            </div>
+            <label className="no-print flex cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-2.5">
+              <input
+                type="checkbox"
+                checked={autoPrint}
+                onChange={(e) => { setAutoPrint(e.target.checked); setReceiptAutoPrint(e.target.checked); }}
+                className="h-4 w-4 accent-[hsl(var(--primary))]"
+              />
+              <Printer className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">To'lovdan keyin chekni avtomatik chiqarish</span>
+            </label>
 
             {error && (
               <p className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
@@ -329,14 +370,14 @@ function HealthStrip({ ctx }: { ctx: Ctx | null }) {
   );
 }
 
-function SuccessPanel({ notifStatus, onClose }: {
-  notifStatus: string | null; onClose: () => void;
+function SuccessPanel({ notifStatus, onClose, onPrint }: {
+  notifStatus: string | null; onClose: () => void; onPrint: () => void;
 }) {
   return (
     <div className="space-y-4 px-5 py-5">
       <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-700">
         <div className="font-bold">To'lov qabul qilindi</div>
-        <div className="mt-1 text-xs">To'lov tizimda saqlandi va ota-onaga Telegram orqali xabar yuborildi.</div>
+        <div className="mt-1 text-xs">To'lov tizimda saqlandi.</div>
       </div>
 
       {notifStatus && notifStatus !== "sent" && (
@@ -345,7 +386,10 @@ function SuccessPanel({ notifStatus, onClose }: {
         </p>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <button onClick={onPrint} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
+          <Printer className="h-4 w-4" /> Chekni chop etish
+        </button>
         <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary">Yopish</button>
       </div>
     </div>
