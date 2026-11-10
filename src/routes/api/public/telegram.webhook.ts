@@ -237,17 +237,18 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             if (!/^[A-Za-z0-9_]{4,32}$/.test(uname)) return;
             const variants = [`@${uname}`, uname, `https://t.me/${uname}`, `t.me/${uname}`];
             const chat = String(chatId);
-            // Two filtered updates in parallel instead of eight sequential round-trips per message.
-            const list = variants.map((v) => `"${v}"`).join(",");
+            // Two case-insensitive filtered updates in parallel; "_" is escaped so ILIKE matches it literally.
+            const orFor = (col: string) =>
+              variants.map((v) => `${col}.ilike.${v.replace(/_/g, "\\_")}`).join(",");
             await Promise.all([
               supabaseAdmin
                 .from("students")
                 .update({ parent_telegram_chat_id: chat, parent_notifications_enabled: true })
-                .filter("parent_telegram_chat_id", "in", `(${list})`),
+                .or(orFor("parent_telegram_chat_id")),
               supabaseAdmin
                 .from("students")
                 .update({ telegram_chat_id: chat })
-                .filter("telegram_chat_id", "in", `(${list})`),
+                .or(orFor("telegram_chat_id")),
             ]);
           };
 
