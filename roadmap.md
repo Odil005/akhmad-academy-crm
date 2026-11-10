@@ -119,3 +119,8 @@
 - [ ] Play Market'ga chiqarish — Google Play ishlab chiquvchi hisobi (25$) foydalanuvchida bo'lishi kerak; haqiqiy telefonda APK sinovi
 - [x] iPhone: ekranga qo'shiladigan ilova (xodim — Akhmad CRM, ota-ona — Akhmad Ota-ona)
 - [x] Telefon ko'rinishi namunadagi ilovadek: pastki menyu, ilova sarlavhasi, bosh sahifa kartalari va bugungi darslar, o'quvchilar kartalari, davomatda yumaloq belgilar va pastki "Saqlash", ota-ona ilovasida pastki bo'limlar
+
+## 2026-11-10 Telegram Mini App
+- [x] Bot menyusida "Ilovani ochish" tugmasi (akhmadacademy.life/tg); xodim → CRM, ota-ona → ota-ona ilovasi, yangi odam → ro'yxatdan o'tish
+- [x] Yangi o'quvchi/ota-ona: login-parol avtomatik yaratilib Telegramga yuboriladi; admin "Yangi arizalar"da tasdiqlamaguncha rolsiz, guruhga qo'shilmaydi
+- [ ] Haqiqiy Telegram ichida sinov — sayt nashr qilinishi kerak
