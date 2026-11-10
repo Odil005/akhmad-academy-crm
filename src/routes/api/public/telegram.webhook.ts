@@ -237,16 +237,18 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             if (!/^[A-Za-z0-9_]{4,32}$/.test(uname)) return;
             const variants = [`@${uname}`, uname, `https://t.me/${uname}`, `t.me/${uname}`];
             const chat = String(chatId);
-            for (const v of variants) {
-              await supabaseAdmin
+            // Two filtered updates in parallel instead of eight sequential round-trips per message.
+            const list = variants.map((v) => `"${v}"`).join(",");
+            await Promise.all([
+              supabaseAdmin
                 .from("students")
                 .update({ parent_telegram_chat_id: chat, parent_notifications_enabled: true })
-                .ilike("parent_telegram_chat_id", v);
-              await supabaseAdmin
+                .filter("parent_telegram_chat_id", "in", `(${list})`),
+              supabaseAdmin
                 .from("students")
                 .update({ telegram_chat_id: chat })
-                .ilike("telegram_chat_id", v);
-            }
+                .filter("telegram_chat_id", "in", `(${list})`),
+            ]);
           };
 
           type LinkedStudent = {
@@ -1409,6 +1411,30 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               await reply(chatId, "Bu raqam yoki akkaunt bir nechta yozuvga bog‘langan. Administrator tekshirishi kerak.");
               return new Response("ok");
             }
+            // Student's own phone (profile phone of the student's login account).
+            const phoneTail = phone.slice(-9);
+            const { data: ownProfiles } = await supabaseAdmin
+              .from("profiles")
+              .select("id")
+              .like("phone", `%${phoneTail}`)
+              .limit(5);
+            const ownIds = (ownProfiles ?? []).map((p) => p.id);
+            if (ownIds.length) {
+              const { data: ownStudents } = await supabaseAdmin
+                .from("students")
+                .select("id, first_name, last_name, full_name, group_id, status_enum")
+                .in("profile_id", ownIds)
+                .limit(2);
+              if (ownStudents?.length === 1) {
+                const self = ownStudents[0] as LinkedStudent;
+                await supabaseAdmin
+                  .from("students")
+                  .update({ telegram_chat_id: String(chatId), telegram_verified_at: new Date().toISOString() })
+                  .eq("id", self.id);
+                await handleStudentCommand(self, chatId, "/start");
+                return new Response("ok");
+              }
+            }
             const phoneLookup = await supabaseAdmin.rpc("telegram_students_by_parent_phone", {
               p_phone: phone,
             });
@@ -2319,8 +2345,14 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           }
         };
 
+        // Show "typing…" immediately so the user sees the bot reacting while queries run.
+        const typingChat = update.message?.chat?.id;
+        const typing = typingChat
+          ? tg("sendChatAction", { chat_id: typingChat, action: "typing" }).catch(() => null)
+          : null;
         try {
           const response = await processUpdate();
+          await typing;
           if (trackedUpdateId !== null) {
             await supabaseAdmin.rpc("finish_telegram_update", {
               p_update_id: trackedUpdateId,
