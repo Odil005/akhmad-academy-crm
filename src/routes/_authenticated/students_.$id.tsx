@@ -8,6 +8,7 @@ import { TelegramIdField } from "@/components/TelegramIdField";
 import { LowIncomeBadge } from "@/components/LowIncomeBadge";
 import { StudentFeeEditor } from "@/components/StudentFeeEditor";
 import { canPrintReceipt, printPaymentReceipt } from "@/lib/payment-receipt";
+import { examLevel, examPercent } from "@/lib/exam-score";
 
 const PaymentModal = lazy(() => import("@/components/PaymentModal").then((m) => ({ default: m.PaymentModal })));
 const DAYS_SHORT = ["Yak", "Du", "Se", "Chor", "Pay", "Ju", "Sha"];
@@ -55,6 +56,7 @@ type PaymentRow = {
   note: string | null; payment_method: string | null; cashier_id: string | null; course_id: string | null;
   course: { name: string } | null;
 };
+type ExamRow = { id: string; score: number; max_score: number | null; comment: string | null; graded_at: string };
 type AttendanceRow = { id: string; date: string; status: string; note: string | null };
 const ATT_META: Record<string, { label: string; cls: string }> = {
   present: { label: "Keldi", cls: "bg-emerald-500/15 text-emerald-400" },
@@ -94,6 +96,7 @@ function StudentProfile() {
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
+  const [exams, setExams] = useState<ExamRow[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignOpen, setAssignOpen] = useState(false);
@@ -138,6 +141,9 @@ function StudentProfile() {
     setGroups((gs as never) ?? []);
     setAttendance((att as never) ?? []);
     setLessons((l.data as never) ?? []);
+    const { data: ex } = await supabase.from("grades").select("id, score, max_score, comment, graded_at")
+      .eq("student_id", id).eq("kind", "exam").order("graded_at", { ascending: false }).limit(24);
+    setExams((ex as ExamRow[] | null) ?? []);
     setLoading(false);
   };
 
@@ -452,6 +458,26 @@ function StudentProfile() {
                   </tbody>
                 </table>
               </div>
+            )}
+          </section>
+
+          {/* Exam results */}
+          <section className="rounded-xl border border-border bg-card p-4">
+            <h2 className="mb-3 text-sm font-bold">Imtihon natijalari</h2>
+            {exams.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Hali imtihon natijasi kiritilmagan</p>
+            ) : (
+              <ul className="divide-y divide-border text-sm">
+                {exams.map((g) => {
+                  const pct = examPercent(Number(g.score), Number(g.max_score ?? 100));
+                  return (
+                    <li key={g.id} className="flex items-center justify-between gap-2 py-1.5">
+                      <span className="truncate">{g.comment || "Imtihon"} <span className="text-xs text-muted-foreground">· {g.graded_at}</span></span>
+                      <span className="shrink-0 font-semibold">{Number(g.score)}/{Number(g.max_score ?? 100)} · {pct}% <span className="text-xs font-normal text-muted-foreground">{examLevel(pct)}</span></span>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </section>
 

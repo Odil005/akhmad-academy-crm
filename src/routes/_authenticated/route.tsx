@@ -164,6 +164,7 @@ function AuthenticatedLayout() {
     {
       title: "O'qish",
       items: [
+        { to: "/exams", label: "Imtihon jurnali", icon: ClipboardCheck, show: isTeacher || isStaff },
         { to: "/behavior", label: "Dars faolligi", icon: Smile, show: isTeacher },
         { to: "/video-lessons", label: "Video darslar", icon: GraduationCap, show: isTeacher || isStudent },
         { to: "/methodology", label: "Metodika", icon: BookOpen, show: isTeacher },
