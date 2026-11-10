@@ -38,6 +38,7 @@ function loadTelegram(): Promise<TgWebApp | null> {
     s.src = "https://telegram.org/js/telegram-web-app.js";
     s.onload = () => resolve(w.Telegram?.WebApp ?? null);
     s.onerror = () => resolve(null);
+    setTimeout(() => resolve(w.Telegram?.WebApp ?? null), 4000);
     document.head.appendChild(s);
   });
 }
