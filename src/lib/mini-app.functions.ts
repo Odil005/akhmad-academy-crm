@@ -124,6 +124,7 @@ export const miniAppRegister = createServerFn({ method: "POST" })
     const uid = created.user.id as string;
     // No role is granted here: an applicant cannot read any CRM data until approved.
     await admin.from("user_roles").delete().eq("user_id", uid);
+    await admin.from("profiles").upsert({ id: uid, full_name: fullName, phone: `+998${phone}` });
 
     const { error: insErr } = await admin.from("student_applications").insert({
       telegram_user_id: tg.id,
@@ -217,6 +218,13 @@ export const decideApplication = createServerFn({ method: "POST" })
       if (!data.groupId) throw new Error("Guruhni tanlang");
       const { data: group } = await (context.supabase as any).from("groups").select("id, name").eq("id", data.groupId).maybeSingle();
       if (!group) throw new Error("Guruh topilmadi");
+      // The student row references the applicant's profile; older applications may lack one.
+      const { error: profErr } = await admin.from("profiles").upsert({
+        id: app.auth_user_id,
+        full_name: [app.first_name, app.last_name].filter(Boolean).join(" "),
+        phone: app.phone || null,
+      });
+      if (profErr) throw new Error(profErr.message);
       const { data: st, error: stErr } = await admin
         .from("students")
         .insert({
