@@ -1,5 +1,11 @@
 # Roadmap
 
+## 2026-11-10 Shaxsiy Supabase'ga bazani o'tkazish
+- [x] Bitta fayl tayyorlandi: `Files → bazani-nusxa-olish.html` — ochib «1 — Hammasini nusxa olish» tugmasini bosish butun SQL'ni (734 688 belgi) buferga soladi; brauzerda sinov: buferdagi matn fayl bilan bir xil, «2 — .sql faylini yuklab olish» ham bir xil fayl berdi
+- [ ] Foydalanuvchi faylni yuklab olib ochadi, nusxa oladi va Supabase SQL Editor'da «Run» qiladi — natija tekshiriladi
+- [ ] Yuklab bo'lgach yangi bazada sonlar tekshiriladi (797 o'quvchi, 51 guruh, 435 biriktirish, 44 login)
+- [ ] Cloudflare sozlamalari yangi bazaga ulanadi
+
 ## 2026-11-09 Chek printeri (Xprinter XP-58IIH, USB, 58 mm)
 - [x] To'lovdan keyin 58 mm chek avtomatik chiqadi (o'chirish mumkin), "Chekni chop etish" tugmasi va To'lovlar ro'yxatidan qayta chiqarish; 3 test o'tdi, chek ko'rinishi tekshirildi
 - [x] Foydalanuvchi 3-namunani (to'liq: logo, sayt, ota-ona, o'qituvchi, qolgan qarz, keyingi to'lov, imzo, QR) tanladi — tizimga qo'yildi, 4 test o'tdi
