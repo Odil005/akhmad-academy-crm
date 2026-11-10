@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { isCronRequestAuthorized, unauthorizedCronResponse } from "@/lib/cron-auth.server";
 
 async function run(request: Request): Promise<Response> {
-  if (!isCronRequestAuthorized(request)) return unauthorizedCronResponse();
+  if (!(await isCronRequestAuthorized(request))) return unauthorizedCronResponse();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin.rpc("generate_monthly_invoices", {});
   if (error) return Response.json({ ok: false, error: error.message }, { status: 500 });

@@ -215,11 +215,11 @@ export const Route = createFileRoute("/api/public/cron/daily-report")({
   server: {
     handlers: {
       GET: async ({ request }) =>
-        isCronRequestAuthorized(request)
+        (await isCronRequestAuthorized(request))
           ? Response.json(await buildAndSend())
           : unauthorizedCronResponse(),
       POST: async ({ request }) =>
-        isCronRequestAuthorized(request)
+        (await isCronRequestAuthorized(request))
           ? Response.json(await buildAndSend())
           : unauthorizedCronResponse(),
     },

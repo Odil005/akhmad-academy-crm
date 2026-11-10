@@ -7,15 +7,36 @@ function constantTimeEquals(left: string, right: string): boolean {
   return mismatch === 0;
 }
 
-export function isCronRequestAuthorized(request: Request): boolean {
-  const secret = process.env.CRON_SECRET?.trim() ?? "";
-  if (secret.length < 16) return false;
+/**
+ * Scheduled jobs authenticate with either the CRON_SECRET env value or the
+ * database-held shared secret that pg_cron sends in `x-cron-secret`.
+ */
+export async function isCronRequestAuthorized(request: Request): Promise<boolean> {
   const authorization = request.headers.get("authorization") ?? "";
-  const legacyHeader = request.headers.get("x-cron-secret") ?? "";
-  return (
-    constantTimeEquals(authorization, `Bearer ${secret}`) ||
-    constantTimeEquals(legacyHeader, secret)
-  );
+  const headerSecret = (request.headers.get("x-cron-secret") ?? "").trim();
+
+  const envSecret = process.env.CRON_SECRET?.trim() ?? "";
+  if (envSecret.length >= 16) {
+    if (
+      constantTimeEquals(authorization, `Bearer ${envSecret}`) ||
+      constantTimeEquals(headerSecret, envSecret)
+    ) {
+      return true;
+    }
+  }
+
+  const candidate =
+    headerSecret || (authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "");
+  if (candidate.length < 32) return false;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.rpc("verify_cron_secret", {
+      p_secret: candidate,
+    });
+    return !error && data === true;
+  } catch {
+    return false;
+  }
 }
 
 export function unauthorizedCronResponse(): Response {

@@ -58,11 +58,11 @@ export const Route = createFileRoute("/api/public/cron/parent-digest")({
   server: {
     handlers: {
       GET: async ({ request }) =>
-        isCronRequestAuthorized(request)
+        (await isCronRequestAuthorized(request))
           ? Response.json(await build())
           : unauthorizedCronResponse(),
       POST: async ({ request }) =>
-        isCronRequestAuthorized(request)
+        (await isCronRequestAuthorized(request))
           ? Response.json(await build())
           : unauthorizedCronResponse(),
     },

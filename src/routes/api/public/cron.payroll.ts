@@ -6,7 +6,7 @@ import { isCronRequestAuthorized, unauthorizedCronResponse } from "@/lib/cron-au
  * Allaqachon qo'lda saqlangan (teacher_balance) qatorlarni qayta yozmaydi.
  */
 async function run(request: Request): Promise<Response> {
-  if (!isCronRequestAuthorized(request)) return unauthorizedCronResponse();
+  if (!(await isCronRequestAuthorized(request))) return unauthorizedCronResponse();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { computePayrollRow } = await import("@/lib/payroll");
 

@@ -225,6 +225,13 @@
       "when": 1794315305575,
       "tag": "0031_student_freeze_until",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794328595314,
+      "tag": "0032_cron_shared_secret",
+      "breakpoints": true
     }
   ]
 }

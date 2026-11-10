@@ -4564,6 +4564,7 @@ export type Database = {
           parent_telegram_chat_id: string
         }[]
       }
+      verify_cron_secret: { Args: { p_secret: string }; Returns: boolean }
     }
     Enums: {
       app_role: "director" | "admin" | "teacher" | "student" | "parent"

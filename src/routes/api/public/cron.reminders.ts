@@ -11,7 +11,7 @@ import { isCronRequestAuthorized, unauthorizedCronResponse } from "@/lib/cron-au
  * Also handles daily lesson reminders (kept from the previous version) via parent_notifications.
  */
 async function runReminders(request: Request): Promise<Response> {
-  if (!isCronRequestAuthorized(request)) return unauthorizedCronResponse();
+  if (!(await isCronRequestAuthorized(request))) return unauthorizedCronResponse();
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
