@@ -1,6 +1,18 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
+// Cloudflare (self-hosted) builds must use their own database and never fall
+// back to the Lovable-managed one, so a missing build variable fails loudly.
+const isSelfHosted = process.env.NITRO_PRESET?.trim() === "cloudflare-module";
+if (
+  isSelfHosted &&
+  !(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_PUBLISHABLE_KEY)
+) {
+  throw new Error(
+    "Cloudflare build: VITE_SUPABASE_URL va VITE_SUPABASE_PUBLISHABLE_KEY build o'zgaruvchilari kiritilmagan.",
+  );
+}
+
 const publicBackendUrl =
   process.env.VITE_SUPABASE_URL ||
   process.env.SUPABASE_URL ||

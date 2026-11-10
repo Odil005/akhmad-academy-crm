@@ -38,3 +38,4 @@
 - Student-profile payments use the shared PaymentModal and printPaymentReceipt (src/lib/payment-receipt.ts); never insert payments directly from a page, so allocation, cashier and receipt rules stay in one place.
 - Parents sign in on /ota-ona with a Telegram code sent only to the chat already linked to their phone; the server issues a one-time magic-link token and parent data is read only through getParentOverview, scoped by the verified phone, so parents never get CRM table access.
 - Android apps in mobile/ are Capacitor shells loading the published site (/dashboard and /ota-ona); keep business logic in the web app so publishing updates phones without a new APK, and keep signing keystores out of Git.
+- Cloudflare builds read database coordinates only from Cloudflare build/runtime variables and fail if missing; never fall back to the Lovable-managed database, so the self-hosted site stays independent.
