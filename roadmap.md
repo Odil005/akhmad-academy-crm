@@ -130,4 +130,4 @@
 - [x] Profildan 2 nusxali A4 shartnoma chop etish
 - [x] Lidlarda "Sinov darsida" bosqichi
 - [ ] SMS (Eskiz) — foydalanuvchining Eskiz login/kaliti kerak
-- [ ] Oylik imtihon jurnali, o'qituvchi oylik formulasi — keyingi bosqich
+- [x] Imtihon jurnali (guruh bo'yicha ball, profil va ota-ona ilovasida ko'rinadi); o'qituvchi foiz ulushi "O'qituvchi ulushi" sahifasida allaqachon bor
