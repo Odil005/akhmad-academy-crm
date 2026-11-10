@@ -3659,6 +3659,8 @@ export type Database = {
           credit_balance: number
           enrolled_at: string
           first_name: string | null
+          frozen_reason: string | null
+          frozen_until: string | null
           full_name: string | null
           group_id: string | null
           id: string
@@ -3693,6 +3695,8 @@ export type Database = {
           credit_balance?: number
           enrolled_at?: string
           first_name?: string | null
+          frozen_reason?: string | null
+          frozen_until?: string | null
           full_name?: string | null
           group_id?: string | null
           id?: string
@@ -3727,6 +3731,8 @@ export type Database = {
           credit_balance?: number
           enrolled_at?: string
           first_name?: string | null
+          frozen_reason?: string | null
+          frozen_until?: string | null
           full_name?: string | null
           group_id?: string | null
           id?: string

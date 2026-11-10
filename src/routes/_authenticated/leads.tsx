@@ -18,6 +18,7 @@ type Lead = {
 const STATUSES = [
   { key: "new", label: "Yangi" },
   { key: "contacted", label: "Bog'lanildi" },
+  { key: "trial", label: "Sinov darsida" },
   { key: "converted", label: "O'quvchi bo'ldi" },
   { key: "rejected", label: "Rad etildi" },
 ];

@@ -124,3 +124,10 @@
 - [x] Bot menyusida "Ilovani ochish" tugmasi (akhmadacademy.life/tg); xodim → CRM, ota-ona → ota-ona ilovasi, yangi odam → ro'yxatdan o'tish
 - [x] Yangi o'quvchi/ota-ona: login-parol avtomatik yaratilib Telegramga yuboriladi; admin "Yangi arizalar"da tasdiqlamaguncha rolsiz, guruhga qo'shilmaydi
 - [ ] Haqiqiy Telegram ichida sinov — sayt nashr qilinishi kerak
+
+## 2026-11-10 CRM kamchiliklari
+- [x] O'quvchini sana bilan muzlatish (shu muddatda oylik hisoblanmaydi, muddat tugagach avtomatik faol)
+- [x] Profildan 2 nusxali A4 shartnoma chop etish
+- [x] Lidlarda "Sinov darsida" bosqichi
+- [ ] SMS (Eskiz) — foydalanuvchining Eskiz login/kaliti kerak
+- [ ] Oylik imtihon jurnali, o'qituvchi oylik formulasi — keyingi bosqich

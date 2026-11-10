@@ -218,6 +218,13 @@
       "when": 1794314388271,
       "tag": "0030_grant_execute_student_group_helpers",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794315305575,
+      "tag": "0031_student_freeze_until",
+      "breakpoints": true
     }
   ]
 }

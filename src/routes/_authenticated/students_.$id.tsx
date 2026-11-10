@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, MessageSquare, Pencil, Phone, Printer, Send, StickyNote, UserPlus, Users, Wallet } from "lucide-react";
+import { ArrowLeft, FileText, Snowflake, MessageSquare, Pencil, Phone, Printer, Send, StickyNote, UserPlus, Users, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { TelegramIdField } from "@/components/TelegramIdField";
@@ -31,6 +31,8 @@ type StudentRow = {
   notes: string | null;
   low_income: boolean | null;
   low_income_note: string | null;
+  frozen_until: string | null;
+  frozen_reason: string | null;
   profile: { id: string; full_name: string | null; phone: string | null } | null;
 };
 
@@ -105,7 +107,7 @@ function StudentProfile() {
   const load = async () => {
     const [{ data: s }, { data: enr }, { data: pays }, { data: gs }, { data: att }] = await Promise.all([
       supabase.from("students").select(`
-        id, monthly_fee, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes, low_income, low_income_note,
+        id, monthly_fee, status_enum, enrolled_at, full_name, first_name, last_name, parent_full_name, parent_phone, parent_telegram_chat_id, notes, low_income, low_income_note, frozen_until, frozen_reason,
         telegram_chat_id, telegram_username, telegram_verified_at, telegram_last_checked_at, telegram_last_error,
         profile:profiles(id, full_name, phone)
       `).eq("id", id).maybeSingle(),
@@ -184,6 +186,42 @@ function StudentProfile() {
     await supabase.from("student_status_history").insert({ student_id: id, from_status: student.status_enum ?? undefined, to_status: v });
     toast.success("Holat o'zgardi");
     void load();
+  };
+
+  const freezeStudent = async () => {
+    if (status === "frozen") {
+      const { error } = await supabase.from("students").update({ status_enum: "active", frozen_until: null, frozen_reason: null }).eq("id", id);
+      if (error) return toast.error(error.message);
+      await supabase.from("student_status_history").insert({ student_id: id, from_status: "frozen", to_status: "active" });
+      toast.success("Muzlatish bekor qilindi");
+      return void load();
+    }
+    const until = prompt("Qaysi sanagacha muzlatiladi? (YYYY-MM-DD)", new Date(Date.now() + 14 * 864e5).toISOString().slice(0, 10));
+    if (!until) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(until)) return toast.error("Sana noto'g'ri");
+    const reason = prompt("Sababi (masalan: kasallik)") ?? "";
+    const { error } = await supabase.from("students").update({ status_enum: "frozen", frozen_until: until, frozen_reason: reason.trim() || null }).eq("id", id);
+    if (error) return toast.error(error.message);
+    await supabase.from("student_status_history").insert({ student_id: id, from_status: student.status_enum ?? undefined, to_status: "frozen" });
+    toast.success(`${until} gacha muzlatildi — bu muddatda oylik hisoblanmaydi`);
+    void load();
+  };
+
+  const printStudentContract = async () => {
+    const [{ getMyCenterProfile }, { printContract }] = await Promise.all([import("@/lib/tenant.functions"), import("@/lib/contract-print")]);
+    const brand = await getMyCenterProfile().catch(() => null);
+    printContract({
+      centerName: brand?.name || "Akhmad Academy",
+      centerPhone: brand?.phone ?? null,
+      centerAddress: brand?.address ?? null,
+      studentName,
+      studentPhone: student.profile?.phone ?? null,
+      parentName: student.parent_full_name,
+      parentPhone: student.parent_phone,
+      groups: activeEnrollments.map((e) => ({ name: e.group?.name ?? "Guruh", fee: Number(e.monthly_fee ?? e.group?.monthly_fee ?? 0) })),
+      date: new Date(),
+      number: id.slice(0, 6).toUpperCase(),
+    });
   };
 
   const sendTelegram = async () => {
@@ -295,7 +333,18 @@ function StudentProfile() {
           <button onClick={() => setNoteOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50">
             <StickyNote className="h-3.5 w-3.5" /> Izoh
           </button>
+          <button onClick={() => void freezeStudent()} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50">
+            <Snowflake className="h-3.5 w-3.5" /> {status === "frozen" ? "Muzlatishni bekor qilish" : "Muzlatish"}
+          </button>
+          <button onClick={() => void printStudentContract()} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50">
+            <FileText className="h-3.5 w-3.5" /> Shartnoma
+          </button>
         </div>
+        {status === "frozen" && student.frozen_until && (
+          <p className="mt-3 rounded-lg bg-primary/10 px-3 py-2 text-xs text-primary">
+            Muzlatilgan: {student.frozen_until} gacha{student.frozen_reason ? ` · ${student.frozen_reason}` : ""}. Bu muddatda oylik hisoblanmaydi.
+          </p>
+        )}
         {student.notes && <p className="mt-3 rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground">{student.notes}</p>}
       </section>
 
