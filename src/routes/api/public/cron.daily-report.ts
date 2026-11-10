@@ -38,6 +38,15 @@ async function jarvisSummarize(payload: Record<string, unknown>): Promise<string
   );
 }
 
+// Telegram HTML mode: escape markup, then turn the AI's **bold** into <b>.
+function aiSummaryHtml(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+}
+
 async function buildAndSend() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -187,7 +196,7 @@ async function buildAndSend() {
     `✅ Davomat: <b>${attendanceRate}%</b>`,
     `🔴 Qarzdorlar: <b>${debtorsCount}</b> ta (${fmt(debtorsAmount)} so'm)`,
     ``,
-    aiSummary ? `🤖 <b>Jarvis xulosasi:</b>\n${aiSummary}` : "",
+    aiSummary ? `🤖 <b>Jarvis xulosasi:</b>\n${aiSummaryHtml(aiSummary)}` : "",
   ]
     .filter(Boolean)
     .join("\n");
