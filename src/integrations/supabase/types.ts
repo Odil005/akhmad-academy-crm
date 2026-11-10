@@ -3151,6 +3151,97 @@ export type Database = {
         }
         Relationships: []
       }
+      student_applications: {
+        Row: {
+          auth_user_id: string | null
+          center_id: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          first_name: string
+          group_id: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          reject_reason: string | null
+          role: string
+          status: string
+          student_id: string | null
+          subject: string | null
+          telegram_chat_id: string
+          telegram_user_id: number
+          telegram_username: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          center_id?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          first_name: string
+          group_id?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          reject_reason?: string | null
+          role?: string
+          status?: string
+          student_id?: string | null
+          subject?: string | null
+          telegram_chat_id: string
+          telegram_user_id: number
+          telegram_username?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          center_id?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          first_name?: string
+          group_id?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          reject_reason?: string | null
+          role?: string
+          status?: string
+          student_id?: string | null
+          subject?: string | null
+          telegram_chat_id?: string
+          telegram_user_id?: number
+          telegram_username?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_applications_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_applications_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_applications_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_credentials: {
         Row: {
           access_code: string

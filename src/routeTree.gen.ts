@@ -17,9 +17,11 @@ import { Route as DonateRouteImport } from './routes/donate'
 import { Route as IlovaRouteImport } from './routes/ilova'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as OtaOnaRouteImport } from './routes/ota-ona'
+import { Route as TgRouteImport } from './routes/tg'
 import { Route as UniRouteImport } from './routes/uni'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AuthenticatedArizalarRouteImport } from './routes/_authenticated/arizalar'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedBehaviorRouteImport } from './routes/_authenticated/behavior'
 import { Route as AuthenticatedCashShiftsRouteImport } from './routes/_authenticated/cash-shifts'
@@ -122,6 +124,11 @@ const OtaOnaRoute = OtaOnaRouteImport.update({
   path: '/ota-ona',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TgRoute = TgRouteImport.update({
+  id: '/tg',
+  path: '/tg',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UniRoute = UniRouteImport.update({
   id: '/uni',
   path: '/uni',
@@ -139,6 +146,11 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
     path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedArizalarRoute = AuthenticatedArizalarRouteImport.update({
+  id: '/arizalar',
+  path: '/arizalar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
@@ -488,9 +500,11 @@ export interface FileRoutesByFullPath {
   '/ilova': typeof IlovaRoute
   '/mcp': typeof McpRoute
   '/ota-ona': typeof OtaOnaRoute
+  '/tg': typeof TgRoute
   '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/arizalar': typeof AuthenticatedArizalarRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/cash-shifts': typeof AuthenticatedCashShiftsRoute
@@ -562,9 +576,11 @@ export interface FileRoutesByTo {
   '/ilova': typeof IlovaRoute
   '/mcp': typeof McpRoute
   '/ota-ona': typeof OtaOnaRoute
+  '/tg': typeof TgRoute
   '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/arizalar': typeof AuthenticatedArizalarRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/behavior': typeof AuthenticatedBehaviorRoute
   '/cash-shifts': typeof AuthenticatedCashShiftsRoute
@@ -637,9 +653,11 @@ export interface FileRoutesById {
   '/ilova': typeof IlovaRoute
   '/mcp': typeof McpRoute
   '/ota-ona': typeof OtaOnaRoute
+  '/tg': typeof TgRoute
   '/uni': typeof UniRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_authenticated/arizalar': typeof AuthenticatedArizalarRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/behavior': typeof AuthenticatedBehaviorRoute
   '/_authenticated/cash-shifts': typeof AuthenticatedCashShiftsRoute
@@ -713,9 +731,11 @@ export interface FileRouteTypes {
     | '/ilova'
     | '/mcp'
     | '/ota-ona'
+    | '/tg'
     | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/arizalar'
     | '/attendance'
     | '/behavior'
     | '/cash-shifts'
@@ -787,9 +807,11 @@ export interface FileRouteTypes {
     | '/ilova'
     | '/mcp'
     | '/ota-ona'
+    | '/tg'
     | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/arizalar'
     | '/attendance'
     | '/behavior'
     | '/cash-shifts'
@@ -861,9 +883,11 @@ export interface FileRouteTypes {
     | '/ilova'
     | '/mcp'
     | '/ota-ona'
+    | '/tg'
     | '/uni'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/_authenticated/arizalar'
     | '/_authenticated/attendance'
     | '/_authenticated/behavior'
     | '/_authenticated/cash-shifts'
@@ -937,6 +961,7 @@ export interface RootRouteChildren {
   IlovaRoute: typeof IlovaRoute
   McpRoute: typeof McpRoute
   OtaOnaRoute: typeof OtaOnaRoute
+  TgRoute: typeof TgRoute
   UniRoute: typeof UniRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -1012,6 +1037,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OtaOnaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tg': {
+      id: '/tg'
+      path: '/tg'
+      fullPath: '/tg'
+      preLoaderRoute: typeof TgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/uni': {
       id: '/uni'
       path: '/uni'
@@ -1032,6 +1064,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/.well-known/oauth-protected-resource'
       preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/arizalar': {
+      id: '/_authenticated/arizalar'
+      path: '/arizalar'
+      fullPath: '/arizalar'
+      preLoaderRoute: typeof AuthenticatedArizalarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/attendance': {
       id: '/_authenticated/attendance'
@@ -1520,6 +1559,7 @@ const AuthenticatedSettingsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedArizalarRoute: typeof AuthenticatedArizalarRoute
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBehaviorRoute: typeof AuthenticatedBehaviorRoute
   AuthenticatedCashShiftsRoute: typeof AuthenticatedCashShiftsRoute
@@ -1556,6 +1596,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedArizalarRoute: AuthenticatedArizalarRoute,
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBehaviorRoute: AuthenticatedBehaviorRoute,
   AuthenticatedCashShiftsRoute: AuthenticatedCashShiftsRoute,
@@ -1603,6 +1644,7 @@ const rootRouteChildren: RootRouteChildren = {
   IlovaRoute: IlovaRoute,
   McpRoute: McpRoute,
   OtaOnaRoute: OtaOnaRoute,
+  TgRoute: TgRoute,
   UniRoute: UniRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:

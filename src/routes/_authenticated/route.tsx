@@ -67,7 +67,7 @@ import { isParentOnly } from "@/lib/parent-portal";
 import { readProfileName } from "@/lib/profile-name";
 
 import { TourProvider, useTour } from "@/components/tour/TourProvider";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, UserPlus } from "lucide-react";
 const logoAsset = { url: "/logo-256.webp?v=akhmad-20261019" };
 
 export const Route = createFileRoute("/_authenticated")({
@@ -77,6 +77,8 @@ export const Route = createFileRoute("/_authenticated")({
     if (!context) throw redirect({ to: "/auth" });
     // Parent accounts use their own app and never enter the staff CRM.
     if (isParentOnly(context.roles)) throw redirect({ to: "/ota-ona" });
+    // Telegram applicants have no role until an admin approves them.
+    if (context.roles.length === 0) throw redirect({ to: "/tg" });
     return context;
   },
   component: AuthenticatedLayout,
@@ -142,6 +144,7 @@ function AuthenticatedLayout() {
         { to: "/dashboard", label: "Boshqaruv", icon: LayoutDashboard, show: true },
         { to: "/teacher-panel", label: "O'qituvchi paneli", icon: Users, show: isTeacher },
         { to: "/students", label: "O'quvchilar", icon: Users, show: isStaff },
+        { to: "/arizalar", label: "Yangi arizalar", icon: UserPlus, show: isAdmin || isDirector },
         { to: "/groups", label: "Guruhlar", icon: BookOpen, show: canSeeGroups },
         { to: "/teachers", label: "O'qituvchilar", icon: GraduationCap, show: isStaff },
         { to: "/schedule", label: "Dars jadvali", icon: CalendarDays, show: true },
