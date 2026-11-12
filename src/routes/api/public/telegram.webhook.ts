@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createFileRoute } from "@tanstack/react-router";
 import { createHash, timingSafeEqual } from "node:crypto";
 import {
@@ -222,7 +223,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           const linkedStudents = async (chatId: number) => {
             const { data } = await supabaseAdmin
               .from("students")
-              .select("id, first_name, last_name, group_id")
+              .select("id, first_name, last_name, full_name, group_id")
               .eq("parent_telegram_chat_id", String(chatId));
             return data ?? [];
           };
@@ -347,7 +348,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             }
             const { data: messages } = await supabaseAdmin
               .from("parent_teacher_messages")
-              .select("message, created_at, student:students(first_name, last_name)")
+              .select("message, created_at, student:students(first_name, last_name, full_name)")
               .eq("teacher_id", staff.user_id)
               .eq("sender_role", "parent")
               .is("read_at", null)
@@ -356,7 +357,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             const rows = (messages ?? []) as Array<{
               message: string;
               created_at: string;
-              student: { first_name: string | null; last_name: string | null } | null;
+              student: { first_name: string | null; last_name: string | null; full_name: string | null } | null;
             }>;
             if (!rows.length) {
               await reply(chat, "✅ Yangi ota-ona xabari yo'q.", staffMenu(staff.role));
@@ -364,8 +365,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             }
             const lines = rows.map((row) => {
               const student =
-                `${row.student?.first_name ?? ""} ${row.student?.last_name ?? ""}`.trim() ||
-                "O'quvchi";
+                studentDisplayName(row.student);
               return `• ${student}: ${row.message}`;
             });
             await reply(
@@ -567,9 +567,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               group: { name: string; subject: { name: string } | null } | null;
             }>;
             const name =
-              student.full_name ||
-              `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() ||
-              "O'quvchi";
+              studentDisplayName(student);
             const groupLines = groups.length
               ? groups.map(
                   (row) =>
@@ -795,7 +793,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
                   .slice(0, 25)
                   .map(
                     (row, index) =>
-                      `  ${index + 1}. ${row.full_name || `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() || "O'quvchi"}`,
+                      `  ${index + 1}. ${studentDisplayName(row)}`,
                   )
                   .join("\n");
                 return `👥 ${group.name}${group.subject?.name ? ` — ${group.subject.name}` : ""} (${list.length} o'quvchi)\n${names || "  O'quvchi yo'q"}`;
@@ -1093,9 +1091,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             command: string,
           ) => {
             const fullName =
-              student.full_name ||
-              `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() ||
-              "O'quvchi";
+              studentDisplayName(student);
             if (command === STUDENT_TODAY || command === "/today") {
               await sendStudentToday(student, chat);
               return true;
@@ -1206,6 +1202,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               id: string;
               first_name: string | null;
               last_name: string | null;
+              full_name?: string | null;
               parent_telegram_chat_id: string | null;
             }>,
           ) => {
@@ -1236,7 +1233,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
                 .eq("id", s.id);
             }
             const names = targets
-              .map((s) => `• ${s.first_name ?? ""} ${s.last_name ?? ""}`.trim())
+              .map((s) => `• ${studentDisplayName(s)}`)
               .join("\n");
             await reply(
               chat,
@@ -1359,7 +1356,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
                   supabaseAdmin.from("student_face_enrollments").select("image_url").eq("student_id", s.id).maybeSingle(),
                   supabaseAdmin.from("student_enrollments").select("groups(name)").eq("student_id", s.id).eq("status", "active"),
                 ]);
-                const name = (st?.full_name || `${st?.first_name ?? ""} ${st?.last_name ?? ""}`).trim();
+                const name = studentDisplayName(st, "");
                 const groups = ((enr ?? []) as any[]).map((e) => e.groups?.name).filter(Boolean).join(", ") || "—";
                 const caption = `👤 ${name}\n📚 Guruh: ${groups}\n📌 Holat: ${st?.status_enum ?? "—"}\n🆔 Face ID: ${face?.image_url ? "ro'yxatdan o'tgan ✅" : "ro'yxatdan o'tmagan ❌"}`;
                 const url = face?.image_url ?? "";
@@ -1512,7 +1509,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             const amount = parseDeclaredAmount(caption);
             const student = students[0];
             const studentName =
-              `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim() || "O'quvchi";
+              studentDisplayName(student);
 
             const { error: insertError } = await supabaseAdmin.from("payment_receipts").insert({
               student_id: student.id,
@@ -1801,9 +1798,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
                   success: true,
                 });
                 const studentName =
-                  st.full_name ||
-                  `${st.first_name ?? ""} ${st.last_name ?? ""}`.trim() ||
-                  "O'quvchi";
+                  studentDisplayName(st);
                 await reply(
                   chatId,
                   `✅ ${studentName} profili Telegramga bog'landi. Dars, davomat va to'lov ma'lumotlaringizni menyudan ko'rishingiz mumkin.`,
@@ -1914,7 +1909,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             }
             const { data: student } = await supabaseAdmin
               .from("students")
-              .select("id, first_name, last_name, parent_telegram_chat_id")
+              .select("id, first_name, last_name, full_name, parent_telegram_chat_id")
               .eq("id", linkRow.student_id)
               .maybeSingle();
             if (!student) {
@@ -1965,7 +1960,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             });
             await reply(
               chatId,
-              `✅ Bog'landi. Endi ${student.first_name} ${student.last_name ?? ""} bo'yicha bildirishnomalarni olasiz.`,
+              `✅ Bog'landi. Endi ${studentDisplayName(student)} bo'yicha bildirishnomalarni olasiz.`,
               mainMenu,
             );
             return new Response("ok");
@@ -2003,7 +1998,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               reply_markup: {
                 inline_keyboard: students.map((s) => [
                   {
-                    text: `${s.first_name} ${s.last_name ?? ""}`.trim(),
+                    text: studentDisplayName(s),
                     callback_data: `pick:${s.id}:${action}`,
                   },
                 ]),
@@ -2045,12 +2040,13 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               id: string;
               first_name: string | null;
               last_name: string | null;
+              full_name?: string | null;
               group_id: string | null;
             },
             chat: number,
           ) {
             const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-            const fullName = `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim();
+            const fullName = studentDisplayName(student, "");
 
             // Parent requests the student-app login. Passwords are never stored in
             // plaintext, so we (re)issue a fresh access code for the student account.
@@ -2313,11 +2309,12 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
               id: string;
               first_name: string | null;
               last_name: string | null;
+              full_name?: string | null;
               group_id: string | null;
             },
             question: string,
           ) {
-            const fullName = `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim();
+            const fullName = studentDisplayName(student, "");
             const [pay, stat] = await Promise.all([
               paymentSummary(student.id, fullName),
               statsSummary(student.id, fullName),

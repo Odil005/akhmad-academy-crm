@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 // Server-only modules are imported inside the handler so nothing server-side
@@ -94,9 +95,7 @@ export const notifyBehaviorParentNow = createServerFn({ method: "POST" })
     if (!claim.data) return { status: "queued" as const };
 
     const name =
-      student.full_name ||
-      [student.first_name, student.last_name].filter(Boolean).join(" ") ||
-      "O'quvchi";
+      studentDisplayName(student);
     const label = ACTIVITY_LABEL[String(evaluation.rating)] ?? "Faollik qaydi";
     const text = [
       `📚 Darsdagi faollik — ${label}`,

@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
@@ -50,7 +51,7 @@ type RecentBehavior = {
   id: string;
   rating: string;
   lesson_date: string;
-  student: { profile: { full_name: string | null } | null } | null;
+  student: { full_name: string | null; first_name: string | null; last_name: string | null; profile: { full_name: string | null } | null } | null;
 };
 
 export const Route = createFileRoute("/_authenticated/teacher-panel")({
@@ -125,7 +126,7 @@ function TeacherPanelPage() {
         supabase
           .from("behavior_evaluations")
           .select(
-            "id, rating, lesson_date, student:students(profile:profiles(full_name))"
+            "id, rating, lesson_date, student:students(full_name, first_name, last_name, profile:profiles(full_name))"
           )
           .eq("teacher_id", user.id)
           .order("created_at", { ascending: false })
@@ -407,7 +408,7 @@ function TeacherPanelPage() {
                 <li key={b.id} className="flex items-center justify-between py-2.5">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold">
-                      {b.student?.profile?.full_name ?? "—"}
+                      {studentDisplayName(b.student, "—")}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {b.lesson_date}

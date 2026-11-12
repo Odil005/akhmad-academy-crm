@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createFileRoute } from "@tanstack/react-router";
 import { isCronRequestAuthorized, unauthorizedCronResponse } from "@/lib/cron-auth.server";
 import { runSafeJarvisMaintenance } from "@/lib/jarvis-maintenance.server";
@@ -103,7 +104,7 @@ async function dispatch() {
 
     const { data: s } = await supabaseAdmin
       .from("students")
-      .select("first_name, last_name, parent_telegram_chat_id, parent_notifications_enabled")
+      .select("first_name, last_name, full_name, parent_telegram_chat_id, parent_notifications_enabled")
       .eq("id", n.student_id)
       .maybeSingle();
     if (!s || !s.parent_telegram_chat_id || !s.parent_notifications_enabled) {
@@ -118,7 +119,7 @@ async function dispatch() {
         .eq("id", n.id);
       continue;
     }
-    const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim() || "O'quvchi";
+    const name = studentDisplayName(s);
     const text = renderMessage(n.kind, (n.payload as Record<string, unknown>) ?? {}, name);
     const res = await sendTelegramText(s.parent_telegram_chat_id, text);
     const nextAttempt = n.attempts + 1;

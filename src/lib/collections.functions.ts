@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -118,9 +119,7 @@ export const createPaymentPlan = createServerFn({ method: "POST" })
       const chatId = student?.parent_telegram_chat_id;
       if (chatId) {
         const name =
-          [student?.first_name, student?.last_name].filter(Boolean).join(" ") ||
-          student?.full_name ||
-          "O'quvchi";
+          studentDisplayName(student);
         const text = [
           `📋 To'lov rejasi tuzildi — ${name}`,
           `Jami: ${money(data.total_amount)} so'm`,

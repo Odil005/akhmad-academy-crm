@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -70,7 +71,7 @@ export const listPaymentReceipts = createServerFn({ method: "POST" })
           s.id,
           {
             name:
-              [s.first_name, s.last_name].filter(Boolean).join(" ") || s.full_name || "Noma'lum",
+              studentDisplayName(s, "Noma'lum"),
             monthly_fee: Number(s.monthly_fee ?? 0),
           },
         ],
@@ -138,8 +139,7 @@ export const reviewPaymentReceipt = createServerFn({ method: "POST" })
       : { data: null };
 
     const studentName =
-      [student?.first_name, student?.last_name].filter(Boolean).join(" ") ||
-      student?.full_name ||
+      (student ? studentDisplayName(student, "") : "") ||
       receipt.parent_name ||
       "O'quvchi";
 

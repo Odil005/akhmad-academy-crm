@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -27,7 +28,7 @@ export const listMessageThreads = createServerFn({ method: "GET" })
     const studentIds = Array.from(new Set((msgs ?? []).map((m) => m.student_id)));
     const teacherIds = Array.from(new Set((msgs ?? []).map((m) => m.teacher_id)));
     const [{ data: students }, { data: profs }] = await Promise.all([
-      supabase.from("students").select("id, first_name, last_name").in("id", studentIds),
+      supabase.from("students").select("id, first_name, last_name, full_name").in("id", studentIds),
       supabase.from("profiles").select("id, full_name").in("id", teacherIds),
     ]);
     const sMap = Object.fromEntries((students ?? []).map((s) => [s.id, s]));
@@ -56,7 +57,7 @@ export const listMessageThreads = createServerFn({ method: "GET" })
           key,
           studentId: m.student_id,
           teacherId: m.teacher_id,
-          studentName: st ? `${st.first_name ?? ""} ${st.last_name ?? ""}`.trim() : "—",
+          studentName: studentDisplayName(st, "—"),
           teacherName: tMap[m.teacher_id] ?? "—",
           last: m,
           unread: unreadInc,
@@ -125,12 +126,12 @@ export const replyToParent = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: student } = await supabaseAdmin
       .from("students")
-      .select("first_name, last_name, parent_telegram_chat_id, parent_notifications_enabled")
+      .select("first_name, last_name, full_name, parent_telegram_chat_id, parent_notifications_enabled")
       .eq("id", data.studentId)
       .maybeSingle();
     if (student?.parent_notifications_enabled && student.parent_telegram_chat_id) {
       if (process.env.TELEGRAM_BOT_TOKEN?.trim()) {
-        const text = `👨‍🏫 O'qituvchidan xabar (${student.first_name} ${student.last_name ?? ""}):\n\n${data.message}\n\nJavob berish uchun bot menyusidan "💬 O'qituvchi javoblari" bo'limini oching.`;
+        const text = `👨‍🏫 O'qituvchidan xabar (${studentDisplayName(student)}):\n\n${data.message}\n\nJavob berish uchun bot menyusidan "💬 O'qituvchi javoblari" bo'limini oching.`;
         const { sendTelegramText } = await import("@/lib/telegram.server");
         await sendTelegramText(student.parent_telegram_chat_id, text);
       }

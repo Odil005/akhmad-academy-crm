@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -27,6 +28,9 @@ const RATINGS = [
 
 type Student = {
   id: string;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   profile: { full_name: string | null } | null;
   group_id: string | null;
 };
@@ -38,7 +42,7 @@ type BehaviorHistory = {
   rating: RatingValue;
   comment: string | null;
   lesson_date: string;
-  student: { profile: { full_name: string | null } | null } | null;
+  student: { full_name: string | null; first_name: string | null; last_name: string | null; profile: { full_name: string | null } | null } | null;
 };
 
 function BehaviorPage() {
@@ -68,12 +72,12 @@ function BehaviorPage() {
     if (!selectedGroup) return;
     supabase
       .from("students")
-      .select("id, group_id, profile:profiles(full_name)")
+      .select("id, group_id, full_name, first_name, last_name, profile:profiles(full_name)")
       .eq("group_id", selectedGroup)
       .then(({ data }) => setStudents((data as unknown as Student[] | null) ?? []));
     supabase
       .from("behavior_evaluations")
-      .select("id, rating, comment, lesson_date, student:students(profile:profiles(full_name))")
+      .select("id, rating, comment, lesson_date, student:students(full_name, first_name, last_name, profile:profiles(full_name))")
       .eq("teacher_id", user.id)
       .eq("group_id", selectedGroup)
       .order("created_at", { ascending: false })
@@ -153,7 +157,7 @@ function BehaviorPage() {
             const cur = ratings[s.id] ?? { rating: "", comment: "" };
             return (
               <div key={s.id} className="rounded-2xl border border-border bg-card p-4">
-                <div className="mb-3 font-semibold">{s.profile?.full_name || "—"}</div>
+                <div className="mb-3 font-semibold">{studentDisplayName(s, "—")}</div>
                 <div className="flex flex-wrap gap-2">
                   {RATINGS.map((r) => (
                     <button
@@ -205,7 +209,7 @@ function BehaviorPage() {
               const r = RATINGS.find((x) => x.value === h.rating);
               return (
                 <li key={h.id} className="flex items-center justify-between py-2 text-sm">
-                  <span className="truncate">{h.student?.profile?.full_name || "—"}</span>
+                  <span className="truncate">{studentDisplayName(h.student, "—")}</span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-semibold text-white ${r?.color ?? "bg-muted"}`}
                   >

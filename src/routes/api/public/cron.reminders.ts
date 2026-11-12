@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createFileRoute } from "@tanstack/react-router";
 import { isCronRequestAuthorized, unauthorizedCronResponse } from "@/lib/cron-auth.server";
 
@@ -51,7 +52,7 @@ async function runReminders(request: Request): Promise<Response> {
 
     const { data: student } = await supabaseAdmin
       .from("students")
-      .select("id, first_name, last_name, parent_telegram_chat_id, parent_notifications_enabled")
+      .select("id, first_name, last_name, full_name, parent_telegram_chat_id, parent_notifications_enabled")
       .eq("id", p.student_id)
       .maybeSingle();
     if (!student?.parent_notifications_enabled || !student.parent_telegram_chat_id) continue;
@@ -66,7 +67,7 @@ async function runReminders(request: Request): Promise<Response> {
       .limit(1);
     if (exists && exists.length) continue;
 
-    const text = `✅ To'lov qabul qilindi\n${student.first_name} ${student.last_name ?? ""}\nSumma: ${Number(p.amount).toLocaleString()} so'm\nOy: ${String(p.period_month).slice(0, 7)}\n\nRahmat!`;
+    const text = `✅ To'lov qabul qilindi\n${studentDisplayName(student)}\nSumma: ${Number(p.amount).toLocaleString()} so'm\nOy: ${String(p.period_month).slice(0, 7)}\n\nRahmat!`;
     const r = await sendTelegram(student.parent_telegram_chat_id, text);
     await supabaseAdmin.from("payment_notifications").insert({
       student_id: p.student_id,
@@ -100,7 +101,7 @@ async function runReminders(request: Request): Promise<Response> {
     const studentIds = Array.from(debtByStudent.keys());
     const { data: students } = await supabaseAdmin
       .from("students")
-      .select("id, first_name, last_name, parent_telegram_chat_id, parent_notifications_enabled")
+      .select("id, first_name, last_name, full_name, parent_telegram_chat_id, parent_notifications_enabled")
       .in("id", studentIds);
 
     for (const s of students ?? []) {
@@ -163,11 +164,11 @@ async function runReminders(request: Request): Promise<Response> {
 
       const monthStr = bestItem.period_month.slice(0, 7);
       const templates: Record<string, string> = {
-        remind_5: `⏰ To'lov eslatmasi\n${s.first_name} ${s.last_name ?? ""}\n${monthStr} oyi uchun ${Number(bestItem.amount).toLocaleString()} so'm — muddat 5 kundan keyin (${bestDue}).`,
-        remind_3: `⏰ To'lov eslatmasi (3 kun qoldi)\n${s.first_name} ${s.last_name ?? ""}\n${monthStr}: ${Number(bestItem.amount).toLocaleString()} so'm\nMuddat: ${bestDue}.`,
-        remind_1: `⚠️ Ertaga to'lov muddati\n${s.first_name} ${s.last_name ?? ""}\n${monthStr}: ${Number(bestItem.amount).toLocaleString()} so'm\nMuddat: ${bestDue}.`,
-        overdue_0: `🔴 Bugun to'lov muddati\n${s.first_name} ${s.last_name ?? ""}\n${monthStr}: ${Number(bestItem.amount).toLocaleString()} so'm.\nIltimos, bugun to'lang.`,
-        overdue_recurring: `🚨 Qarzdorlik\n${s.first_name} ${s.last_name ?? ""}\nJami qarzdorlik: ${debt.total.toLocaleString()} so'm.\nIltimos, imkon qadar tezroq to'lang.`,
+        remind_5: `⏰ To'lov eslatmasi\n${studentDisplayName(s)}\n${monthStr} oyi uchun ${Number(bestItem.amount).toLocaleString()} so'm — muddat 5 kundan keyin (${bestDue}).`,
+        remind_3: `⏰ To'lov eslatmasi (3 kun qoldi)\n${studentDisplayName(s)}\n${monthStr}: ${Number(bestItem.amount).toLocaleString()} so'm\nMuddat: ${bestDue}.`,
+        remind_1: `⚠️ Ertaga to'lov muddati\n${studentDisplayName(s)}\n${monthStr}: ${Number(bestItem.amount).toLocaleString()} so'm\nMuddat: ${bestDue}.`,
+        overdue_0: `🔴 Bugun to'lov muddati\n${studentDisplayName(s)}\n${monthStr}: ${Number(bestItem.amount).toLocaleString()} so'm.\nIltimos, bugun to'lang.`,
+        overdue_recurring: `🚨 Qarzdorlik\n${studentDisplayName(s)}\nJami qarzdorlik: ${debt.total.toLocaleString()} so'm.\nIltimos, imkon qadar tezroq to'lang.`,
       };
       const text = templates[bestType];
 
@@ -215,7 +216,7 @@ async function runReminders(request: Request): Promise<Response> {
     const { data: groupStudents } = await supabaseAdmin
       .from("students")
       .select(
-        "id, first_name, last_name, group_id, parent_telegram_chat_id, parent_notifications_enabled",
+        "id, first_name, last_name, full_name, group_id, parent_telegram_chat_id, parent_notifications_enabled",
       )
       .in("group_id", groupIds);
     const { data: subs } = await supabaseAdmin.from("subjects").select("id, name");
@@ -236,7 +237,7 @@ async function runReminders(request: Request): Promise<Response> {
           results.lesson_skipped++;
           continue;
         }
-        const text = `📚 Bugungi dars\n${s.first_name} ${s.last_name ?? ""}\nFan: ${lesson.subject_id ? (subjName[lesson.subject_id] ?? "—") : "—"}\nVaqt: ${String(lesson.start_time).slice(0, 5)}–${String(lesson.end_time).slice(0, 5)}`;
+        const text = `📚 Bugungi dars\n${studentDisplayName(s)}\nFan: ${lesson.subject_id ? (subjName[lesson.subject_id] ?? "—") : "—"}\nVaqt: ${String(lesson.start_time).slice(0, 5)}–${String(lesson.end_time).slice(0, 5)}`;
         if (!s.parent_notifications_enabled || !s.parent_telegram_chat_id) {
           await supabaseAdmin.from("parent_notifications").insert({
             student_id: s.id,

@@ -1,3 +1,4 @@
+import { studentDisplayName } from "@/lib/student-name";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -156,16 +157,14 @@ export const createPaymentWithReceipt = createServerFn({ method: "POST" })
     const { data: student } = await supabaseAdmin
       .from("students")
       .select(
-        "id, first_name, last_name, parent_telegram_chat_id, parent_notifications_enabled, group_id, profile:profiles(full_name)",
+        "id, first_name, last_name, full_name, parent_telegram_chat_id, parent_notifications_enabled, group_id, profile:profiles(full_name)",
       )
       .eq("id", data.student_id)
       .maybeSingle();
     if (!student) throw new Error("O'quvchi topilmadi");
 
     const studentName =
-      (student as any).profile?.full_name ||
-      [student.last_name, student.first_name].filter(Boolean).join(" ") ||
-      "O'quvchi";
+      studentDisplayName(student as any);
 
     let courseName = "Ta'lim xizmati";
     let courseTeacherId: string | null = null;
@@ -503,14 +502,12 @@ export const retryFiscalization = createServerFn({ method: "POST" })
     const { data: student } = await supabaseAdmin
       .from("students")
       .select(
-        "first_name, last_name, parent_telegram_chat_id, parent_notifications_enabled, profile:profiles(full_name)",
+        "first_name, last_name, full_name, parent_telegram_chat_id, parent_notifications_enabled, profile:profiles(full_name)",
       )
       .eq("id", payment.student_id)
       .maybeSingle();
     const studentName =
-      (student as any)?.profile?.full_name ||
-      [student?.last_name, student?.first_name].filter(Boolean).join(" ") ||
-      "O'quvchi";
+      studentDisplayName(student as any);
 
     let courseName = "Ta'lim xizmati";
     if (payment.course_id) {
@@ -871,7 +868,7 @@ export const getPublicReceipt = createServerFn({ method: "GET" })
         .maybeSingle(),
       supabaseAdmin
         .from("students")
-        .select("first_name, last_name, profile:profiles(full_name)")
+        .select("first_name, last_name, full_name, profile:profiles(full_name)")
         .eq("id", payment.student_id)
         .maybeSingle(),
     ]);
@@ -900,9 +897,7 @@ export const getPublicReceipt = createServerFn({ method: "GET" })
       receipt: receipt ?? null,
       org: settings ?? null,
       studentName:
-        (student as any)?.profile?.full_name ||
-        [student?.last_name, student?.first_name].filter(Boolean).join(" ") ||
-        "O'quvchi",
+        studentDisplayName(student as any),
       courseName,
       cashierName,
     };
