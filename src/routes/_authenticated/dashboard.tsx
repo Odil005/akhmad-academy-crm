@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { isTeacherOnly } from "@/lib/role-home";
 import { supabase } from "@/integrations/supabase/client";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Users, BookOpen, CreditCard, GraduationCap, TrendingUp } from "lucide-react";
@@ -22,6 +23,9 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
   ] }),
+  beforeLoad: ({ context }) => {
+    if (isTeacherOnly(context.roles)) throw redirect({ to: "/teacher-panel", replace: true });
+  },
   component: Dashboard,
 });
 
