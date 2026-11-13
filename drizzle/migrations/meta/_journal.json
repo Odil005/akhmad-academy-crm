@@ -239,6 +239,13 @@
       "when": 1794418378980,
       "tag": "0033_current_center_flagship_fallback",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794583146405,
+      "tag": "0034_tighten_open_read_policies",
+      "breakpoints": true
     }
   ]
 }
