@@ -144,4 +144,7 @@
 - [x] Haftalik hisobot qo'shildi: har dushanba 21:00 da o'tgan hafta (Du–Ya) hisoboti Telegramga yuboriladi; endpoint va cron qo'yildi
 - [x] Reyestr narx avtomatizatsiyasi: trigger + guruhga qo'shish oynasida katakcha; 156 nafar reyestr o'quvchisining joriy narxlari 0 ga tushirildi
 - [ ] Haftalik hisobotning birinchi real yuborilishi — dushanba 21:00 ni kutadi
-- [ ] Nashr: ustoz paneliga yo'naltirish, botda ismlar, reyestr katakchasi va haftalik hisobot saytiga chiqishi uchun Publish kerak
+- [x] Nashr qilindi: sayt 200 qaytardi, reyestr katakchasi nashrda ham ochiladi, narx 0 ga qulflanadi
+- [x] O'qituvchi paneli nashrda tekshirildi: Sodiq matem /dashboard dan avtomatik /teacher-panel ga o'tdi, "Matem Sodiq Toq 8-10" guruhi va 4 o'quvchisi ko'rindi
+- [x] Davomat nashrda sinovdan o'tdi: Sodiq hisobi bilan 2026-11-16 da "Keldi" belgilanib saqlandi ("Davomat saqlandi"), sinov yozuvlari (4 ta) o'chirib tashlandi
+- [ ] Haftalik hisobotning birinchi real yuborilishi — dushanba 21:00 ni kutadi
