@@ -81,6 +81,7 @@ import { Route as ApiPublicCronNotificationsDispatchRouteImport } from './routes
 import { Route as ApiPublicCronParentDigestRouteImport } from './routes/api/public/cron.parent-digest'
 import { Route as ApiPublicCronPayrollRouteImport } from './routes/api/public/cron.payroll'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron.reminders'
+import { Route as ApiPublicCronWeeklyReportRouteImport } from './routes/api/public/cron.weekly-report'
 import { Route as ApiPublicHealthConfigRouteImport } from './routes/api/public/health.config'
 import { Route as ApiPublicHealthLiveRouteImport } from './routes/api/public/health.live'
 import { Route as ApiPublicHealthReadyRouteImport } from './routes/api/public/health.ready'
@@ -476,6 +477,12 @@ const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
   path: '/api/public/cron/reminders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronWeeklyReportRoute =
+  ApiPublicCronWeeklyReportRouteImport.update({
+    id: '/api/public/cron/weekly-report',
+    path: '/api/public/cron/weekly-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHealthConfigRoute = ApiPublicHealthConfigRouteImport.update({
   id: '/api/public/health/config',
   path: '/api/public/health/config',
@@ -570,6 +577,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/cron/weekly-report': typeof ApiPublicCronWeeklyReportRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
@@ -646,6 +654,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/cron/weekly-report': typeof ApiPublicCronWeeklyReportRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
@@ -725,6 +734,7 @@ export interface FileRoutesById {
   '/api/public/cron/parent-digest': typeof ApiPublicCronParentDigestRoute
   '/api/public/cron/payroll': typeof ApiPublicCronPayrollRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/cron/weekly-report': typeof ApiPublicCronWeeklyReportRoute
   '/api/public/health/config': typeof ApiPublicHealthConfigRoute
   '/api/public/health/live': typeof ApiPublicHealthLiveRoute
   '/api/public/health/ready': typeof ApiPublicHealthReadyRoute
@@ -804,6 +814,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/payroll'
     | '/api/public/cron/reminders'
+    | '/api/public/cron/weekly-report'
     | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
@@ -880,6 +891,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/payroll'
     | '/api/public/cron/reminders'
+    | '/api/public/cron/weekly-report'
     | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
@@ -958,6 +970,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/parent-digest'
     | '/api/public/cron/payroll'
     | '/api/public/cron/reminders'
+    | '/api/public/cron/weekly-report'
     | '/api/public/health/config'
     | '/api/public/health/live'
     | '/api/public/health/ready'
@@ -985,6 +998,7 @@ export interface RootRouteChildren {
   ApiPublicCronParentDigestRoute: typeof ApiPublicCronParentDigestRoute
   ApiPublicCronPayrollRoute: typeof ApiPublicCronPayrollRoute
   ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
+  ApiPublicCronWeeklyReportRoute: typeof ApiPublicCronWeeklyReportRoute
   ApiPublicHealthConfigRoute: typeof ApiPublicHealthConfigRoute
   ApiPublicHealthLiveRoute: typeof ApiPublicHealthLiveRoute
   ApiPublicHealthReadyRoute: typeof ApiPublicHealthReadyRoute
@@ -1497,6 +1511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/weekly-report': {
+      id: '/api/public/cron/weekly-report'
+      path: '/api/public/cron/weekly-report'
+      fullPath: '/api/public/cron/weekly-report'
+      preLoaderRoute: typeof ApiPublicCronWeeklyReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health/config': {
       id: '/api/public/health/config'
       path: '/api/public/health/config'
@@ -1679,6 +1700,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronParentDigestRoute: ApiPublicCronParentDigestRoute,
   ApiPublicCronPayrollRoute: ApiPublicCronPayrollRoute,
   ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
+  ApiPublicCronWeeklyReportRoute: ApiPublicCronWeeklyReportRoute,
   ApiPublicHealthConfigRoute: ApiPublicHealthConfigRoute,
   ApiPublicHealthLiveRoute: ApiPublicHealthLiveRoute,
   ApiPublicHealthReadyRoute: ApiPublicHealthReadyRoute,

@@ -5,10 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { UserPlus, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
+import { LowIncomeBadge } from '@/components/LowIncomeBadge';
 import { emitDataChanged } from '@/lib/data-events';
 
 type Group = { id: string; name: string; monthly_fee: number; subject_id: string | null; teacher_id: string | null };
-type Candidate = { id: string; first_name: string | null; last_name: string | null; parent_phone: string | null };
+type Candidate = { id: string; first_name: string | null; last_name: string | null; parent_phone: string | null; low_income?: boolean | null };
 
 export function GroupStudentDialog({ groups, initialGroupId, onClose, onDone }: { groups: Group[]; initialGroupId?: string | null; onClose: () => void; onDone: (groupId: string) => void }) {
   const [groupId, setGroupId] = useState(initialGroupId ?? groups[0]?.id ?? '');
@@ -19,7 +21,7 @@ export function GroupStudentDialog({ groups, initialGroupId, onClose, onDone }: 
   const [searching, setSearching] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ first: '', last: '', phone: '', fee: String(group?.monthly_fee ?? 0) });
+  const [form, setForm] = useState({ first: '', last: '', phone: '', fee: String(group?.monthly_fee ?? 0), low: false });
   useEffect(() => { if (group) setForm(f => ({ ...f, fee: String(group.monthly_fee) })); }, [group?.id]);
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export function GroupStudentDialog({ groups, initialGroupId, onClose, onDone }: 
     const timer = setTimeout(async () => {
       setSearching(true);
       setError('');
-      let query = supabase.from('students').select('id, first_name, last_name, parent_phone').order('first_name').limit(30);
+      let query = supabase.from('students').select('id, first_name, last_name, parent_phone, low_income').order('first_name').limit(30);
       const words = search.replace(/[,()%_.*"\\]/g, ' ').trim().slice(0, 64).split(/\s+/).filter(Boolean);
       for (const word of words) query = query.or(`first_name.ilike.%${word}%,last_name.ilike.%${word}%,full_name.ilike.%${word}%,parent_phone.ilike.%${word}%`);
       const [students, enrollments] = await Promise.all([
@@ -78,7 +80,7 @@ export function GroupStudentDialog({ groups, initialGroupId, onClose, onDone }: 
       // The primary-group trigger creates the enrollment in the same transaction.
       const result = await supabase.from('students').insert({
         first_name: form.first.trim(), last_name: form.last.trim(), full_name: `${form.first.trim()} ${form.last.trim()}`,
-        parent_phone: form.phone.trim() || null, group_id: group.id, monthly_fee: Number(form.fee), status: 'active', status_enum: 'active',
+        parent_phone: form.phone.trim() || null, group_id: group.id, monthly_fee: form.low ? 0 : Number(form.fee), low_income: form.low, status: 'active', status_enum: 'active',
       }).select('id').single();
       if (result.error) throw result.error;
       complete();
@@ -104,7 +106,7 @@ export function GroupStudentDialog({ groups, initialGroupId, onClose, onDone }: 
           {searching ? <p className="py-4 text-center text-sm text-muted-foreground">Yuklanmoqda…</p> : candidates.length ? <ul className="space-y-1">
             {candidates.map(student => <li key={student.id}>
               <Button variant="ghost" disabled={busy} className="h-auto min-h-12 w-full justify-between whitespace-normal px-2 text-left" onClick={() => enroll(student.id)}>
-                <span className="min-w-0 break-words"><span className="block">{student.first_name} {student.last_name}</span><span className="text-xs text-muted-foreground">{student.parent_phone}</span></span>
+                <span className="min-w-0 break-words"><span className="flex flex-wrap items-center gap-1.5"><span className="block">{student.first_name} {student.last_name}</span>{student.low_income && <LowIncomeBadge compact />}</span><span className="text-xs text-muted-foreground">{student.parent_phone}</span></span>
                 <UserPlus className="shrink-0 text-primary" />
               </Button>
             </li>)}
@@ -116,7 +118,14 @@ export function GroupStudentDialog({ groups, initialGroupId, onClose, onDone }: 
           <label className="space-y-1 text-sm">Familiya<Input required value={form.last} onChange={e => setForm({ ...form, last: e.target.value })} disabled={busy} /></label>
         </div>
         <label className="block space-y-1 text-sm">Ota-ona telefoni<Input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} disabled={busy} /></label>
-        <label className="block space-y-1 text-sm">Oylik to‘lov (so‘m)<Input type="number" min="0" required value={form.fee} onChange={e => setForm({ ...form, fee: e.target.value })} disabled={busy} /></label>
+        <label className="flex items-start gap-2 rounded-md border border-input bg-muted/30 p-2.5 text-sm">
+          <Checkbox aria-label="Kambag'al oila reyestrida" checked={form.low} disabled={busy} onCheckedChange={c => setForm({ ...form, low: c === true })} className="mt-0.5" />
+          <span className="min-w-0">
+            <span className="block font-semibold">Kambag'al oila reyestrida</span>
+            <span className="block text-xs text-muted-foreground">Bu bola bepul o'qiydi — oylik to'lov belgilanmaydi.</span>
+          </span>
+        </label>
+        <label className="block space-y-1 text-sm">Oylik to‘lov (so‘m)<Input type="number" min="0" required value={form.low ? 0 : form.fee} onChange={e => setForm({ ...form, fee: e.target.value })} disabled={busy || form.low} /></label>
         <Button type="submit" className="w-full" disabled={busy}><UserPlus />{busy ? 'Saqlanmoqda…' : 'Guruhga qo‘shish'}</Button>
       </form>}
       {error && <p role="alert" className="break-words text-sm text-destructive">{error}</p>}

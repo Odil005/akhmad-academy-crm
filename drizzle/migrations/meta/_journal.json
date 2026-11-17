@@ -246,6 +246,20 @@
       "when": 1794583146405,
       "tag": "0034_tighten_open_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794904236449,
+      "tag": "0035_reyestr_oquvchilarga_narx_miqdori_nol",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794904308824,
+      "tag": "0036_haftalik_direktor_hisoboti_cron",
+      "breakpoints": true
     }
   ]
 }

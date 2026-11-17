@@ -17,7 +17,7 @@
 - [x] O'qituvchi har bir guruhda o'quvchilarni ptichka bilan belgilaydi ("Hammasi keldi", "Tozalash"); o'qituvchi menyusidan Face ID olindi; oylik hisob endi Face ID kirishiga bog'liq emas. Admin sessiyasida 10 o'quvchili darsda ptichkalar ishladi (saqlanmadi).
 - [x] O'quvchilar ro'yxati bitta; "Kambag'al oila reyestri" belgisi o'quvchi profilida (hozir 0 ta belgilangan)
 - [x] O'qituvchi profilida har bir guruh: pullik va reyestr ro'yxati alohida; Maftuna Abduqaxxorova profilida 6 guruh ko'rindi
-- [ ] Reyestrdagi o'quvchilardan oylik olinadimi — foydalanuvchi javobi kutilmoqda
+- [x] Reyestrdagi o'quvchilardan oylik olinmaydi — trigger qo'yildi: reyestr belgisi bo'lsa guruh narxi avtomatik 0, narx kiritilsa ham 0 saqlanadi; belgi keyin yoqilsa joriy guruh narxlari ham 0 ga tushadi. 4 holat sinovdan o'tdi.
 
 ## 2026-11-09 Saytga kirishni tiklash va Lovable'siz ishlash
 - [x] Baza yoqildi; sayt va login ishlaydi, Bahodir (admin) sessiyasida o'quvchi profili ochildi, xato yo'q
@@ -137,3 +137,11 @@
 - [x] Lidlarda "Sinov darsida" bosqichi
 - [ ] SMS (Eskiz) — foydalanuvchining Eskiz login/kaliti kerak
 - [x] Imtihon jurnali (guruh bo'yicha ball, profil va ota-ona ilovasida ko'rinadi); o'qituvchi foiz ulushi "O'qituvchi ulushi" sahifasida allaqachon bor
+
+## 2026-11-17 Hammasini ishga tushirish
+- [x] Baza yoqildi, kunlik hisobot yuborildi, bilim o'yini ishlaydi (8 savol, o'yin ochiladi)
+- [x] Kunlik va ota-ona hisoboti cron so'rovlari 5 soniyada uzilmasligi uchun 60 soniyaga uzaytirildi
+- [x] Haftalik hisobot qo'shildi: har dushanba 21:00 da o'tgan hafta (Du–Ya) hisoboti Telegramga yuboriladi; endpoint va cron qo'yildi
+- [x] Reyestr narx avtomatizatsiyasi: trigger + guruhga qo'shish oynasida katakcha; 156 nafar reyestr o'quvchisining joriy narxlari 0 ga tushirildi
+- [ ] Haftalik hisobotning birinchi real yuborilishi — dushanba 21:00 ni kutadi
+- [ ] Nashr: ustoz paneliga yo'naltirish, botda ismlar, reyestr katakchasi va haftalik hisobot saytiga chiqishi uchun Publish kerak
