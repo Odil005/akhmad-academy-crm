@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GraduationCap, ArrowLeft, User, Mail } from "lucide-react";
+import { GraduationCap, ArrowLeft, User, Mail, Eye, EyeOff } from "lucide-react";
 import { BackgroundAnimation } from "@/components/BackgroundAnimation";
 import { getSiteTenant, type SiteTenant } from "@/lib/tenant.functions";
 
@@ -173,13 +173,9 @@ function AuthPage() {
                 />
               </Field>
               <Field label="Kirish kodi">
-                <input
-                  required
-                  type="password"
-                  autoComplete="current-password"
+                <PasswordInput
                   value={accessCode}
-                  onChange={(e) => setAccessCode(e.target.value)}
-                  className="input"
+                  onChange={setAccessCode}
                   placeholder="Ma'muriyat bergan kod"
                 />
               </Field>
@@ -214,14 +210,10 @@ function AuthPage() {
                   />
                 </Field>
                 <Field label="Parol">
-                  <input
-                    required
-                    type="password"
-                    autoComplete="current-password"
-                    minLength={6}
+                  <PasswordInput
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input"
+                    onChange={setPassword}
+                    minLength={6}
                     placeholder="Parol"
                   />
                 </Field>
@@ -257,6 +249,44 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
         {label}
       </label>
       <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
+function PasswordInput({
+  value,
+  onChange,
+  placeholder,
+  minLength,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  minLength?: number;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        required
+        type={visible ? "text" : "password"}
+        autoComplete="current-password"
+        minLength={minLength}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="input"
+        style={{ paddingRight: "3rem" }}
+        placeholder={placeholder}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? "Parolni yashirish" : "Parolni ko'rsatish"}
+        title={visible ? "Parolni yashirish" : "Parolni ko'rsatish"}
+        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted-foreground hover:text-primary"
+      >
+        {visible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+      </button>
     </div>
   );
 }
