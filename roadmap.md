@@ -79,8 +79,8 @@
 - [ ] Bir bosishda guruh davomati, o'quvchini guruhdan guruhga ko'chirish
 - [ ] O'qituvchi yuklamasi va bo'sh xonalar ko'rinishi
 ### Hisobot va analitika
-- [ ] Direktor paneli: tushum, qarz, o'sish/ketish, guruh to'liqligi
-- [ ] Oylik/fan/o'qituvchi bo'yicha hisobotlar va Excel eksport
+- [x] Direktor paneli (/reports): tushum, xarajat, qarz, o'sish/ketish, davomat, guruh to'liqligi (sig'im tahrirlanadi); direktor sessiyasida tekshirildi
+- [x] 12 oylik, fan va o'qituvchi bo'yicha jadvallar + 5 varaqli Excel; yuklab olish tekshirildi
 ### Yangi so'rovlar
 - [x] CRM ichki dizayni barcha rollar uchun namuna palitrasida yangilandi; Ahmad direktor akkauntida katta/kichik ekran, grafik va menyu tekshirildi; ruxsat va oylik to‘lov sinovlari o‘tdi
 - [~] Har bir o‘quvchining oylik to‘lovini alohida o‘zgartirish — qo‘shildi, 9 sinov o‘tdi; haqiqiy saqlashni tekshirish uchun preview’da admin/direktor kirishi kerak

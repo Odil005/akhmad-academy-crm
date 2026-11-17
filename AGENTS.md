@@ -40,3 +40,4 @@
 - Android apps in mobile/ are Capacitor shells loading the published site (/dashboard and /ota-ona); keep business logic in the web app so publishing updates phones without a new APK, and keep signing keystores out of Git.
 - Cloudflare builds read database coordinates only from Cloudflare build/runtime variables and fail if missing; never fall back to the Lovable-managed database, so the self-hosted site stays independent.
 - Student names render through studentDisplayName (src/lib/student-name.ts) in pages, bot and notifications, selecting the student's own name columns; most students have no profile row, so profile-only lookups show blanks and diverge from the CRM.
+- Director analytics (/reports) come from one invoker RPC director_analytics(from,to) returning aggregated JSON, so RLS scopes centers and history is never transferred to the browser; Excel sheets are built from that same payload.

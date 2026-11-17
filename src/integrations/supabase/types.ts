@@ -1289,6 +1289,7 @@ export type Database = {
       }
       groups: {
         Row: {
+          capacity: number
           center_id: string | null
           created_at: string
           id: string
@@ -1302,6 +1303,7 @@ export type Database = {
           teacher_id: string | null
         }
         Insert: {
+          capacity?: number
           center_id?: string | null
           created_at?: string
           id?: string
@@ -1315,6 +1317,7 @@ export type Database = {
           teacher_id?: string | null
         }
         Update: {
+          capacity?: number
           center_id?: string | null
           created_at?: string
           id?: string
@@ -4446,6 +4449,10 @@ export type Database = {
           student_id: string
           student_name: string
         }[]
+      }
+      director_analytics: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
       }
       face_lesson_is_current: {
         Args: {

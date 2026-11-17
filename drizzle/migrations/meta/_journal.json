@@ -260,6 +260,13 @@
       "when": 1794904308824,
       "tag": "0036_haftalik_direktor_hisoboti_cron",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794905529855,
+      "tag": "0037_director_analytics",
+      "breakpoints": true
     }
   ]
 }
