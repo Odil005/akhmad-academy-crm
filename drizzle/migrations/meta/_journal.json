@@ -267,6 +267,13 @@
       "when": 1794905529855,
       "tag": "0037_director_analytics",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794911275453,
+      "tag": "0038_student_status_history_trigger",
+      "breakpoints": true
     }
   ]
 }

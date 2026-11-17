@@ -157,11 +157,6 @@ function StudentsPage() {
       toast.error(error.message);
       return;
     }
-    await supabase.from("student_status_history").insert({
-      student_id: s.id,
-      from_status: prevStatus ?? undefined,
-      to_status: newStatus,
-    });
   };
 
   return (

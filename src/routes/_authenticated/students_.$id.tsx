@@ -189,7 +189,6 @@ function StudentProfile() {
   const changeStatus = async (v: StudentStatus) => {
     const { error } = await supabase.from("students").update({ status_enum: v }).eq("id", id);
     if (error) return toast.error(error.message);
-    await supabase.from("student_status_history").insert({ student_id: id, from_status: student.status_enum ?? undefined, to_status: v });
     toast.success("Holat o'zgardi");
     void load();
   };
@@ -198,7 +197,6 @@ function StudentProfile() {
     if (status === "frozen") {
       const { error } = await supabase.from("students").update({ status_enum: "active", frozen_until: null, frozen_reason: null }).eq("id", id);
       if (error) return toast.error(error.message);
-      await supabase.from("student_status_history").insert({ student_id: id, from_status: "frozen", to_status: "active" });
       toast.success("Muzlatish bekor qilindi");
       return void load();
     }
@@ -208,7 +206,6 @@ function StudentProfile() {
     const reason = prompt("Sababi (masalan: kasallik)") ?? "";
     const { error } = await supabase.from("students").update({ status_enum: "frozen", frozen_until: until, frozen_reason: reason.trim() || null }).eq("id", id);
     if (error) return toast.error(error.message);
-    await supabase.from("student_status_history").insert({ student_id: id, from_status: student.status_enum ?? undefined, to_status: "frozen" });
     toast.success(`${until} gacha muzlatildi — bu muddatda oylik hisoblanmaydi`);
     void load();
   };

@@ -122,11 +122,9 @@ export function Student360({
     const label = to === "frozen" ? "muzlatmoqchimisiz" : "arxivga o'tkazmoqchimisiz";
     if (!confirm(`${row.name} — rostdan ham ${label}?`)) return;
     setBusy(true);
-    const from = data?.student?.status_enum ?? null;
     const { error: e } = await supabase.from("students").update({ status_enum: to }).eq("id", row.id);
     if (e) toast.error(e.message);
     else {
-      await supabase.from("student_status_history").insert({ student_id: row.id, from_status: from, to_status: to });
       toast.success(to === "frozen" ? "Muzlatildi" : "Arxivlandi");
       await load();
       onChanged();
