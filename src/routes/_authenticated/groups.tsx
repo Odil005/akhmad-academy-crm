@@ -67,9 +67,12 @@ export const Route = createFileRoute("/_authenticated/groups")({
 });
 
 function GroupsPage() {
-  const { roles } = Route.useRouteContext();
+  const { roles, user } = Route.useRouteContext();
   const isStaff = roles.includes("director") || roles.includes("admin");
   const isTeacher = roles.includes("teacher");
+  // A teacher only works with their own groups; other teachers' rosters are
+  // hidden from them anyway, so listing those groups looked like empty classes.
+  const ownGroupsOnly = isTeacher && !isStaff ? user.id : null;
   const [groups, setGroups] = useState<Group[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -90,13 +93,15 @@ function GroupsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    let groupsQuery = supabase
+      .from("groups")
+      .select(
+        "id, name, monthly_fee, schedule, schedule_days, schedule_start, schedule_end, subject_id, teacher_id, subject:subjects(id, name)",
+      )
+      .order("name");
+    if (ownGroupsOnly) groupsQuery = groupsQuery.eq("teacher_id", ownGroupsOnly);
     const [{ data: g }, { data: s }, { data: tr }] = await Promise.all([
-      supabase
-        .from("groups")
-        .select(
-          "id, name, monthly_fee, schedule, schedule_days, schedule_start, schedule_end, subject_id, teacher_id, subject:subjects(id, name)",
-        )
-        .order("name"),
+      groupsQuery,
       supabase.from("subjects").select("id, name").order("name"),
       supabase.from("user_roles").select("user_id").eq("role", "teacher"),
     ]);
@@ -117,7 +122,7 @@ function GroupsPage() {
     setTeachers(
       [...teacherList].sort((a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? "")),
     );
-  }, []);
+  }, [ownGroupsOnly]);
 
   useEffect(() => {
     load();
