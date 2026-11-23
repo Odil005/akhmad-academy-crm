@@ -22,18 +22,17 @@ async function fetchDataset(kind: string): Promise<{ title: string; rows: Row[] 
   if (kind === "students") {
     const { data, error } = await supabase
       .from("students")
-      .select("first_name, last_name, phone, parent_phone, status_enum, created_at")
-      .order("created_at", { ascending: false });
+      .select("first_name, last_name, parent_phone, status_enum, enrolled_at")
+      .order("enrolled_at", { ascending: false });
     if (error) throw error;
     return {
       title: "O'quvchilar",
       rows: (data ?? []).map((s: any) => ({
         Ism: s.first_name ?? "",
         Familiya: s.last_name ?? "",
-        Telefon: s.phone ?? "",
         "Ota-ona tel": s.parent_phone ?? "",
         Holat: s.status_enum ?? "",
-        "Qo'shildi": s.created_at ? new Date(s.created_at).toLocaleDateString() : "",
+        "Qo'shildi": s.enrolled_at ? new Date(s.enrolled_at).toLocaleDateString() : "",
       })),
     };
   }

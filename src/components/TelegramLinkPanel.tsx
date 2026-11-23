@@ -82,7 +82,7 @@ export function TelegramLinkPanel() {
         const { data } = await supabase
           .from("students")
           .select("id, full_name, first_name, last_name, parent_phone, telegram_chat_id")
-          .order("created_at", { ascending: false })
+          .order("enrolled_at", { ascending: false })
           .limit(400);
         if (!alive) return;
         setPeople(
