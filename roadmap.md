@@ -148,3 +148,5 @@
 - [x] Nashr qilindi: sayt 200 qaytardi, reyestr katakchasi nashrda ham ochiladi, narx 0 ga qulflanadi
 - [x] O'qituvchi paneli nashrda tekshirildi: Sodiq matem /dashboard dan avtomatik /teacher-panel ga o'tdi, "Matem Sodiq Toq 8-10" guruhi va 4 o'quvchisi ko'rindi
 - [x] Davomat nashrda sinovdan o'tdi: Sodiq hisobi bilan 2026-11-16 da "Keldi" belgilanib saqlandi ("Davomat saqlandi"), sinov yozuvlari (4 ta) o'chirib tashlandi
+
+- [x] CRM tezligini oshirish (o'quvchi soni ortsa ham tez ishlashi)

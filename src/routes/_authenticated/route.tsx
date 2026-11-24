@@ -218,8 +218,8 @@ function AuthenticatedLayout() {
     ? [
         { to: "/dashboard", label: "Bosh sahifa", icon: Home },
         { to: "/students", label: "O'quvchilar", icon: Users },
+        { to: "/groups", label: "Guruhlar", icon: BookOpen },
         { to: "/payments", label: "To'lov", icon: Wallet },
-        { to: "/attendance", label: "Davomat", icon: CalendarCheck },
       ]
     : isTeacher
       ? [
