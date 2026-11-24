@@ -73,7 +73,8 @@ function TelegramMiniApp() {
         // Telegram Desktop opens Mini Apps in a small phone-sized window; go fullscreen there.
         try {
           const w = tg as unknown as { platform?: string; requestFullscreen?: () => void; isVersionAtLeast?: (v: string) => boolean };
-          if (["tdesktop", "macos", "weba", "webk"].includes(w.platform ?? "") && w.isVersionAtLeast?.("8.0")) w.requestFullscreen?.();
+          const mobile = ["ios", "android", "android_x"].includes(w.platform ?? "");
+          if (!mobile && typeof w.requestFullscreen === "function") w.requestFullscreen();
         } catch { /* older clients */ }
         const data = tg?.initData ?? "";
         if (!data) {
