@@ -16,6 +16,7 @@ import { useLanguage } from "@/lib/i18n";
 
 
 const POLL_INTERVAL_MS = 120_000;
+let inflight: ReturnType<typeof getSystemAlerts> | null = null;
 const SOUND_KEY = "akhmad.alert.sound";
 const VOLUME_KEY = "akhmad.alert.volume";
 
@@ -100,7 +101,8 @@ export function SystemAlertIndicator() {
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      setSnapshot(await getSystemAlerts());
+      inflight ??= getSystemAlerts().finally(() => { inflight = null; });
+      setSnapshot(await inflight);
     } catch {
       setSnapshot(connectionFailureSnapshot());
     } finally {
@@ -109,9 +111,12 @@ export function SystemAlertIndicator() {
   }, []);
 
   useEffect(() => {
-    void refresh();
-    const timer = window.setInterval(refresh, POLL_INTERVAL_MS);
-    return () => window.clearInterval(timer);
+    // Defer the first check so page data loads first; skip polling in hidden tabs.
+    const first = window.setTimeout(() => void refresh(), 4000);
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, POLL_INTERVAL_MS);
+    return () => { window.clearTimeout(first); window.clearInterval(timer); };
   }, [refresh]);
 
   useEffect(() => {
