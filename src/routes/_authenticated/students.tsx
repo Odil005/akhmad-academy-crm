@@ -55,8 +55,8 @@ const displayName = (s: {
   last_name?: string | null;
   profile?: { full_name?: string | null } | null;
 }) =>
-  s.full_name?.trim() ||
   [s.last_name, s.first_name].filter(Boolean).join(" ").trim() ||
+  s.full_name?.trim() ||
   s.profile?.full_name?.trim() ||
   "Ismsiz o'quvchi";
 

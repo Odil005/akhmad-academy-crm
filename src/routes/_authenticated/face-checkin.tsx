@@ -217,7 +217,7 @@ function FaceCheckinPage() {
     setMode(null); setConsent(false); setHasTemplate(false); setEnrolled(null); setDebt(0); setOverrideUntil(null);
     setSelected(s);
     setStudents([]);
-    setQuery(`${s.first_name} ${s.last_name}`);
+    setQuery(`${s.last_name ?? ""} ${s.first_name}`.trim());
     if (personKind === 'staff') {
       const { data, error } = await supabase.from('staff_face_templates').select('image_url').eq('user_id', s.id).maybeSingle();
       if (error) { toast.error(error.message); return; }
@@ -265,7 +265,7 @@ function FaceCheckinPage() {
       } else {
         const result = await verifyFace({ data: { studentId: selected.id, samples, image } });
         if (result.status === 'blocked') toast.error(`Kirish rad etildi — qarz: ${Number(result.debt_amount).toLocaleString()} so‘m`);
-        else if (result.attendance_result === 'recorded' || result.attendance_result === 'already_recorded') toast.success(`${selected.first_name} ${selected.last_name} — ${attendanceLabels[result.attendance_result]}`);
+        else if (result.attendance_result === 'recorded' || result.attendance_result === 'already_recorded') toast.success(`${selected.last_name ?? ""} ${selected.first_name} — ${attendanceLabels[result.attendance_result]}`);
         else toast.warning(`${selected.first_name} — yuz tasdiqlandi. ${attendanceLabels[result.attendance_result ?? ''] ?? 'Davomatni tekshiring'}`);
         await loadRecent();
       }
@@ -394,7 +394,7 @@ function FaceCheckinPage() {
                       className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent"
                     >
                       <span className="font-semibold">
-                        {s.first_name} {s.last_name}
+                        {s.last_name} {s.first_name}
                       </span>
                       <span className="text-xs text-muted-foreground">{s.status}</span>
                     </Button>
@@ -408,7 +408,7 @@ function FaceCheckinPage() {
             <div className="border-t border-border pt-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-bold">
-                  {selected.first_name} {selected.last_name}
+                  {selected.last_name} {selected.first_name}
                 </div>
                 {enrolled ? (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
@@ -491,7 +491,7 @@ function FaceCheckinPage() {
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold">
-                    {c.students ? `${c.students.first_name} ${c.students.last_name}` : c.profiles?.full_name ?? "—"}
+                    {c.students ? `${c.students.last_name ?? ""} ${c.students.first_name}`.trim() : c.profiles?.full_name ?? "—"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(c.created_at).toLocaleString("uz-UZ")}

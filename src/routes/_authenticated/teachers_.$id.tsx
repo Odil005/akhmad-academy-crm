@@ -51,7 +51,7 @@ function TeacherProfile() {
           .eq("status", "active");
         st = (data ?? []).flatMap((r: any) => (r.students ? [{
           id: r.students.id,
-          full_name: r.students.full_name || [r.students.first_name, r.students.last_name].filter(Boolean).join(" ") || "—",
+          full_name: [r.students.last_name, r.students.first_name].filter(Boolean).join(" ") || r.students.full_name || [r.students.first_name].filter(Boolean).join(" ") || "—",
           group_id: r.group_id,
           low_income: !!r.students.low_income,
           fee: Number(r.monthly_fee ?? gs.find((x) => x.id === r.group_id)?.monthly_fee ?? 0),

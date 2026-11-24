@@ -71,7 +71,7 @@ function ApplicationsPage() {
           <div key={a.id} className="space-y-3 rounded-xl border border-border bg-card p-4">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="font-medium">{a.first_name} {a.last_name}</p>
+                <p className="font-medium">{a.last_name} {a.first_name}</p>
                 <p className="text-xs text-muted-foreground">
                   {a.role === "student" ? "O'quvchi" : "Ota-ona"} · {a.phone} {a.telegram_username ? `· @${a.telegram_username}` : ""}
                 </p>
@@ -107,7 +107,7 @@ function ApplicationsPage() {
           <div className="divide-y divide-border rounded-xl border border-border">
             {done.map((a) => (
               <div key={a.id} className="flex items-center justify-between p-3 text-sm">
-                <span>{a.first_name} {a.last_name} · {a.role === "student" ? "O'quvchi" : "Ota-ona"}</span>
+                <span>{a.last_name} {a.first_name} · {a.role === "student" ? "O'quvchi" : "Ota-ona"}</span>
                 <span className="text-muted-foreground">{STATUS[a.status]}</span>
               </div>
             ))}

@@ -106,7 +106,7 @@ export function GroupStudentDialog({ groups, initialGroupId, onClose, onDone }: 
           {searching ? <p className="py-4 text-center text-sm text-muted-foreground">Yuklanmoqda…</p> : candidates.length ? <ul className="space-y-1">
             {candidates.map(student => <li key={student.id}>
               <Button variant="ghost" disabled={busy} className="h-auto min-h-12 w-full justify-between whitespace-normal px-2 text-left" onClick={() => enroll(student.id)}>
-                <span className="min-w-0 break-words"><span className="flex flex-wrap items-center gap-1.5"><span className="block">{student.first_name} {student.last_name}</span>{student.low_income && <LowIncomeBadge compact />}</span><span className="text-xs text-muted-foreground">{student.parent_phone}</span></span>
+                <span className="min-w-0 break-words"><span className="flex flex-wrap items-center gap-1.5"><span className="block">{student.last_name} {student.first_name}</span>{student.low_income && <LowIncomeBadge compact />}</span><span className="text-xs text-muted-foreground">{student.parent_phone}</span></span>
                 <UserPlus className="shrink-0 text-primary" />
               </Button>
             </li>)}

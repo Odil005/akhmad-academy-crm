@@ -58,6 +58,6 @@ export const recognizeFacePresence = createServerFn({ method: 'POST' })
       ? await context.supabase.from('students').select('first_name, last_name').eq('id', personId).single()
       : await context.supabase.from('profiles').select('full_name').eq('id', personId).single();
     if (person.error) throw new Error(person.error.message);
-    const name = person.data && 'full_name' in person.data ? person.data.full_name : person.data && 'first_name' in person.data ? `${person.data.first_name} ${person.data.last_name}` : '—';
+    const name = person.data && 'full_name' in person.data ? person.data.full_name : person.data && 'first_name' in person.data ? `${person.data.last_name ?? ""} ${person.data.first_name}`.trim() : '—';
     return { event: event as { status: string; attendance_result?: string; debt_amount?: number }, name };
   });

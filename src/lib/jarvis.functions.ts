@@ -117,7 +117,7 @@ async function buildBusinessContext(supabase: any, userId: string, roles: Jarvis
       total_debt: totalDebt,
     },
     top_debtors: (debtors ?? []).map((d: any) => ({
-      name: `${d.first_name} ${d.last_name ?? ""}`.trim(),
+      name: `${d.last_name ?? ""} ${d.first_name}`.trim(),
       debt: Math.abs(Number(d.balance)),
     })),
     recent_leads: recentLeads ?? [],
@@ -581,7 +581,7 @@ async function runTool(
       return {
         result: {
           ok: true,
-          student: `${st.first_name} ${st.last_name ?? ""}`.trim(),
+          student: `${st.last_name ?? ""} ${st.first_name}`.trim(),
           group: gr.name,
         },
         navigate: "/groups",
@@ -641,7 +641,7 @@ async function runTool(
             clarification: "Bir nechta o'quvchi topildi. To'liq ismni ayting.",
             candidates: matches.map(
               (student: any) =>
-                student.full_name || `${student.first_name} ${student.last_name ?? ""}`.trim(),
+                `${student.last_name ?? ""} ${student.first_name ?? ""}`.trim() || student.full_name,
             ),
           },
         };
@@ -710,7 +710,7 @@ async function runTool(
       return {
         result: {
           student: {
-            name: student.full_name || `${student.first_name} ${student.last_name ?? ""}`.trim(),
+            name: `${student.last_name ?? ""} ${student.first_name ?? ""}`.trim() || student.full_name,
             status: student.status_enum,
             balance: student.balance,
           },
@@ -790,7 +790,7 @@ async function runTool(
             error: "Bir nechta o'quvchi topildi. To'liq ismni ayting.",
             candidates: students.map(
               (student: any) =>
-                student.full_name || `${student.first_name} ${student.last_name ?? ""}`.trim(),
+                `${student.last_name ?? ""} ${student.first_name ?? ""}`.trim() || student.full_name,
             ),
           },
         };
@@ -846,7 +846,7 @@ async function runTool(
         .select("id")
         .single();
       if (created.error) return { result: { error: created.error.message } };
-      const name = student.full_name || `${student.first_name} ${student.last_name ?? ""}`.trim();
+      const name = `${student.last_name ?? ""} ${student.first_name ?? ""}`.trim() || student.full_name;
       const outgoing = [
         `🤖 O'quv markazidan xabar`,
         `👤 ${name}`,

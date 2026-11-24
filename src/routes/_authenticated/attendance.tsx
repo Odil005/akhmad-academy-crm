@@ -261,7 +261,7 @@ function AttendancePage() {
                       <div className="flex items-center gap-3">
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary text-sm font-bold">{initials || "?"}</span>
                         <div className="min-w-0 flex-1">
-                          <Link to="/students/$id" params={{ id: s.id }} className="block truncate text-sm font-semibold hover:text-primary hover:underline">{s.first_name} {s.last_name ?? ""}</Link>
+                          <Link to="/students/$id" params={{ id: s.id }} className="block truncate text-sm font-semibold hover:text-primary hover:underline">{s.last_name ?? ""} {s.first_name}</Link>
                           <div className={`text-xs ${statusText(cur)}`}>{STATUS_LABEL[cur]}</div>
                         </div>
                         <div className="hidden items-center gap-1.5 md:flex">{extras(s, cur)}</div>
@@ -269,7 +269,7 @@ function AttendancePage() {
                           type="button"
                           role="checkbox"
                           aria-checked={ticked}
-                          aria-label={`${s.first_name} ${s.last_name ?? ""} keldi`}
+                          aria-label={`${s.last_name ?? ""} ${s.first_name} keldi`}
                           disabled={!canMark}
                           onClick={() => togglePresent(s.id)}
                           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${

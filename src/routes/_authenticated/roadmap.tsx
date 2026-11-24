@@ -178,7 +178,7 @@ function RoadmapPage() {
           >
             {students.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.first_name} {s.last_name ?? ""}
+                {s.last_name ?? ""} {s.first_name}
               </option>
             ))}
           </select>
