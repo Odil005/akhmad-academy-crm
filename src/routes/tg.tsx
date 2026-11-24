@@ -97,7 +97,7 @@ function TelegramMiniApp() {
 
   return (
     <main className="min-h-screen bg-background px-4 py-6 text-foreground">
-      <div className="mx-auto max-w-md space-y-5">
+      <div className="mx-auto max-w-md space-y-5 md:max-w-3xl md:py-6 lg:max-w-4xl">
         <header className="flex items-center gap-3">
           <img src="/logo-256.webp?v=akhmad-20261019" alt="Akhmad Academy" width={44} height={44} className="h-11 w-11 rounded-xl" />
           <div>
@@ -120,7 +120,7 @@ function TelegramMiniApp() {
           <div className="rounded-2xl border border-border bg-card p-5 text-sm">Arizangiz rad etilgan.{view.reason ? ` Sabab: ${view.reason}` : ""} Markaz bilan bog'laning.</div>
         )}
         {view.s === "pending" && (
-          <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-border bg-card p-5">
               <div className="flex items-center gap-2 text-warning"><Clock className="h-5 w-5" /><span className="font-medium">Tasdiq kutilmoqda</span></div>
               <p className="mt-2 text-sm text-muted-foreground">Salom, {view.name}! Arizangiz administratorga yuborildi. Tasdiqlangach guruhingiz va darslaringiz shu yerda ko'rinadi.</p>
@@ -163,7 +163,7 @@ function RegisterForm(props: {
 
   return (
     <form
-      className="space-y-4 rounded-2xl border border-border bg-card p-5"
+      className="mx-auto w-full max-w-xl space-y-4 rounded-2xl border border-border bg-card p-5 md:p-8"
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
