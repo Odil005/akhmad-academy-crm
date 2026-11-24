@@ -70,6 +70,11 @@ function TelegramMiniApp() {
         const tg = await loadTelegram();
         tg?.ready();
         tg?.expand();
+        // Telegram Desktop opens Mini Apps in a small phone-sized window; go fullscreen there.
+        try {
+          const w = tg as unknown as { platform?: string; requestFullscreen?: () => void; isVersionAtLeast?: (v: string) => boolean };
+          if (["tdesktop", "macos", "weba", "webk"].includes(w.platform ?? "") && w.isVersionAtLeast?.("8.0")) w.requestFullscreen?.();
+        } catch { /* older clients */ }
         const data = tg?.initData ?? "";
         if (!data) {
           const { data: s } = await supabase.auth.getSession();
