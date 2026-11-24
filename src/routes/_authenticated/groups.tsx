@@ -128,6 +128,44 @@ function GroupsPage() {
     load();
   }, [load]);
 
+  const [filter, setFilter] = useState("");
+  const [closed, setClosed] = useState<Set<string>>(new Set());
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (groups.length === 0) return;
+    void supabase
+      .from("student_enrollments")
+      .select("group_id")
+      .eq("status", "active")
+      .in("group_id", groups.map((g) => g.id))
+      .then(({ data }) => {
+        const c: Record<string, number> = {};
+        for (const r of (data ?? []) as { group_id: string }[]) c[r.group_id] = (c[r.group_id] ?? 0) + 1;
+        setCounts(c);
+      });
+  }, [groups]);
+  const catalog = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    const nameOf = (id: string | null) => (id ? teachers.find((t) => t.id === id)?.full_name?.trim() : null) || null;
+    const map = new Map<string, { key: string; name: string; groups: Group[]; subjects: string }>();
+    for (const g of groups) {
+      const name = nameOf(g.teacher_id) ?? "O'qituvchi biriktirilmagan";
+      const key = g.teacher_id ?? "none";
+      if (q && !name.toLowerCase().includes(q) && !g.name.toLowerCase().includes(q)) continue;
+      const sec = map.get(key) ?? { key, name, groups: [], subjects: "" };
+      sec.groups.push(g);
+      map.set(key, sec);
+    }
+    const rank = (g: Group) => (/juft/i.test(g.name) ? 0 : /toq/i.test(g.name) ? 1 : 2);
+    return [...map.values()]
+      .map((sec) => ({
+        ...sec,
+        subjects: [...new Set(sec.groups.map((g) => g.subject?.name).filter(Boolean))].join(", "),
+        groups: [...sec.groups].sort((a, b) => rank(a) - rank(b) || (a.schedule_start ?? "").localeCompare(b.schedule_start ?? "") || a.name.localeCompare(b.name, "uz")),
+      }))
+      .sort((a, b) => (a.key === "none" ? 1 : b.key === "none" ? -1 : a.name.localeCompare(b.name, "uz")));
+  }, [groups, teachers, filter]);
+
   // A group created anywhere in the app (or another tab) shows up here at once.
   useDataEvent("groups", load);
 
@@ -174,21 +212,57 @@ function GroupsPage() {
           Hozircha guruh yo'q
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {groups.map((g) => (
-            <GroupCard
-              key={g.id}
-              group={g}
-              isStaff={isStaff}
-              isTeacher={isTeacher}
-              isOpen={expanded === g.id}
-              onToggle={() => setExpanded(expanded === g.id ? null : g.id)}
-              onAdd={() => setAddingTo(g.id)}
-              onEdit={() => setEditing(g)}
-              onDelete={() => remove(g.id)}
-              teachers={teachers}
+        <div className="space-y-3">
+          {isStaff && (
+            <input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="O'qituvchi yoki guruh qidirish..."
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm outline-none focus:border-primary"
             />
-          ))}
+          )}
+          {catalog.map((sec) => {
+            const isClosed = !filter && closed.has(sec.key);
+            const total = sec.groups.reduce((n, g) => n + (counts[g.id] ?? 0), 0);
+            return (
+              <section key={sec.key} className="rounded-2xl border border-border bg-card/60">
+                {isStaff && (
+                  <button
+                    type="button"
+                    onClick={() => setClosed((prev) => { const n = new Set(prev); if (n.has(sec.key)) n.delete(sec.key); else n.add(sec.key); return n; })}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 font-bold text-primary">{sec.name.charAt(0)}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-bold">{sec.name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{sec.subjects || "Fan tanlanmagan"}</span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs">{sec.groups.length} guruh · {total} o'quvchi</span>
+                    {isClosed ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronUp className="h-4 w-4 shrink-0" />}
+                  </button>
+                )}
+                {!isClosed && (
+                  <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 ${isStaff ? "px-4 pb-4" : ""}`}>
+                    {sec.groups.map((g) => (
+                      <GroupCard
+                      key={g.id}
+                      group={g}
+                      isStaff={isStaff}
+                      isTeacher={isTeacher}
+                      isOpen={expanded === g.id}
+                      onToggle={() => setExpanded(expanded === g.id ? null : g.id)}
+                      onAdd={() => setAddingTo(g.id)}
+                      onEdit={() => setEditing(g)}
+                      onDelete={() => remove(g.id)}
+                      teachers={teachers}
+                    />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+          {catalog.length === 0 && <p className="text-sm text-muted-foreground">Hech narsa topilmadi</p>}
         </div>
       )}
 
