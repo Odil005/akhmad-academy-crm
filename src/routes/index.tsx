@@ -23,7 +23,7 @@ import type { SiteTeacher } from "@/lib/site-teachers";
 import { lazy, Suspense } from "react";
 const ParentBotDemo = lazy(() => import("@/components/ParentBotDemo").then((m) => ({ default: m.ParentBotDemo })));
 import introVideo from "@/assets/academy-intro.mp4.asset.json";
-import { Smartphone, ScanFace, MessageCircle, Sparkles, Trophy, Languages, Calculator, FlaskConical, Leaf, Brain, BookText, Navigation } from "lucide-react";
+import { Smartphone, ScanFace, MessageCircle, Sparkles, Trophy, Languages, Calculator, FlaskConical, Atom, Leaf, Brain, BookText, Navigation } from "lucide-react";
 import { hasLocation, osmEmbedUrl, directionsLinks, type SiteLocation } from "@/lib/site-location";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -365,6 +365,7 @@ const DEFAULT_COURSES: HomepageCourse[] = [
   { id: "de", title: "Nemis tili", description: "Start Deutsch va Goethe imtihonlari", level: "A1 – B2" },
   { id: "math", title: "Matematika", description: "Maktab dasturi, DTM va olimpiada", level: "5–11-sinf" },
   { id: "chem", title: "Kimyo", description: "Nazariya, masalalar va DTM testlari", level: "7–11-sinf" },
+  { id: "phys", title: "Fizika", description: "Mexanika, elektr va DTM masalalari", level: "7–11-sinf" },
   { id: "bio", title: "Biologiya", description: "Tibbiyotga kirish uchun chuqur kurs", level: "7–11-sinf" },
   { id: "mental", title: "Mental arifmetika", description: "Tez hisoblash va diqqatni rivojlantirish", level: "5–12 yosh" },
   { id: "ona", title: "Ona tili va adabiyot", description: "Savodxonlik, imlo va adabiyot", level: "DTM" },
@@ -374,6 +375,7 @@ function courseIcon(title: string) {
   const t = title.toLowerCase();
   if (/matem|arifm/.test(t)) return t.includes("mental") ? Brain : Calculator;
   if (t.includes("kimyo")) return FlaskConical;
+  if (t.includes("fizika")) return Atom;
   if (/biolog|bialog/.test(t)) return Leaf;
   if (/ona tili|adabiyot/.test(t)) return BookText;
   if (/tili/.test(t)) return Languages;
@@ -403,7 +405,7 @@ function Courses() {
             Har bir fan bo'yicha daraja aniqlanadi, guruh tanlanadi va har oy natija ota-onaga yuboriladi.
           </p>
         </div>
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 md:mt-14 md:grid-cols-3 xl:grid-cols-5">
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 md:mt-14 md:grid-cols-3 lg:grid-cols-4">
           {courses.map((c, i) => {
             const Icon = courseIcon(c.title);
             return (
