@@ -383,32 +383,32 @@ function Courses() {
   const courses = useHomepageCourses();
   return (
     <section id="courses" className="border-t border-border/60 bg-background py-24 cv-auto">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <div className="mx-auto max-w-[1600px] px-4 md:px-10 lg:px-16">
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Kurslar</span>
-          <h2 className="mt-3 font-display text-4xl tracking-tight text-primary md:text-5xl">Bizning fanlarimiz</h2>
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl md:text-6xl">Bizning fanlarimiz</h2>
           <div className="mx-auto mt-5 h-px w-24 bg-accent" />
-          <p className="mt-5 text-muted-foreground">
+          <p className="mt-5 text-base font-medium text-foreground/70 md:text-lg">
             Har bir fan bo'yicha daraja aniqlanadi, guruh tanlanadi va har oy natija ota-onaga yuboriladi.
           </p>
         </div>
-        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 md:mt-14 md:grid-cols-3 xl:grid-cols-5">
           {courses.map((c, i) => {
             const Icon = courseIcon(c.title);
             return (
               <a
                 key={c.id}
                 href="#contact"
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-primary/10"
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm transition-all sm:p-6 hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-primary/10"
               >
                 <span className="absolute right-5 top-4 font-display text-3xl text-muted-foreground/20">{String(i + 1).padStart(2, "0")}</span>
                 <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-accent transition-colors group-hover:bg-accent group-hover:text-primary">
                   <Icon className="h-6 w-6" />
                 </span>
-                <h3 className="mt-5 font-display text-xl text-primary">{c.title}</h3>
-                <p className="mt-2 flex-1 text-sm text-muted-foreground">{c.description}</p>
+                <h3 className="mt-4 font-display text-lg font-bold leading-tight text-primary sm:mt-5 sm:text-2xl">{c.title}</h3>
+                <p className="mt-2 flex-1 text-xs font-medium text-foreground/70 sm:text-sm">{c.description}</p>
                 <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-                  {c.level ? <span className="text-xs font-semibold uppercase tracking-wider text-accent">{c.level}</span> : <span />}
+                  {c.level ? <span className="text-[11px] font-bold uppercase tracking-wider text-accent sm:text-xs">{c.level}</span> : <span />}
                   <span className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/60 text-accent transition-colors group-hover:bg-accent group-hover:text-primary">
                     <ArrowRight className="h-4 w-4" />
                   </span>
@@ -488,27 +488,27 @@ function Teachers() {
   if (!shown.length) return null;
   return (
     <section id="teachers" className="border-t border-border/60 bg-secondary/40 py-24 cv-auto">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <div className="mx-auto max-w-[1600px] px-4 md:px-10 lg:px-16">
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Jamoa</span>
-          <h2 className="mt-3 font-display text-4xl tracking-tight text-primary md:text-5xl">Ustozlarimiz</h2>
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl md:text-6xl">Ustozlarimiz</h2>
           <div className="mx-auto mt-5 h-px w-24 bg-accent" />
-          <p className="mt-5 text-muted-foreground">Sertifikatli va tajribali mutaxassislar — har bir fan bo'yicha.</p>
+          <p className="mt-5 text-base font-medium text-foreground/70 md:text-lg">Sertifikatli va tajribali mutaxassislar — har bir fan bo'yicha.</p>
         </div>
-        <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 md:mt-14 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {shown.map((t) => (
-            <article key={t.id} className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-primary">
+            <article key={t.id} className="group relative aspect-[3/5] overflow-hidden rounded-2xl bg-primary shadow-lg sm:aspect-[3/4]">
               {t.photo_url ? (
                 <img src={t.photo_url} alt={t.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
               ) : (
-                <div className="absolute inset-x-0 top-10 flex justify-center font-display text-6xl text-accent/50">
+                <div className="absolute inset-x-0 top-[8%] mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-accent bg-accent/15 font-display text-2xl font-bold text-accent sm:top-[14%] sm:h-28 sm:w-28 sm:text-4xl">
                   {t.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2)}
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 text-primary-foreground">
-                <h3 className="font-display text-lg uppercase leading-tight">{t.name}</h3>
-                <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+              <div className="absolute inset-x-0 bottom-0 p-3 text-primary-foreground sm:p-4">
+                <h3 className="font-display text-sm font-bold uppercase leading-tight sm:text-lg">{t.name}</h3>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-[10px] sm:text-xs">
                   <Stat k="Fan" v={t.subject} />
                   {t.qualification ? <Stat k="Daraja" v={t.qualification} hl /> : null}
                   {t.experience ? <Stat k="Tajriba" v={t.experience} /> : null}
@@ -536,19 +536,19 @@ function Stat({ k, v, hl }: { k: string; v: string; hl?: boolean }) {
 function Advantages() {
   return (
     <section id="features" className="border-t border-border/60 bg-background py-24 cv-auto">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <div className="mx-auto max-w-[1600px] px-4 md:px-10 lg:px-16">
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Afzalliklar</span>
-          <h2 className="mt-3 font-display text-4xl tracking-tight text-primary md:text-5xl">Nima uchun Akhmad Academy?</h2>
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl md:text-6xl">Nima uchun Akhmad Academy?</h2>
           <div className="mx-auto mt-5 h-px w-24 bg-accent" />
         </div>
-        <div className="mt-14 grid gap-5 lg:grid-cols-3">
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-5 md:mt-14 lg:grid-cols-3">
           <Bento icon={Users} title="Tajribali ustozlar" text="Har bir fan bo'yicha sertifikatli mutaxassislar va kichik guruhlar (12–15 kishi)." />
-          <div className="row-span-2 flex flex-col justify-between rounded-3xl bg-primary p-8 text-primary-foreground">
+          <div className="flex flex-col justify-between rounded-3xl bg-primary p-6 shadow-xl sm:col-span-2 sm:p-8 lg:col-span-1 lg:row-span-2 text-primary-foreground">
             <div>
               <Smartphone className="h-10 w-10 text-accent" />
-              <h3 className="mt-6 font-display text-3xl">Ota-onalar uchun ilova va Telegram bot</h3>
-              <p className="mt-4 text-primary-foreground/75">Davomat, baholar, to'lovlar va har oylik natija — farzandingiz haqidagi hamma ma'lumot telefoningizda, real vaqtda.</p>
+              <h3 className="mt-6 font-display text-2xl font-bold sm:text-3xl">Ota-onalar uchun ilova va Telegram bot</h3>
+              <p className="mt-4 font-medium text-primary-foreground/85">Davomat, baholar, to'lovlar va har oylik natija — farzandingiz haqidagi hamma ma'lumot telefoningizda, real vaqtda.</p>
             </div>
             <div className="mt-8"><Suspense fallback={<div className="h-[420px]" />}><ParentBotDemo inline /></Suspense></div>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -559,10 +559,10 @@ function Advantages() {
           <Bento icon={Trophy} title="Imtihonlarga tayyorlov" text="IELTS, TOPIK, CEFR, DTM va olimpiadalar uchun maxsus dasturlar va mock imtihonlar." />
           <Bento icon={Sparkles} title="AI yordamchi va bilim o'yinlari" text="Darsdan tashqari mashqlar, testlar va o'yinlar orqali mustahkamlash." />
         </div>
-        <div className="mt-5 flex flex-col items-start justify-between gap-6 rounded-3xl bg-accent p-8 text-primary md:flex-row md:items-center">
+        <div className="mt-5 flex flex-col items-start justify-between gap-6 rounded-3xl bg-accent p-6 sm:p-8 text-primary md:flex-row md:items-center">
           <div>
-            <h3 className="font-display text-2xl md:text-3xl">O'quvchilar uchun tadbirlar</h3>
-            <ul className="mt-3 space-y-1.5 text-sm">
+            <h3 className="font-display text-2xl font-bold md:text-3xl">O'quvchilar uchun tadbirlar</h3>
+            <ul className="mt-3 space-y-1.5 text-sm font-semibold">
               <li className="flex gap-2"><Sparkles className="h-4 w-4 flex-none" /> Haftalik speaking klublari va bepul sinov imtihonlari</li>
               <li className="flex gap-2"><MessageCircle className="h-4 w-4 flex-none" /> Muvaffaqiyatli bitiruvchilar va mutaxassislar bilan uchrashuvlar</li>
             </ul>
@@ -576,11 +576,32 @@ function Advantages() {
 
 function Bento({ icon: Icon, title, text }: { icon: typeof Users; title: string; text: string }) {
   return (
-    <div className="rounded-3xl border border-border bg-card p-8 transition-colors hover:border-accent">
-      <Icon className="h-9 w-9 text-accent" />
-      <h3 className="mt-5 font-display text-2xl text-primary">{title}</h3>
-      <p className="mt-3 text-sm text-muted-foreground">{text}</p>
+    <div className="flex flex-col justify-center rounded-3xl border border-border bg-card p-6 shadow-sm transition-colors hover:border-accent sm:p-8">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary"><Icon className="h-7 w-7 text-accent" /></span>
+      <h3 className="mt-5 font-display text-xl font-bold text-primary sm:text-2xl">{title}</h3>
+      <p className="mt-3 text-sm font-medium leading-relaxed text-foreground/70 sm:text-base">{text}</p>
     </div>
+  );
+}
+
+function FloatingDock() {
+  const info = useSetting("contact_info", { phone: "", telegram: "", instagram: "" } as { phone: string; telegram: string; instagram: string });
+  const items = [
+    { href: "#contact", label: "Qabulga yozilish", icon: ArrowRight, hl: true },
+    info.phone ? { href: `tel:${info.phone.replace(/\s+/g, "")}`, label: "Qo'ng'iroq", icon: Phone } : null,
+    { href: info.telegram || "https://t.me/AkhmadAcademylifebot", label: "Telegram", icon: Send, ext: true },
+    info.instagram ? { href: info.instagram, label: "Instagram", icon: Instagram, ext: true } : null,
+  ].filter(Boolean) as { href: string; label: string; icon: typeof Send; hl?: boolean; ext?: boolean }[];
+  return (
+    <nav aria-label="Tezkor aloqa" className="fixed bottom-4 right-3 z-40 flex flex-col gap-2 md:bottom-auto md:right-4 md:top-1/2 md:-translate-y-1/2">
+      {items.map((it) => (
+        <a key={it.label} href={it.href} {...(it.ext ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          className={`group flex items-center justify-end gap-2 rounded-full border shadow-xl backdrop-blur-md transition-all ${it.hl ? "border-accent bg-accent text-primary" : "border-primary-foreground/20 bg-primary/90 text-primary-foreground"}`}>
+          <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-bold transition-all duration-300 group-hover:max-w-[10rem] group-hover:pl-4">{it.label}</span>
+          <span className="flex h-12 w-12 items-center justify-center"><it.icon className="h-5 w-5" /></span>
+        </a>
+      ))}
+    </nav>
   );
 }
 
@@ -600,7 +621,7 @@ function Contact() {
   });
   return (
     <section id="contact" className="border-t border-border/60 bg-background/70 py-20 cv-auto">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <div className="mx-auto max-w-[1600px] px-4 md:px-10 lg:px-16">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div>
             <span className="text-sm font-semibold uppercase tracking-widest text-primary">
@@ -613,42 +634,42 @@ function Contact() {
               Bepul maslahat va sinov darsi uchun ma'lumotlaringizni qoldiring —
               tez orada siz bilan bog'lanamiz.
             </p>
-            <div className="mt-8 space-y-4 text-sm">
+            <div className="mt-8 grid gap-3 text-base font-semibold sm:grid-cols-2">
               {info.phone && (
-                <a href={`tel:${info.phone.replace(/\s+/g, "")}`} className="flex items-center gap-3 text-foreground/90 hover:text-primary">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <a href={`tel:${info.phone.replace(/\s+/g, "")}`} className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-3 text-foreground/90 shadow-sm hover:border-accent hover:text-primary">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-accent">
                     <Phone className="h-4 w-4" />
                   </span>
                   {info.phone}
                 </a>
               )}
               {info.email && (
-                <a href={`mailto:${info.email}`} className="flex items-center gap-3 text-foreground/90 hover:text-primary">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <a href={`mailto:${info.email}`} className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-3 text-foreground/90 shadow-sm hover:border-accent hover:text-primary">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-accent">
                     <Mail className="h-4 w-4" />
                   </span>
                   {info.email}
                 </a>
               )}
               {info.address && (
-                <div className="flex items-center gap-3 text-foreground/90">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-3 text-foreground/90 shadow-sm">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-accent">
                     <MapPin className="h-4 w-4" />
                   </span>
                   {info.address}
                 </div>
               )}
               {info.telegram && (
-                <a href={info.telegram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-foreground/90 hover:text-primary">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <a href={info.telegram} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-3 text-foreground/90 shadow-sm hover:border-accent hover:text-primary">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-accent">
                     <Send className="h-4 w-4" />
                   </span>
                   Telegram kanal
                 </a>
               )}
               {info.instagram && (
-                <a href={info.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-foreground/90 hover:text-primary">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <a href={info.instagram} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-3 text-foreground/90 shadow-sm hover:border-accent hover:text-primary">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-accent">
                     <Instagram className="h-4 w-4" />
                   </span>
                   Instagram
@@ -673,7 +694,7 @@ function Contact() {
               setForm({ name: "", phone: "", course: "" });
               setTimeout(() => setSubmitted(false), 5000);
             }}
-            className="rounded-2xl border border-border bg-card p-6 md:p-8"
+            className="rounded-3xl border border-border bg-card p-5 shadow-xl sm:p-6 md:p-10"
           >
             <div className="space-y-4">
               <div>
@@ -737,7 +758,7 @@ function Contact() {
 function Footer() {
   return (
     <footer className="border-t border-border/60 bg-background/80 py-10">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-8">
+      <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-8">
         <div className="flex items-center gap-3">
           <Monogram className="h-10 w-10" />
           <span className="font-display text-sm tracking-[0.25em] text-primary">AKHMAD ACADEMY</span>
@@ -798,6 +819,7 @@ function Index() {
       <BackgroundAnimation variant="hero" />
       <Header />
       <Hero />
+      <FloatingDock />
       <IntroVideo />
       <Courses />
       <Teachers />

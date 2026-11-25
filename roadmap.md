@@ -150,3 +150,4 @@
 - [x] Davomat nashrda sinovdan o'tdi: Sodiq hisobi bilan 2026-11-16 da "Keldi" belgilanib saqlandi ("Davomat saqlandi"), sinov yozuvlari (4 ta) o'chirib tashlandi
 
 - [x] CRM tezligini oshirish (o'quvchi soni ortsa ham tez ishlashi)
+- [x] Saytga suzuvchi yon panel (Telegram, qo'ng'iroq, qabul)
