@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, CalendarDays, ClipboardCheck, HeartHandshake, Phone, Users, Wallet } from "lucide-react";
+import { CalendarDays, ClipboardCheck, HeartHandshake, Phone, Users, Wallet } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/teachers_/$id")({
@@ -72,9 +73,7 @@ function TeacherProfile() {
 
   return (
     <div className="space-y-4 p-4 md:p-6">
-      <Link to="/teachers" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
-        <ArrowLeft className="h-4 w-4" /> O'qituvchilar
-      </Link>
+      <BackButton to="/teachers" label="O'qituvchilar" />
       <section className="rounded-xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xl font-bold text-primary">

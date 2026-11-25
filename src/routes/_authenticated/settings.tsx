@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { BackButton } from "@/components/BackButton";
 import {
   KeyRound,
   Palette,
@@ -68,6 +69,7 @@ function SettingsLayout() {
 
   return (
     <div className="space-y-6">
+      <BackButton to="/dashboard" label="CRMga qaytish" />
       <header>
         <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">Sozlamalar</h1>
         <p className="text-sm text-muted-foreground">

@@ -1,7 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, FileText, Snowflake, MessageSquare, Pencil, Phone, Printer, Send, StickyNote, UserPlus, Users, Wallet } from "lucide-react";
+import { FileText, Snowflake, MessageSquare, Pencil, Phone, Printer, Send, StickyNote, UserPlus, Users, Wallet } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
 import { toast } from "sonner";
 import { STATUS_META, STATUS_ORDER, type StudentStatus } from "@/lib/status";
 import { TelegramIdField } from "@/components/TelegramIdField";
@@ -90,7 +91,7 @@ export const Route = createFileRoute("/_authenticated/students_/$id")({
 
 function StudentProfile() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
+
   const [student, setStudent] = useState<StudentRow | null>(null);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
@@ -283,9 +284,7 @@ function StudentProfile() {
 
   return (
     <div className="space-y-4">
-      <button onClick={() => navigate({ to: "/students" })} className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:border-primary/50">
-        <ArrowLeft className="h-3.5 w-3.5" /> O'quvchilar
-      </button>
+      <BackButton to="/students" label="O'quvchilar" />
 
       {/* Header: identity + the actions an admin uses every day */}
       <section className="rounded-xl border border-border bg-card p-4">

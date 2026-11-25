@@ -56,6 +56,7 @@ import {
   getAuthenticatedRouteContext,
 } from "@/lib/authenticated-route-cache";
 import { SystemAlertIndicator } from "@/components/SystemAlertIndicator";
+import { BackButton } from "@/components/BackButton";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -219,6 +220,7 @@ function AuthenticatedLayout() {
         { to: "/dashboard", label: "Bosh sahifa", icon: Home },
         { to: "/students", label: "O'quvchilar", icon: Users },
         { to: "/groups", label: "Guruhlar", icon: BookOpen },
+        { to: "/teachers", label: "O'qituvchilar", icon: GraduationCap },
         { to: "/payments", label: "To'lov", icon: Wallet },
       ]
     : isTeacher
@@ -365,6 +367,8 @@ function AuthenticatedLayout() {
               {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
             </Button>
 
+            <BackButton to="/dashboard" hideWhenIdle hideLabelOnSmall label="Orqaga" className="lg:ml-1" />
+
             {/* Telefon: ilova sarlavhasi — logo, markaz nomi, qo'ng'iroqcha va profil */}
             <Link to={tabs[0]?.to ?? "/dashboard"} className="flex min-w-0 flex-1 items-center gap-3 lg:hidden">
               <img src={brandLogo} alt={brandName} width={44} height={44} className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-accent/40" />
@@ -440,7 +444,7 @@ function AuthenticatedLayout() {
               <Link
                 key={tab.to}
                 to={tab.to}
-                className={`relative flex flex-1 flex-col items-center gap-1 pb-2 pt-2.5 text-[11px] font-semibold transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
+                className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 pb-2 pt-2.5 text-[10px] font-semibold transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
               >
                 <tab.icon className="h-6 w-6" />
                 <span className="truncate">{t(tab.label)}</span>
@@ -451,7 +455,7 @@ function AuthenticatedLayout() {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className={`relative flex flex-1 flex-col items-center gap-1 pb-2 pt-2.5 text-[11px] font-semibold ${open ? "text-primary" : "text-muted-foreground"}`}
+            className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 pb-2 pt-2.5 text-[10px] font-semibold ${open ? "text-primary" : "text-muted-foreground"}`}
           >
             <Menu className="h-6 w-6" />
             <span>{t("Menyu")}</span>

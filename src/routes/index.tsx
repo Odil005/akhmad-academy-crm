@@ -433,9 +433,48 @@ function LocationMap() {
   );
 }
 
+const LEVEL_LABEL: Record<string, string> = {
+  junior: "Boshlang'ich malaka",
+  middle: "O'rta malaka",
+  senior: "Yuqori malaka",
+  lead: "Bosh ustoz",
+};
+
+/** CRMdagi haqiqiy o'qituvchilar — direktor «Saytdagi ustozlar»ni o'zi to'ldirmaganida ishlatiladi. */
+function useAutoTeachers() {
+  const { data } = useQuery({
+    queryKey: ["public-site-teachers"],
+    staleTime: 10 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("site_teacher_public")
+        .select("id, name, subject, level, student_count")
+        .order("student_count", { ascending: false })
+        .limit(10);
+      return (data ?? []) as {
+        id: string;
+        name: string;
+        subject: string;
+        level: string;
+        student_count: number;
+      }[];
+    },
+  });
+  return (data ?? []).map((t) => ({
+    id: t.id,
+    name: t.name,
+    subject: t.subject,
+    qualification: LEVEL_LABEL[t.level] ?? "",
+    experience: "",
+    students: t.student_count ? String(t.student_count) : "",
+  })) as SiteTeacher[];
+}
+
 function Teachers() {
   const { items } = useSetting<{ items: SiteTeacher[] }>("site_teachers", { items: [] });
-  if (!items.length) return null;
+  const auto = useAutoTeachers();
+  const shown = items.length ? items : auto;
+  if (!shown.length) return null;
   return (
     <section id="teachers" className="border-t border-border/60 bg-secondary/40 py-24 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -446,7 +485,7 @@ function Teachers() {
           <p className="mt-5 text-muted-foreground">Sertifikatli va tajribali mutaxassislar — har bir fan bo'yicha.</p>
         </div>
         <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {items.map((t) => (
+          {shown.map((t) => (
             <article key={t.id} className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-primary">
               {t.photo_url ? (
                 <img src={t.photo_url} alt={t.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />

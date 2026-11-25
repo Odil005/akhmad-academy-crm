@@ -1146,6 +1146,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "face_presence_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "site_teacher_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       fiscal_receipts: {
@@ -3072,6 +3079,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "staff_face_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "site_teacher_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       staff_salaries: {
@@ -3785,6 +3799,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "students_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "site_teacher_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       subjects: {
@@ -4397,7 +4418,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      site_teacher_public: {
+        Row: {
+          group_count: number | null
+          id: string | null
+          level: string | null
+          name: string | null
+          student_count: number | null
+          subject: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       activate_teacher_contact: {
