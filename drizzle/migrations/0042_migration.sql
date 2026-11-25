@@ -1,0 +1,3 @@
+DROP POLICY IF EXISTS "settings: public read flagged" ON public.settings;
+CREATE POLICY "settings: public read flagged" ON public.settings FOR SELECT TO anon, authenticated
+USING (is_public = true AND key = ANY (ARRAY['contact_info','design','homepage_sections','homepage_courses','banners','news','marketplace','grade_template','reports','stats','subjects','teachers','donation','site_location','site_teachers']));

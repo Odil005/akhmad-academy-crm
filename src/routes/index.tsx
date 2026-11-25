@@ -2,9 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   BookOpen,
   Users,
-  Calendar,
-  TrendingUp,
-  Headphones,
   GraduationCap,
   Phone,
   ArrowRight,
@@ -22,7 +19,8 @@ const logoAsset = { url: "/logo.png?v=akhmad-20261019", webp: "/logo-256.webp?v=
 import heroClassroom from "@/assets/hero-classroom.webp";
 import heroClassroom640 from "@/assets/hero-classroom-640.webp";
 import { useState } from "react";
-import { Languages, Calculator, FlaskConical, Leaf, Brain, BookText, Navigation } from "lucide-react";
+import type { SiteTeacher } from "@/lib/site-teachers";
+import { Smartphone, ScanFace, MessageCircle, Sparkles, Trophy, Languages, Calculator, FlaskConical, Leaf, Brain, BookText, Navigation } from "lucide-react";
 import { hasLocation, osmEmbedUrl, directionsLinks, type SiteLocation } from "@/lib/site-location";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -60,7 +58,8 @@ export const Route = createFileRoute("/")({
 const NAV_LINKS = [
   { href: "#home", label: "Bosh sahifa" },
   { href: "#courses", label: "Fanlar" },
-  { href: "#features", label: "Imkoniyatlar" },
+  { href: "#teachers", label: "Ustozlar" },
+  { href: "#features", label: "Afzalliklar" },
   { href: "#contact", label: "Aloqa" },
 ];
 
@@ -196,13 +195,6 @@ function Header() {
   );
 }
 
-const features = [
-  { icon: GraduationCap, title: "Ko'p fanli kurslar", desc: "Turli yo'nalishlar bo'yicha kurslar" },
-  { icon: Users, title: "Malakali o'qituvchilar", desc: "Tajribali va sertifikatli mutaxassislar" },
-  { icon: Calendar, title: "Dars jadvali", desc: "Qulay va moslashuvchan dars jadvali" },
-  { icon: TrendingUp, title: "Natijani kuzatish", desc: "O'z progressingizni oson kuzating" },
-  { icon: Headphones, title: "24/7 Qo'llab-quvvatlash", desc: "Har doim yordamga tayyor jamoa" },
-];
 
 const DEFAULT_STATS = {
   students: "1200+",
@@ -439,56 +431,103 @@ function LocationMap() {
   );
 }
 
-function FeaturesSection() {
+function Teachers() {
+  const { items } = useSetting<{ items: SiteTeacher[] }>("site_teachers", { items: [] });
+  if (!items.length) return null;
   return (
-    <section id="features" className="border-t border-border/60 bg-secondary/40 py-20 cv-auto">
+    <section id="teachers" className="border-t border-border/60 bg-secondary/40 py-24 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
-          <div>
-            <span className="text-sm font-semibold uppercase tracking-widest text-primary">
-              Imkoniyatlar
-            </span>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-              Nima uchun Akhmad Academy?
-            </h2>
-            <p className="mt-3 text-muted-foreground">
-              Zamonaviy metodikalar, individual yondashuv va natijaga qaratilgan dars
-              rejalarimiz sizni maqsadingizga tezroq olib boradi.
-            </p>
-            <ul className="mt-6 space-y-3">
-              {[
-                "Zamonaviy jihozlangan sinf xonalari",
-                "Kichik guruhlarda mashg'ulotlar (6–10 kishi)",
-                "Har oy nazorat testlari va progress hisoboti",
-                "Sertifikat va imtihonlarga tayyorgarlik",
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-3 text-sm text-foreground/90">
-                  <span className="mt-1 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-primary/20 text-primary">
-                    ✓
-                  </span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {features.slice(0, 4).map((f) => (
-              <div
-                key={f.title}
-                className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/50"
-              >
-                <f.icon className="h-8 w-8 text-primary" />
-                <h3 className="mt-4 text-base font-bold text-foreground">{f.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{f.desc}</p>
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Jamoa</span>
+          <h2 className="mt-3 font-display text-4xl tracking-tight text-primary md:text-5xl">Ustozlarimiz</h2>
+          <div className="mx-auto mt-5 h-px w-24 bg-accent" />
+          <p className="mt-5 text-muted-foreground">Sertifikatli va tajribali mutaxassislar — har bir fan bo'yicha.</p>
+        </div>
+        <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+          {items.map((t) => (
+            <article key={t.id} className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-primary">
+              {t.photo_url ? (
+                <img src={t.photo_url} alt={t.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              ) : (
+                <div className="absolute inset-x-0 top-10 flex justify-center font-display text-6xl text-accent/50">
+                  {t.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2)}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4 text-primary-foreground">
+                <h3 className="font-display text-lg uppercase leading-tight">{t.name}</h3>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+                  <Stat k="Fan" v={t.subject} />
+                  {t.qualification ? <Stat k="Daraja" v={t.qualification} hl /> : null}
+                  {t.experience ? <Stat k="Tajriba" v={t.experience} /> : null}
+                  {t.students ? <Stat k="O'quvchilar" v={t.students} /> : null}
+                </div>
               </div>
-            ))}
-          </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
+function Stat({ k, v, hl }: { k: string; v: string; hl?: boolean }) {
+  if (!v) return null;
+  return (
+    <div>
+      <div className="w-fit rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider">{k}</div>
+      <div className={`mt-1 font-semibold ${hl ? "w-fit rounded bg-accent px-1.5 text-primary" : ""}`}>{v}</div>
+    </div>
+  );
+}
+
+function Advantages() {
+  return (
+    <section id="features" className="border-t border-border/60 bg-background py-24 cv-auto">
+      <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Afzalliklar</span>
+          <h2 className="mt-3 font-display text-4xl tracking-tight text-primary md:text-5xl">Nima uchun Akhmad Academy?</h2>
+          <div className="mx-auto mt-5 h-px w-24 bg-accent" />
+        </div>
+        <div className="mt-14 grid gap-5 lg:grid-cols-3">
+          <Bento icon={Users} title="Tajribali ustozlar" text="Har bir fan bo'yicha sertifikatli mutaxassislar va kichik guruhlar (12–15 kishi)." />
+          <div className="row-span-2 flex flex-col justify-between rounded-3xl bg-primary p-8 text-primary-foreground">
+            <div>
+              <Smartphone className="h-10 w-10 text-accent" />
+              <h3 className="mt-6 font-display text-3xl">Ota-onalar uchun ilova va Telegram bot</h3>
+              <p className="mt-4 text-primary-foreground/75">Davomat, baholar, to'lovlar va har oylik natija — farzandingiz haqidagi hamma ma'lumot telefoningizda, real vaqtda.</p>
+            </div>
+            <a href="#contact" className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-primary">Sinov darsiga yozilish <ArrowRight className="h-4 w-4" /></a>
+          </div>
+          <Bento icon={ScanFace} title="Face ID davomat" text="O'quvchi markazga kelganda yuzidan tanib olinadi, ota-onaga darhol xabar boradi." />
+          <Bento icon={Trophy} title="Imtihonlarga tayyorlov" text="IELTS, TOPIK, CEFR, DTM va olimpiadalar uchun maxsus dasturlar va mock imtihonlar." />
+          <Bento icon={Sparkles} title="AI yordamchi va bilim o'yinlari" text="Darsdan tashqari mashqlar, testlar va o'yinlar orqali mustahkamlash." />
+        </div>
+        <div className="mt-5 flex flex-col items-start justify-between gap-6 rounded-3xl bg-accent p-8 text-primary md:flex-row md:items-center">
+          <div>
+            <h3 className="font-display text-2xl md:text-3xl">O'quvchilar uchun tadbirlar</h3>
+            <ul className="mt-3 space-y-1.5 text-sm">
+              <li className="flex gap-2"><Sparkles className="h-4 w-4 flex-none" /> Haftalik speaking klublari va bepul sinov imtihonlari</li>
+              <li className="flex gap-2"><MessageCircle className="h-4 w-4 flex-none" /> Muvaffaqiyatli bitiruvchilar va mutaxassislar bilan uchrashuvlar</li>
+            </ul>
+          </div>
+          <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-background px-6 py-3 text-sm font-semibold text-primary">Batafsil <ArrowRight className="h-4 w-4" /></a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Bento({ icon: Icon, title, text }: { icon: typeof Users; title: string; text: string }) {
+  return (
+    <div className="rounded-3xl border border-border bg-card p-8 transition-colors hover:border-accent">
+      <Icon className="h-9 w-9 text-accent" />
+      <h3 className="mt-5 font-display text-2xl text-primary">{title}</h3>
+      <p className="mt-3 text-sm text-muted-foreground">{text}</p>
+    </div>
+  );
+}
 
 function Contact() {
   const [submitted, setSubmitted] = useState(false);
@@ -705,7 +744,8 @@ function Index() {
       <Header />
       <Hero />
       <Courses />
-      <FeaturesSection />
+      <Teachers />
+      <Advantages />
       <Contact />
       <Footer />
     </main>

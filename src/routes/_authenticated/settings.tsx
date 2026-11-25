@@ -16,6 +16,7 @@ import {
   Rocket,
   Heart,
   Building2,
+  Users,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -54,6 +55,7 @@ function SettingsLayout() {
     },
     { to: "/settings/marketplace", label: "Marketplace", icon: ShoppingBag, show: true },
     { to: "/settings/design", label: "Dizayn & Homepage", icon: Palette, show: isDirector },
+    { to: "/settings/site-teachers", label: "Saytdagi ustozlar", icon: Users, show: true },
     { to: "/settings/contact", label: "Aloqa va joylashuv", icon: MapPin, show: true },
     { to: "/settings/stats", label: "Bosh sahifa raqamlari", icon: BarChart3, show: true },
     { to: "/settings/news", label: "Yangiliklar & Bannerlar", icon: Megaphone, show: true },

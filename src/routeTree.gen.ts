@@ -69,6 +69,7 @@ import { Route as AuthenticatedSettingsMarketplaceRouteImport } from './routes/_
 import { Route as AuthenticatedSettingsNewsRouteImport } from './routes/_authenticated/settings.news'
 import { Route as AuthenticatedSettingsReportsRouteImport } from './routes/_authenticated/settings.reports'
 import { Route as AuthenticatedSettingsSetupRouteImport } from './routes/_authenticated/settings.setup'
+import { Route as AuthenticatedSettingsSiteTeachersRouteImport } from './routes/_authenticated/settings.site-teachers'
 import { Route as AuthenticatedSettingsStatsRouteImport } from './routes/_authenticated/settings.stats'
 import { Route as AuthenticatedSettingsSubjectsRouteImport } from './routes/_authenticated/settings.subjects'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings.subscription'
@@ -409,6 +410,12 @@ const AuthenticatedSettingsSetupRoute =
     path: '/setup',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsSiteTeachersRoute =
+  AuthenticatedSettingsSiteTeachersRouteImport.update({
+    id: '/site-teachers',
+    path: '/site-teachers',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsStatsRoute =
   AuthenticatedSettingsStatsRouteImport.update({
     id: '/stats',
@@ -564,6 +571,7 @@ export interface FileRoutesByFullPath {
   '/settings/news': typeof AuthenticatedSettingsNewsRoute
   '/settings/reports': typeof AuthenticatedSettingsReportsRoute
   '/settings/setup': typeof AuthenticatedSettingsSetupRoute
+  '/settings/site-teachers': typeof AuthenticatedSettingsSiteTeachersRoute
   '/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
@@ -641,6 +649,7 @@ export interface FileRoutesByTo {
   '/settings/news': typeof AuthenticatedSettingsNewsRoute
   '/settings/reports': typeof AuthenticatedSettingsReportsRoute
   '/settings/setup': typeof AuthenticatedSettingsSetupRoute
+  '/settings/site-teachers': typeof AuthenticatedSettingsSiteTeachersRoute
   '/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
@@ -721,6 +730,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/news': typeof AuthenticatedSettingsNewsRoute
   '/_authenticated/settings/reports': typeof AuthenticatedSettingsReportsRoute
   '/_authenticated/settings/setup': typeof AuthenticatedSettingsSetupRoute
+  '/_authenticated/settings/site-teachers': typeof AuthenticatedSettingsSiteTeachersRoute
   '/_authenticated/settings/stats': typeof AuthenticatedSettingsStatsRoute
   '/_authenticated/settings/subjects': typeof AuthenticatedSettingsSubjectsRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
@@ -801,6 +811,7 @@ export interface FileRouteTypes {
     | '/settings/news'
     | '/settings/reports'
     | '/settings/setup'
+    | '/settings/site-teachers'
     | '/settings/stats'
     | '/settings/subjects'
     | '/settings/subscription'
@@ -878,6 +889,7 @@ export interface FileRouteTypes {
     | '/settings/news'
     | '/settings/reports'
     | '/settings/setup'
+    | '/settings/site-teachers'
     | '/settings/stats'
     | '/settings/subjects'
     | '/settings/subscription'
@@ -957,6 +969,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/news'
     | '/_authenticated/settings/reports'
     | '/_authenticated/settings/setup'
+    | '/_authenticated/settings/site-teachers'
     | '/_authenticated/settings/stats'
     | '/_authenticated/settings/subjects'
     | '/_authenticated/settings/subscription'
@@ -1427,6 +1440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsSetupRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/site-teachers': {
+      id: '/_authenticated/settings/site-teachers'
+      path: '/site-teachers'
+      fullPath: '/settings/site-teachers'
+      preLoaderRoute: typeof AuthenticatedSettingsSiteTeachersRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/stats': {
       id: '/_authenticated/settings/stats'
       path: '/stats'
@@ -1562,6 +1582,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsNewsRoute: typeof AuthenticatedSettingsNewsRoute
   AuthenticatedSettingsReportsRoute: typeof AuthenticatedSettingsReportsRoute
   AuthenticatedSettingsSetupRoute: typeof AuthenticatedSettingsSetupRoute
+  AuthenticatedSettingsSiteTeachersRoute: typeof AuthenticatedSettingsSiteTeachersRoute
   AuthenticatedSettingsStatsRoute: typeof AuthenticatedSettingsStatsRoute
   AuthenticatedSettingsSubjectsRoute: typeof AuthenticatedSettingsSubjectsRoute
   AuthenticatedSettingsSubscriptionRoute: typeof AuthenticatedSettingsSubscriptionRoute
@@ -1585,6 +1606,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsNewsRoute: AuthenticatedSettingsNewsRoute,
   AuthenticatedSettingsReportsRoute: AuthenticatedSettingsReportsRoute,
   AuthenticatedSettingsSetupRoute: AuthenticatedSettingsSetupRoute,
+  AuthenticatedSettingsSiteTeachersRoute:
+    AuthenticatedSettingsSiteTeachersRoute,
   AuthenticatedSettingsStatsRoute: AuthenticatedSettingsStatsRoute,
   AuthenticatedSettingsSubjectsRoute: AuthenticatedSettingsSubjectsRoute,
   AuthenticatedSettingsSubscriptionRoute:
