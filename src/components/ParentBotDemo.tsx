@@ -28,7 +28,7 @@ const STEPS: Step[] = [
 
 const STEP_MS = 5200;
 
-export function ParentBotDemo({ onClose }: { onClose: () => void }) {
+export function ParentBotDemo({ onClose, inline }: { onClose?: () => void; inline?: boolean }) {
   const [step, setStep] = useState(0);
   const [shown, setShown] = useState(0);
   const [playing, setPlaying] = useState(true);
@@ -46,11 +46,13 @@ export function ParentBotDemo({ onClose }: { onClose: () => void }) {
     setShown(Math.min(cur.msgs.length, Math.floor(t / per)));
     if (t >= STEP_MS) {
       if (step < STEPS.length - 1) { setStep(step + 1); setT(0); }
+      else if (inline) { setStep(0); setT(0); }
       else setPlaying(false);
     }
   }, [t, step]);
 
   useEffect(() => {
+    if (!onClose) return;
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
@@ -60,6 +62,26 @@ export function ParentBotDemo({ onClose }: { onClose: () => void }) {
   const visible = [...history, ...STEPS[step]!.msgs.slice(0, shown)];
   const restart = () => { setStep(0); setT(0); setShown(0); setPlaying(true); };
   const progress = (step + Math.min(1, t / STEP_MS)) / STEPS.length;
+
+  if (inline) {
+    return (
+      <div className="mx-auto flex h-[420px] w-full max-w-[250px] flex-col overflow-hidden rounded-[2rem] border-4 border-primary-foreground/20 bg-muted" aria-label="Ota-onalar uchun Telegram bot namoyishi">
+        <div className="flex items-center gap-2 bg-primary px-3 py-3 text-primary-foreground">
+          <img src="/logo.png?v=akhmad-20261019" alt="" className="h-8 w-8 rounded-full" />
+          <div className="leading-tight"><div className="text-xs font-semibold">Akhmad Academy</div><div className="text-[10px] opacity-70">bot</div></div>
+        </div>
+        <div className="bg-accent/90 px-3 py-1.5 text-[10px] font-semibold text-primary">{STEPS[step]!.caption}</div>
+        <div className="flex flex-1 flex-col justify-end gap-2 overflow-hidden p-3">
+          {visible.map((m, i) => (
+            <div key={`${step}-${i}-${m.text}`} className={`chat-pop max-w-[85%] ${m.from === "me" ? "self-end" : "self-start"}`}>
+              <div className={`whitespace-pre-line rounded-2xl px-3 py-2 text-[11px] leading-snug shadow-sm ${m.from === "me" ? "rounded-br-sm bg-accent text-primary" : "rounded-bl-sm bg-background text-foreground"}`}>{m.text}</div>
+            </div>
+          ))}
+        </div>
+        <style>{`@keyframes chatpop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}.chat-pop{animation:chatpop .35s ease-out both}`}</style>
+      </div>
+    );
+  }
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Ota-onalar uchun Telegram bot — qanday ishlaydi" className="fixed inset-0 z-50 flex items-center justify-center bg-primary/80 p-4 backdrop-blur-sm" onClick={onClose}>
