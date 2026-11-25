@@ -79,6 +79,22 @@ function TeacherProfile() {
           <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xl font-bold text-primary">
             {profile.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : (profile.full_name ?? "?").charAt(0)}
           </div>
+          <label className="cursor-pointer rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50">
+            Rasm yuklash
+            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+              const f = e.target.files?.[0]; if (!f) return;
+              const url = await shrinkImage(f);
+              const { error } = await supabase.rpc("set_teacher_photo" as never, { p_teacher: id, p_photo: url } as never);
+              if (error) { alert(error.message); return; }
+              setProfile((p) => (p ? { ...p, avatar_url: url } : p));
+            }} />
+          </label>
+          {profile.avatar_url && (
+            <button type="button" className="text-xs text-muted-foreground hover:text-destructive" onClick={async () => {
+              const { error } = await supabase.rpc("set_teacher_photo" as never, { p_teacher: id, p_photo: null } as never);
+              if (!error) setProfile((p) => (p ? { ...p, avatar_url: null } : p));
+            }}>O'chirish</button>
+          )}
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-bold">{profile.full_name ?? "—"}</h1>
             <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -188,4 +204,14 @@ function StudentList({ title, icon, items, empty }: { title: string; icon: React
       )}
     </div>
   );
+}
+
+/** Rasmni 480px gacha kichraytirib JPEG data-URL qiladi (sayt tez yuklanishi uchun). */
+async function shrinkImage(file: File): Promise<string> {
+  const img = await createImageBitmap(file);
+  const scale = Math.min(1, 480 / Math.max(img.width, img.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+  c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.75);
 }

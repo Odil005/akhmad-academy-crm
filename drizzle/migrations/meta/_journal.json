@@ -309,6 +309,13 @@
       "when": 1795626682508,
       "tag": "0043_site_teacher_public_view",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1795632873363,
+      "tag": "0044_teacher_photo_and_public_stats",
+      "breakpoints": true
     }
   ]
 }

@@ -4418,12 +4418,21 @@ export type Database = {
       }
     }
     Views: {
+      site_public_stats: {
+        Row: {
+          groups: number | null
+          students: number | null
+          teachers: number | null
+        }
+        Relationships: []
+      }
       site_teacher_public: {
         Row: {
           group_count: number | null
           id: string | null
           level: string | null
           name: string | null
+          photo_url: string | null
           student_count: number | null
           subject: string | null
         }
@@ -4559,6 +4568,10 @@ export type Database = {
           attendance_date: string
           lesson_id: string
         }[]
+      }
+      set_teacher_photo: {
+        Args: { p_photo: string; p_teacher: string }
+        Returns: undefined
       }
       teacher_payroll_preview: {
         Args: { p_period: string }

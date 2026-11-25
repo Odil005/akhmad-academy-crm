@@ -236,10 +236,21 @@ function useHomepageCourses() {
 }
 
 function useHomepageStats() {
-  const values = useSetting("homepage_stats", DEFAULT_STATS);
+  const base = useSetting("homepage_stats", DEFAULT_STATS);
+  const { data: live } = useQuery({
+    queryKey: ["public-live-stats"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("site_public_stats").select("students, teachers, groups").maybeSingle();
+      return data as { students: number; teachers: number; groups: number } | null;
+    },
+  });
+  const values = live
+    ? { ...base, students: `${live.students}+`, teachers: `${live.teachers}+`, courses: `${live.groups}+` }
+    : base;
   return [
     { icon: Users, value: values.students, label: "O'quvchilar" },
-    { icon: BookOpen, value: values.courses, label: "Kurslar" },
+    { icon: BookOpen, value: values.courses, label: "Guruhlar" },
     { icon: GraduationCap, value: values.teachers, label: "O'qituvchilar" },
     { icon: Award, value: values.satisfaction, label: "Mamnun o'quvchilar" },
   ];
@@ -459,7 +470,7 @@ function useAutoTeachers() {
     queryFn: async () => {
       const { data } = await supabase
         .from("site_teacher_public")
-        .select("id, name, subject, level, student_count")
+        .select("id, name, subject, level, student_count, photo_url")
         .order("student_count", { ascending: false })
         .limit(10);
       return (data ?? []) as {
@@ -468,6 +479,7 @@ function useAutoTeachers() {
         subject: string;
         level: string;
         student_count: number;
+        photo_url: string | null;
       }[];
     },
   });
@@ -478,6 +490,7 @@ function useAutoTeachers() {
     qualification: LEVEL_LABEL[t.level] ?? "",
     experience: "",
     students: t.student_count ? String(t.student_count) : "",
+    photo_url: t.photo_url ?? "",
   })) as SiteTeacher[];
 }
 
