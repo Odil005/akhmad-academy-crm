@@ -54,7 +54,7 @@ function SettingsLayout() {
     },
     { to: "/settings/marketplace", label: "Marketplace", icon: ShoppingBag, show: true },
     { to: "/settings/design", label: "Dizayn & Homepage", icon: Palette, show: isDirector },
-    { to: "/settings/contact", label: "Aloqa ma'lumotlari", icon: MapPin, show: isDirector },
+    { to: "/settings/contact", label: "Aloqa va joylashuv", icon: MapPin, show: true },
     { to: "/settings/stats", label: "Bosh sahifa raqamlari", icon: BarChart3, show: true },
     { to: "/settings/news", label: "Yangiliklar & Bannerlar", icon: Megaphone, show: true },
 

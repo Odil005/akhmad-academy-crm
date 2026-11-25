@@ -22,6 +22,8 @@ const logoAsset = { url: "/logo.png?v=akhmad-20261019", webp: "/logo-256.webp?v=
 import heroClassroom from "@/assets/hero-classroom.webp";
 import heroClassroom640 from "@/assets/hero-classroom-640.webp";
 import { useState } from "react";
+import { Languages, Calculator, FlaskConical, Leaf, Brain, BookText, Navigation } from "lucide-react";
+import { hasLocation, osmEmbedUrl, directionsLinks, type SiteLocation } from "@/lib/site-location";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,7 +141,7 @@ function Header() {
 
             <button
               onClick={() => handleNav("#contact")}
-              className="hidden items-center gap-3 self-stretch bg-[oklch(0.45_0.22_265)] px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-[oklch(0.50_0.22_265)] lg:inline-flex"
+              className="hidden items-center gap-3 self-stretch bg-accent px-8 text-sm font-semibold text-primary transition-opacity hover:opacity-90 lg:inline-flex"
             >
               Qabulga yozilish <ArrowRight className="h-4 w-4" />
             </button>
@@ -182,7 +184,7 @@ function Header() {
 
               <button
                 onClick={() => handleNav("#contact")}
-                className="mt-2 rounded-lg bg-[oklch(0.45_0.22_265)] px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
+                className="mt-2 rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-primary"
               >
                 Qabulga yozilish
               </button>
@@ -281,11 +283,11 @@ function Hero() {
                     textWrap: "balance",
                   }}
                 >
-                  Natija tasodif emas. U tizimdan boshlanadi.
+                  Kelajak bilim bilan <span className="text-accent">boshlanadi</span>
                 </h1>
                 <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
-                  Zamonaviy o'quv markazi: aniq jadval, shaffof to'lov, har bir o'quvchi uchun
-                  individual natija xaritasi.
+                  Til, aniq va tabiiy fanlar — tajribali ustozlar, kichik guruhlar va har oy
+                  natija nazorati bilan.
                 </p>
                 <div className="mt-8 h-px w-40 bg-accent" />
                 <a
@@ -350,55 +352,90 @@ function Hero() {
 type HomepageCourse = { id: string; title: string; description: string; level: string };
 
 const DEFAULT_COURSES: HomepageCourse[] = [
-  { id: "1", title: "Ingliz tili", description: "Boshlang'ich darajadan IELTS/CEFRgacha", level: "A1 – C1" },
-  { id: "2", title: "Nemis tili", description: "Start Deutsch va TestDaF yo'nalishi", level: "A1 – B2" },
-  { id: "3", title: "Rus tili", description: "Suhbat, grammatika va yozma nutq", level: "A1 – B2" },
+  { id: "en", title: "Ingliz tili", description: "Boshlang'ichdan IELTS va CEFRgacha", level: "A1 – C1" },
+  { id: "ru", title: "Rus tili", description: "So'zlashuv, grammatika va yozma nutq", level: "A1 – B2" },
+  { id: "ko", title: "Koreys tili", description: "TOPIK imtihoniga tayyorgarlik", level: "TOPIK I – II" },
+  { id: "tr", title: "Turk tili", description: "So'zlashuv va TÖMER yo'nalishi", level: "A1 – B2" },
+  { id: "de", title: "Nemis tili", description: "Start Deutsch va Goethe imtihonlari", level: "A1 – B2" },
+  { id: "math", title: "Matematika", description: "Maktab dasturi, DTM va olimpiada", level: "5–11-sinf" },
+  { id: "chem", title: "Kimyo", description: "Nazariya, masalalar va DTM testlari", level: "7–11-sinf" },
+  { id: "bio", title: "Biologiya", description: "Tibbiyotga kirish uchun chuqur kurs", level: "7–11-sinf" },
+  { id: "mental", title: "Mental arifmetika", description: "Tez hisoblash va diqqatni rivojlantirish", level: "5–12 yosh" },
+  { id: "ona", title: "Ona tili va adabiyot", description: "Savodxonlik, imlo va adabiyot", level: "DTM" },
 ];
+
+function courseIcon(title: string) {
+  const t = title.toLowerCase();
+  if (/matem|arifm/.test(t)) return t.includes("mental") ? Brain : Calculator;
+  if (t.includes("kimyo")) return FlaskConical;
+  if (/biolog|bialog/.test(t)) return Leaf;
+  if (/ona tili|adabiyot/.test(t)) return BookText;
+  if (/tili/.test(t)) return Languages;
+  return BookOpen;
+}
 
 function Courses() {
   const courses = useHomepageCourses();
   return (
-    <section id="courses" className="border-t border-border/60 bg-background/70 py-20 cv-auto">
+    <section id="courses" className="border-t border-border/60 bg-background py-24 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="max-w-2xl">
-          <span className="text-sm font-semibold uppercase tracking-widest text-primary">
-            Fanlar
-          </span>
-          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-            Sizga mos fanni tanlang
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Akhmad Academy'da har bir o'quvchi o'z darajasi va maqsadiga mos fanni topa oladi.
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Kurslar</span>
+          <h2 className="mt-3 font-display text-4xl tracking-tight text-primary md:text-5xl">Bizning fanlarimiz</h2>
+          <div className="mx-auto mt-5 h-px w-24 bg-accent" />
+          <p className="mt-5 text-muted-foreground">
+            Har bir fan bo'yicha daraja aniqlanadi, guruh tanlanadi va har oy natija ota-onaga yuboriladi.
           </p>
         </div>
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((c) => (
-            <div
-              key={c.id}
-              className="group rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary/60 hover:shadow-xl hover:shadow-primary/10"
-            >
-              <div className="flex items-start justify-between">
-                <BookOpen className="h-8 w-8 text-primary" />
-                {c.level && (
-                  <span className="rounded-full border border-primary/40 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                    {c.level}
-                  </span>
-                )}
-              </div>
-              <h3 className="mt-5 text-xl font-bold text-foreground">{c.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{c.description}</p>
+        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {courses.map((c, i) => {
+            const Icon = courseIcon(c.title);
+            return (
               <a
+                key={c.id}
                 href="#contact"
-                className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-primary/10"
               >
-                Batafsil{" "}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <span className="absolute right-5 top-4 font-display text-3xl text-muted-foreground/20">{String(i + 1).padStart(2, "0")}</span>
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-accent transition-colors group-hover:bg-accent group-hover:text-primary">
+                  <Icon className="h-6 w-6" />
+                </span>
+                <h3 className="mt-5 font-display text-xl text-primary">{c.title}</h3>
+                <p className="mt-2 flex-1 text-sm text-muted-foreground">{c.description}</p>
+                <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
+                  {c.level ? <span className="text-xs font-semibold uppercase tracking-wider text-accent">{c.level}</span> : <span />}
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/60 text-accent transition-colors group-hover:bg-accent group-hover:text-primary">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </div>
               </a>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
+  );
+}
+
+function LocationMap() {
+  const loc = useSetting<SiteLocation>("site_location", {});
+  if (!hasLocation(loc)) return null;
+  const links = directionsLinks(loc.lat, loc.lng);
+  return (
+    <div className="mt-8 overflow-hidden rounded-2xl border border-border bg-card">
+      <iframe title="Akhmad Academy joylashuvi" src={osmEmbedUrl(loc.lat, loc.lng)} className="h-64 w-full" loading="lazy" />
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+        <span className="text-sm text-muted-foreground">{loc.label || "Markaz joylashuvi"}</span>
+        <div className="flex gap-2">
+          <a href={links.google} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">
+            <Navigation className="h-3.5 w-3.5" /> Google Maps
+          </a>
+          <a href={links.yandex} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground">
+            <Navigation className="h-3.5 w-3.5" /> Yandex
+          </a>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -524,6 +561,7 @@ function Contact() {
                 </a>
               )}
             </div>
+            <LocationMap />
           </div>
           <form
             onSubmit={async (e) => {

@@ -281,6 +281,13 @@
       "when": 1795514037969,
       "tag": "0039_rls_initplan_speedup",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1795625777969,
+      "tag": "0040_migration",
+      "breakpoints": true
     }
   ]
 }
