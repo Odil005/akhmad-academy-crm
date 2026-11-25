@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GraduationCap, ArrowLeft, User, Mail, Eye, EyeOff } from "lucide-react";
-import { BackgroundAnimation } from "@/components/BackgroundAnimation";
+import { GraduationCap, ArrowLeft, ArrowRight, User, Mail, Eye, EyeOff, BookOpenCheck, BadgeCheck, Users, CheckCircle2, Wallet, Bell } from "lucide-react";
+import heroClassroom from "@/assets/hero-classroom.webp";
 import { getSiteTenant, type SiteTenant } from "@/lib/tenant.functions";
 
 export const Route = createFileRoute("/auth")({
@@ -38,6 +38,8 @@ function AuthPage() {
     navigate({ to: "/dashboard" });
   };
   const [tab, setTab] = useState<Tab>("username");
+  const [profile, setProfile] = useState<"student" | "staff" | "parent" | null>(null);
+  const [stage, setStage] = useState<"choose" | "form">("choose");
 
   // email tab state
   const [email, setEmail] = useState("");
@@ -114,30 +116,68 @@ function AuthPage() {
     }
   };
 
+  const proceed = () => {
+    if (profile === "parent") { navigate({ to: "/ota-ona" }); return; }
+    if (profile) { switchTab("username"); setStage("form"); }
+  };
+  const PROFILES = [
+    { id: "student" as const, icon: BookOpenCheck, title: "O'quvchi", desc: "Darslar, uyga vazifa va natijalaringiz" },
+    { id: "staff" as const, icon: BadgeCheck, title: "Xodim", desc: "O'qituvchi, administrator va direktor" },
+    { id: "parent" as const, icon: Users, title: "Ota-ona", desc: "Farzandingiz davomati, baholari va to'lovlari" },
+  ];
+
   return (
     <main className="relative min-h-screen bg-background text-foreground">
-      <BackgroundAnimation variant="subtle" />
-      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-12">
-        <Link to="/" className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
-          <ArrowLeft className="h-4 w-4" /> Bosh sahifa
+      <div className="grid min-h-screen lg:grid-cols-2">
+      <div className="flex flex-col px-6 py-8 md:px-14">
+        <Link to="/" className="inline-flex w-fit items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary">
+            {tenant?.logo_url ? <img src={tenant.logo_url} alt={tenant.name} className="h-full w-full object-cover" /> : <img src="/logo.png?v=akhmad-20261019" alt="Akhmad Academy" className="h-full w-full object-cover" />}
+          </span>
+          <span className="leading-tight">
+            <span className="block font-display text-lg text-primary">{tenant ? tenant.name : "Akhmad Academy"}</span>
+            <span className="block text-[11px] text-muted-foreground">O'quv markazi</span>
+          </span>
         </Link>
-        <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-primary">
-              {tenant?.logo_url ? (
-                <img src={tenant.logo_url} alt={tenant.name} className="h-full w-full object-cover" />
-              ) : tenant ? (
-                <span className="text-lg font-bold">{tenant.name.charAt(0)}</span>
-              ) : (
-                <GraduationCap className="h-6 w-6" />
-              )}
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10">
+        {stage === "choose" ? (
+          <div>
+            <h1 className="font-display text-4xl tracking-tight text-primary md:text-5xl">Profilingizni tanlang</h1>
+            <p className="mt-3 text-sm text-muted-foreground">Kim sifatida kirmoqchisiz?</p>
+            <div className="mt-8 space-y-3">
+              {PROFILES.map((p) => {
+                const active = profile === p.id;
+                return (
+                  <button key={p.id} type="button" onClick={() => setProfile(p.id)}
+                    className={`flex w-full items-center gap-4 rounded-2xl border p-5 text-left transition-all ${active ? "border-accent bg-accent/15" : "border-transparent bg-muted/60 hover:bg-muted"}`}>
+                    <p.icon className={`h-9 w-9 flex-none ${active ? "text-accent" : "text-muted-foreground"}`} />
+                    <span className="flex-1">
+                      <span className="block font-semibold text-foreground">{p.title}</span>
+                      <span className="block text-sm text-muted-foreground">{p.desc}</span>
+                    </span>
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${active ? "border-accent" : "border-muted-foreground/40"}`}>
+                      {active && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">{tenant ? tenant.name : "Akhmad Academy CRM"}</h1>
-              <p className="text-xs text-muted-foreground">{tenant ? "UNI CRM · Kabinetga kirish" : "Kabinetga kirish"}</p>
-            </div>
+            <button type="button" disabled={!profile} onClick={proceed}
+              className="mt-6 flex w-full items-center justify-between rounded-2xl bg-accent px-6 py-4 text-sm font-semibold text-primary transition-opacity disabled:bg-muted disabled:text-muted-foreground">
+              <span className="flex-1 text-center">Davom etish</span> <ArrowRight className="h-5 w-5" />
+            </button>
+            <button type="button" onClick={() => { switchTab("email"); setStage("form"); }} className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-primary">
+              Email bilan kirish
+            </button>
           </div>
-
+        ) : (
+        <div>
+          <button type="button" onClick={() => { setStage("choose"); setError(null); }} className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
+            <ArrowLeft className="h-4 w-4" /> Orqaga
+          </button>
+          <h1 className="font-display text-3xl text-primary md:text-4xl">{tab === "email" ? "Email bilan kirish" : profile === "student" ? "O'quvchi kabineti" : "Xodim kabineti"}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{tenant ? `${tenant.name} · UNI CRM` : "Akhmad Academy CRM"}</p>
+          <div className="hidden">
           {/* Tab switcher */}
           <div className="mt-6 grid grid-cols-2 gap-1 rounded-lg border border-border p-1">
             <button
@@ -158,6 +198,7 @@ function AuthPage() {
             >
               <Mail className="h-4 w-4" /> Email bilan
             </button>
+          </div>
           </div>
 
           {tab === "username" ? (
@@ -236,6 +277,10 @@ function AuthPage() {
             </>
           )}
         </div>
+        )}
+        </div>
+      </div>
+      <AuthShowcase />
       </div>
       <style>{`.input{width:100%;border-radius:.5rem;border:1px solid var(--border);background:var(--background);padding:.75rem 1rem;font-size:.875rem;color:var(--foreground);outline:none}.input:focus{border-color:var(--primary)}`}</style>
     </main>
@@ -287,6 +332,42 @@ function PasswordInput({
       >
         {visible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
       </button>
+    </div>
+  );
+}
+
+
+function AuthShowcase() {
+  return (
+    <div className="relative hidden p-4 lg:block">
+      <div className="relative h-full overflow-hidden rounded-3xl bg-primary">
+        <img src={heroClassroom} alt="Akhmad Academy darsxonasi" className="absolute inset-0 h-full w-full object-cover opacity-70" width={1280} height={1024} />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/30 to-transparent" />
+        <a href="/" className="absolute right-6 top-6 rounded-full bg-background px-5 py-2.5 text-sm font-medium text-foreground">akhmadacademy.life ↗</a>
+
+        <div className="float-a absolute left-10 top-28 w-64 rounded-2xl bg-background/95 p-4 shadow-2xl backdrop-blur">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-accent" /> Bugungi davomat</div>
+          <div className="mt-2 font-display text-3xl text-primary">94%</div>
+          <div className="mt-2 flex gap-1">{[1,1,1,0,1,1,1,1,0,1].map((v, i) => <span key={i} className={`h-6 flex-1 rounded ${v ? "bg-accent" : "bg-muted"}`} />)}</div>
+        </div>
+
+        <div className="float-b absolute right-10 top-1/3 w-60 rounded-2xl bg-background/95 p-4 shadow-2xl backdrop-blur">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><Wallet className="h-4 w-4 text-accent" /> To'lov qabul qilindi</div>
+          <div className="mt-2 text-lg font-bold text-primary">450 000 so'm</div>
+          <div className="text-xs text-muted-foreground">Ingliz tili · Noyabr</div>
+        </div>
+
+        <div className="float-c absolute bottom-28 left-14 w-72 rounded-2xl bg-background/95 p-4 shadow-2xl backdrop-blur">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><Bell className="h-4 w-4 text-accent" /> Ota-onaga Telegram xabar</div>
+          <p className="mt-2 text-sm text-foreground">Farzandingiz darsga keldi. Bugungi baho: <b>5</b></p>
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 p-10 text-primary-foreground">
+          <p className="font-display text-3xl">Bilim — eng katta boylik</p>
+          <p className="mt-2 text-sm text-primary-foreground/75">O'quvchi, ustoz va ota-ona — barchasi bitta tizimda.</p>
+        </div>
+      </div>
+      <style>{`@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}.float-a{animation:floaty 6s ease-in-out infinite}.float-b{animation:floaty 7s ease-in-out 1s infinite}.float-c{animation:floaty 8s ease-in-out .5s infinite}@media (prefers-reduced-motion:reduce){.float-a,.float-b,.float-c{animation:none}}`}</style>
     </div>
   );
 }

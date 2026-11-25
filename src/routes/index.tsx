@@ -20,7 +20,9 @@ import heroClassroom from "@/assets/hero-classroom.webp";
 import heroClassroom640 from "@/assets/hero-classroom-640.webp";
 import { useState } from "react";
 import type { SiteTeacher } from "@/lib/site-teachers";
-import { Smartphone, ScanFace, MessageCircle, Sparkles, Trophy, Languages, Calculator, FlaskConical, Leaf, Brain, BookText, Navigation } from "lucide-react";
+import { lazy, Suspense } from "react";
+const ParentBotDemo = lazy(() => import("@/components/ParentBotDemo").then((m) => ({ default: m.ParentBotDemo })));
+import { Play, Smartphone, ScanFace, MessageCircle, Sparkles, Trophy, Languages, Calculator, FlaskConical, Leaf, Brain, BookText, Navigation } from "lucide-react";
 import { hasLocation, osmEmbedUrl, directionsLinks, type SiteLocation } from "@/lib/site-location";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -482,6 +484,7 @@ function Stat({ k, v, hl }: { k: string; v: string; hl?: boolean }) {
 }
 
 function Advantages() {
+  const [demo, setDemo] = useState(false);
   return (
     <section id="features" className="border-t border-border/60 bg-background py-24 cv-auto">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -498,8 +501,14 @@ function Advantages() {
               <h3 className="mt-6 font-display text-3xl">Ota-onalar uchun ilova va Telegram bot</h3>
               <p className="mt-4 text-primary-foreground/75">Davomat, baholar, to'lovlar va har oylik natija — farzandingiz haqidagi hamma ma'lumot telefoningizda, real vaqtda.</p>
             </div>
-            <a href="#contact" className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-primary">Sinov darsiga yozilish <ArrowRight className="h-4 w-4" /></a>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button type="button" onClick={() => setDemo(true)} className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-primary">
+                <Play className="h-4 w-4" /> Qanday ishlaydi — videoni ko'rish
+              </button>
+              <Link to="/ota-ona" className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-semibold text-primary-foreground">Ota-ona kabineti <ArrowRight className="h-4 w-4" /></Link>
+            </div>
           </div>
+          {demo && <Suspense fallback={null}><ParentBotDemo onClose={() => setDemo(false)} /></Suspense>}
           <Bento icon={ScanFace} title="Face ID davomat" text="O'quvchi markazga kelganda yuzidan tanib olinadi, ota-onaga darhol xabar boradi." />
           <Bento icon={Trophy} title="Imtihonlarga tayyorlov" text="IELTS, TOPIK, CEFR, DTM va olimpiadalar uchun maxsus dasturlar va mock imtihonlar." />
           <Bento icon={Sparkles} title="AI yordamchi va bilim o'yinlari" text="Darsdan tashqari mashqlar, testlar va o'yinlar orqali mustahkamlash." />
