@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, CalendarClock, Loader2, Send, SplitSquareHorizontal } from "lucide-react";
+import { AlertTriangle, CalendarClock, Loader2, Send, SplitSquareHorizontal, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { createPaymentPlan, listDebtors, sendDebtReminders } from "@/lib/collections.functions";
+import { cancelStudentDebt, createPaymentPlan, listDebtors, sendDebtReminders } from "@/lib/collections.functions";
 
 export const Route = createFileRoute("/_authenticated/debtors")({
   component: DebtorsPage,
@@ -42,6 +42,15 @@ function DebtorsPage() {
   const fetchDebtors = useServerFn(listDebtors);
   const sendReminders = useServerFn(sendDebtReminders);
   const createPlan = useServerFn(createPaymentPlan);
+  const cancelDebt = useServerFn(cancelStudentDebt);
+  const cancelMutation = useMutation({
+    mutationFn: (id: string) => cancelDebt({ data: { student_id: id } }),
+    onSuccess: (r) => {
+      toast.success(`Qarz o'chirildi (${r.cancelled} ta yozuv)`);
+      void queryClient.invalidateQueries({ queryKey: ["debtors"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const [selected, setSelected] = useState<string[]>([]);
   const [planFor, setPlanFor] = useState<{ id: string; name: string; debt: number } | null>(null);
@@ -243,6 +252,16 @@ function DebtorsPage() {
                         className="inline-flex items-center gap-1 rounded-md border border-border/60 px-2 py-1 text-xs hover:bg-muted/50"
                       >
                         <SplitSquareHorizontal className="h-3 w-3" /> Bo'lib to'lash
+                      </button>
+                      <button
+                        type="button"
+                        disabled={cancelMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm(`${row.student_name} qarzini (${money(Number(row.debt_total))} so'm) o'chiramizmi?`)) cancelMutation.mutate(row.student_id);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md border border-destructive/50 px-2 py-1 text-xs text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                      >
+                        <Trash2 className="h-3 w-3" /> O'chirish
                       </button>
                     </div>
                   </td>

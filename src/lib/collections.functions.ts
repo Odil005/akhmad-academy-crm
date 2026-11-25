@@ -224,3 +224,19 @@ export const closeCashShift = createServerFn({ method: "POST" })
     }
     return { difference, notified, summary: text };
   });
+
+/** Qarzni bekor qilish: kutilayotgan to'lovlar "cancelled" bo'ladi (o'chirilmaydi, tarix saqlanadi). */
+export const cancelStudentDebt = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ student_id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: roles } = await context.supabase
+      .from("user_roles").select("role").eq("user_id", context.userId);
+    const ok = (roles ?? []).some((r) => r.role === "director" || r.role === "admin");
+    if (!ok) throw new Error("Faqat direktor yoki administrator qarzni bekor qila oladi");
+    const { data: rows, error } = await context.supabase
+      .from("payments").update({ status: "cancelled" })
+      .eq("student_id", data.student_id).eq("status", "pending").select("id");
+    if (error) throw new Error(error.message);
+    return { cancelled: rows?.length ?? 0 };
+  });
