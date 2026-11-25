@@ -95,7 +95,7 @@ function Header() {
     <header className="relative z-40">
       {/* Ticker strip */}
       <div className="bg-primary text-primary-foreground">
-        <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-2.5 md:px-8">
+        <div className="mx-auto flex max-w-none items-center gap-3 px-4 py-2.5 md:px-8">
           <span className="h-1.5 w-1.5 rounded-full bg-accent" />
           <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">
             Akhmad Academy
@@ -107,7 +107,7 @@ function Header() {
 
       {/* Nav */}
       <div className="bg-primary">
-        <nav className="mx-auto flex max-w-[1400px] items-stretch justify-between px-4 md:px-8">
+        <nav className="mx-auto flex max-w-none items-stretch justify-between px-4 md:px-8">
           <a href="#home" className="flex items-center gap-4 py-4">
             <Monogram className="h-11 w-11" />
             <span className="font-display text-base tracking-[0.28em] text-primary-foreground">
@@ -249,10 +249,10 @@ function Hero() {
   const stats = useHomepageStats();
   return (
     <section id="home" className="relative bg-primary">
-      <div className="mx-auto max-w-[1400px] px-4 md:px-8">
-        <div className="relative grid gap-0 overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="w-full">
+        <div className="relative grid min-h-[calc(100vh-7.5rem)] gap-0 overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           {/* Left panel */}
-          <div className="relative z-10 bg-background px-6 py-16 md:px-14 md:py-28">
+          <div className="relative z-10 bg-background px-6 py-16 md:flex md:items-center md:px-16 lg:px-24 md:py-28">
             <div className="flex gap-6 md:gap-10">
               <div className="hidden flex-col items-center gap-4 pt-4 md:flex">
                 <span className="h-16 w-px bg-accent" />
@@ -266,28 +266,28 @@ function Hero() {
                 ))}
               </div>
 
-              <div className="min-w-0 max-w-xl">
+              <div className="min-w-0 max-w-2xl">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">
                   Akhmad Academy
                 </span>
                 <h1
-                  className="mt-5 pb-2 font-display tracking-tight text-primary"
+                  className="mt-5 pb-2 font-display font-bold tracking-tight text-primary"
                   style={{
-                    fontSize: "clamp(2.15rem, 6.2vw, 3.6rem)",
+                    fontSize: "clamp(2.5rem, 6.2vw, 5rem)",
                     lineHeight: 1.14,
                     textWrap: "balance",
                   }}
                 >
                   Kelajak bilim bilan <span className="text-accent">boshlanadi</span>
                 </h1>
-                <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
+                <p className="mt-6 max-w-lg text-lg font-semibold leading-relaxed text-foreground/80 md:text-xl">
                   Til, aniq va tabiiy fanlar — tajribali ustozlar, kichik guruhlar va har oy
                   natija nazorati bilan.
                 </p>
                 <div className="mt-8 h-px w-40 bg-accent" />
                 <a
                   href="#courses"
-                  className="mt-9 inline-flex items-center gap-5 border border-primary/40 px-7 py-4 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                  className="mt-9 inline-flex items-center gap-5 border border-primary/40 px-8 py-4 text-base font-bold text-primary transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
                 >
                   Akademiyani ko'rish <ArrowRight className="h-4 w-4" />
                 </a>
@@ -323,7 +323,7 @@ function Hero() {
 
       {/* Stats strip */}
       <div className="border-t border-accent/20">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-y-6 px-4 py-7 md:grid-cols-4 md:px-8">
+        <div className="mx-auto grid max-w-none grid-cols-2 gap-y-6 px-4 py-7 md:grid-cols-4 md:px-8">
           {stats.map((s, i) => (
             <div
               key={s.label}
@@ -331,10 +331,10 @@ function Hero() {
             >
               <s.icon className="h-6 w-6 text-accent" />
               <div className="flex items-baseline gap-2">
-                <span className="font-display text-2xl text-primary-foreground md:text-3xl">
+                <span className="font-display text-3xl font-bold text-primary-foreground md:text-4xl">
                   {s.value}
                 </span>
-                <span className="text-sm text-primary-foreground/70">{s.label}</span>
+                <span className="text-base font-semibold text-primary-foreground/85">{s.label}</span>
               </div>
             </div>
           ))}
@@ -372,7 +372,7 @@ function courseIcon(title: string) {
 function IntroVideo() {
   return (
     <section aria-label="Akhmad Academy video" className="bg-primary pb-16">
-      <div className="mx-auto max-w-5xl px-4 md:px-8">
+      <div className="w-full px-4 md:px-8">
         <video src={introVideo.url} autoPlay muted loop playsInline preload="metadata" className="aspect-video w-full rounded-3xl object-cover shadow-2xl" />
       </div>
     </section>
